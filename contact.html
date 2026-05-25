@@ -4,9 +4,8 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Zulfiqar Restaurant || Home</title>
-    <link rel="icon" href="./assets/logi.png" type="image/x-icon">
-    <link rel="shortcut icon" href="./assets/logi.png" type="image/x-icon" />
+    <title>Contact || Zulfiqar Restaurant</title>
+    <link rel="shortcut icon" href="./assets/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="./css/normalize.css" />
     <link
       rel="stylesheet"
@@ -19,10 +18,10 @@
       <div class="nav-center">
         <div class="nav-header">
           <a href="index.html" class="nav-logo">
-            <img src="./assets/logi.png" style="height: 100px; width: 100px" alt="Zulfiqar Restaurant" />
+            <img src="./assets/logo.svg" alt="Zulfiqar Restaurant" />
           </a>
           <button class="nav-btn btn">
-            <i class=\"fas fa-align-justify\"></i>
+            <i class="fas fa-align-justify"></i>
           </button>
         </div>
         <div class="nav-links">
@@ -38,24 +37,40 @@
       </div>
     </nav>
     <main class="page">
-      <header class="hero">
-        <div class="hero-container" style="background-color: maroon; color: white">
-          <div class="hero-text">
-            <h1>Zulfiqar Restaurant</h1>
-            <h4>Authentic BBQ & Traditional Taste</h4>
-          </div>
-        </div>
-      </header>
-      <section class="recipes-container">
-        <div class="tags-container">
-          <h4>recipes</h4>
-          <div class="tags-list">
-            <a href="tag-template.html">Beef (1)</a>
-            <a href="tag-template.html">BBQ (2)</a>
-            <a href="tag-template.html">Chicken (2)</a>
-            <a href="tag-template.html">Dinner (4)</a>
-          </div>
-        </div>
+       <section class="contact-page">
+         <article class="contact-info">
+           <h3>Craving Authentic BBQ?</h3>
+           <p>
+             We are specialized in chicken, beef, and mutton tikka, malai boti, kabab, 
+             and much more. Reach out to us for catering queries, large group bookings, or feedback!
+           </p>
+           <p>
+             Drop your details in the form, or visit us directly to explore the true essence 
+             of traditional culinary preparation.
+           </p>
+         </article>
+         <article>
+           <form class="form contact-form" onsubmit="event.preventDefault();">
+             <div class="form-row">
+               <label htmlfor="name" class="form-label">your name</label>
+               <input type="text" name="name" id="name" class="form-input" />
+             </div>
+             <div class="form-row">
+               <label htmlfor="email" class="form-label">your email</label>
+               <input type="text" name="email" id="email" class="form-input" />
+             </div>
+             <div class="form-row">
+               <label htmlfor="message" class="form-label">message</label>
+               <textarea name="message" id="message" class="form-textarea"></textarea>
+             </div>
+             <button type="submit" class="btn btn-block">
+               submit
+             </button>
+           </form>
+         </article>
+       </section>
+     <section class="featured-recipes">
+        <h5>Look At These Awesomesauce!</h5>
         <div class="recipes-list">
           <a href="single-recipe.html" class="recipe">
             <img
@@ -84,17 +99,8 @@
             <h5>Mutton Kabab</h5>
             <p>Prep : 20min | Cook : 15min</p>
           </a>
-          <a href="single-recipe.html" class="recipe">
-            <img
-              src="./assets/recipes/recipe-4.jpg"
-              class="img recipe-img"
-              alt="Chicken Karahi"
-            />
-            <h5>Chicken Karahi</h5>
-            <p>Prep : 10min | Cook : 25min</p>
-          </a>
           </div>
-        </section>
+      </section>
     </main>
     <footer class="page-footer">
       <p>

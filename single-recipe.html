@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Single Recipe || Zulfiqar Restaurant</title>
+    <link rel="shortcut icon" href="./assets/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="./css/normalize.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="./css/main.css" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="nav-center">
+        <div class="nav-header">
+          <a href="index.html" class="nav-logo">
+            <img src="./assets/logo.svg" alt="Zulfiqar Restaurant" />
+          </a>
+          <button class="nav-btn btn">
+            <i class="fas fa-align-justify"></i>
+          </button>
+        </div>
+        <div class="nav-links">
+          <a href="index.html" class="nav-link"> home </a>
+          <a href="about.html" class="nav-link"> about </a>
+          <a href="tags.html" class="nav-link"> tags </a>
+          <a href="recipes.html" class="nav-link"> recipes </a>
+
+          <div class="nav-link contact-link">
+            <a href="contact.html" class="btn"> contact </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <main class="page">
+      <div class="recipe-page">
+        <section class="recipe-hero">
+          <img
+            src="./assets/recipes/recipe-2.jpg"
+            class="img recipe-hero-img"
+            alt="Malai Boti"
+          />
+          <article class="recipe-info">
+            <h2>Malai Boti</h2>
+            <p class="recipe-description">
+              Creamy, tender, and perfectly grilled meat skewers prepared with mild spices, 
+              fresh cream, and yogurt marination. A local luxury item designed to melt in your mouth.
+            </p>
+            <div class="recipe-icons">
+              <article>
+                <i class="fas fa-clock"></i>
+                <h5>prep time</h5>
+                <p>15 min.</p>
+              </article>
+              <article>
+                <i class="fas fa-marid"></i>
+                <h5>cook time</h5>
+                <p>15 min.</p>
+              </article>
+              <article>
+                <i class="fas fa-user-friends"></i>
+                <h5>servings</h5>
+                <p>4 servings</p>
+              </article>
+            </div>
+            <p class="recipe-tags">
+              Tags : <a href="tag-template.html">BBQ</a>
+              <a href="tag-template.html">Chicken</a>
+            </p>
+          </article>
+        </section>
+        <section class="recipe-content">
+          <article class="first-column">
+            <h4>instructions</h4>
+            <div class="single-instruction">
+              <header>
+                <p>step 1</p>
+                <div></div>
+              </header>
+              <p>
+                Marinate the tender chicken chunks with fresh heavy cream, yogurt, white pepper, 
+                and clean green chili paste for 4 hours.
+              </p>
+            </div>
+            <div class="single-instruction">
+              <header>
+                <p>step 2</p>
+                <div></div>
+              </header>
+              <p>
+                Skewer the marinated chicken chunks carefully onto fine metallic skewers.
+              </p>
+            </div>
+            <div class="single-instruction">
+              <header>
+                <p>step 3</p>
+                <div></div>
+              </header>
+              <p>
+                Grill gently over burning hot charcoal embers, brushing with ghee or butter regularly 
+                until perfectly tender and smoky.
+              </p>
+            </div>
+            </article>
+          <article class="second-column">
+            <div>
+              <h4>ingredients</h4>
+              <p class="single-ingredient">1 kg Chicken Boneless cubes</p>
+              <p class="single-ingredient">1 cup Fresh Heavy Cream</p>
+              <p class="single-ingredient">1/2 cup Yogurt</p>
+            </div>
+            <div>
+              <h4>tools</h4>
+              <p class="single-tool">Barbeque Skewers</p>
+              <p class="single-tool">Charcoal Grill Pit</p>
+              <p class="single-tool">Basting Brush</p>
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+    <footer class="page-footer">
+      <p>
+        &copy; <span id="date"></span>
+        <span class="footer-logo">Zulfiqar Restaurant</span> Built by
+        <a href="https://zulfiqarteams.github.io/Portfolio_Website/">Zulfiqar Teams</a>
+      </p>
+    </footer>
+    <script src="./js/app.js"></script>
+  </body>
+</html>

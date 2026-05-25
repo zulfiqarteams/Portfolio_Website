@@ -1,13 +1,19 @@
-(function () {
-    [...document.querySelectorAll(".control")].forEach(button => {
-        button.addEventListener("click", function() {
-            document.querySelector(".active-btn").classList.remove("active-btn");
-            this.classList.add("active-btn");
-            document.querySelector(".active").classList.remove("active");
-            document.getElementById(button.dataset.id).classList.add("active");
-        })
-    });
-    document.querySelector(".theme-btn").addEventListener("click", () => {
-        document.body.classList.toggle("light-mode");
-    })
-})();
+const getElement = (selector) => {
+  const element = document.querySelector(selector)
+
+  if (element) return element
+  throw Error(
+    `Please double check your class names, there is no ${selector} class`
+  )
+}
+
+const links = getElement('.nav-links')
+const navBtnDOM = getElement('.nav-btn')
+
+navBtnDOM.addEventListener('click', () => {
+  links.classList.toggle('show-links')
+})
+
+const date = getElement('#date')
+const currentYear = new Date().getFullYear()
+date.textContent = currentYear
