@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Wishlist - Riwayat Collections</title>
+  <link rel="stylesheet" href="./CSS/style.css">
+</head>
+
+<body>
+<script>
+  const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+  if (!currentUser) {
+    window.location.href = 'Login.html';
+  }
+</script>
+<div class="navbar">
+  <div class="brand">Riwayat Collections</div>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="wishList.html">Wishlist</a>
+    <a href="Orders.html">My Orders</a>
+    <a href="Cart.html" style="position: relative;">
+      Cart
+      <span class="cart-badge" id="cart-badge">0</span>
+    </a>
+  </div>
+</div>
+
+<div class="container">
+  <h2 class="section-title">My Wishlist</h2>
+  <div id="wishlist-items" class="grid grid-3"></div>
+  <div id="empty-wishlist" class="hidden" style="text-align: center; padding: 60px 20px;">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5" style="margin-bottom: 16px;">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+    </svg>
+    <p style="font-size: 18px; font-weight: 500; margin-bottom: 8px;">Your wishlist is empty</p>
+    <p style="color: #6b7280; margin-bottom: 24px;">Save items you love for later</p>
+    <a href="index.html" class="btn" style="text-decoration: none;">Explore Products</a>
+  </div>
+</div>
+
+<script type="module" src="./js/wishlist.js"></script>
+
+</body>
+</html>
