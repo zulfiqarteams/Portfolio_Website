@@ -1,604 +1,713 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio</title>
-    <link rel="stylesheet" href="styles/styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
-        integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="img/Zulfiqar Fullstack Logo (1).png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zulfiqar | Full Stack Developer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    :root {
+      --green:       #1a5c38;
+      --green-light: #2a7a4e;
+      --green-pale:  #e8f5ee;
+      --black:       #0d0d0d;
+      --white:       #ffffff;
+      --gray:        #f4f4f2;
+      --text:        #2c2c2c;
+      --muted:       #6b7280;
+      --border:      #e2e8f0;
+      --radius:      12px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--white);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 6%;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 1.4rem;
+      color: var(--green); text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
+    .nav-links a {
+      text-decoration: none; color: var(--text);
+      font-size: 0.92rem; font-weight: 500;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--green); }
+    .nav-cta {
+      background: var(--green); color: var(--white) !important;
+      padding: 8px 20px; border-radius: 50px;
+    }
+    .nav-cta:hover { background: var(--green-light) !important; color: var(--white) !important; }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 120px 6% 80px;
+      background: linear-gradient(135deg, #f0faf4 0%, #ffffff 60%);
+      position: relative; overflow: hidden;
+    }
+    #hero::before {
+      content: '';
+      position: absolute; top: -100px; right: -100px;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(26,92,56,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero-content { max-width: 660px; }
+    .hero-badge {
+      display: inline-block;
+      background: var(--green-pale); color: var(--green);
+      font-size: 0.82rem; font-weight: 600; letter-spacing: .06em;
+      text-transform: uppercase; padding: 6px 16px; border-radius: 50px;
+      margin-bottom: 24px;
+    }
+    .hero-content h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      font-weight: 800; line-height: 1.15;
+      color: var(--black); margin-bottom: 20px;
+    }
+    .hero-content h1 span { color: var(--green); }
+    .hero-content p {
+      font-size: 1.05rem; color: var(--muted);
+      max-width: 520px; margin-bottom: 36px;
+    }
+    .hero-btns { display: flex; gap: 16px; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--green); color: var(--white);
+      padding: 13px 30px; border-radius: 50px;
+      text-decoration: none; font-weight: 600; font-size: 0.95rem;
+      transition: background .2s, transform .15s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-primary:hover { background: var(--green-light); transform: translateY(-2px); }
+    .btn-outline {
+      border: 2px solid var(--green); color: var(--green);
+      padding: 11px 28px; border-radius: 50px;
+      text-decoration: none; font-weight: 600; font-size: 0.95rem;
+      transition: all .2s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-outline:hover { background: var(--green); color: var(--white); }
+
+    /* ── SECTIONS ── */
+    section { padding: 90px 6%; }
+    section:nth-child(even) { background: var(--gray); }
+    .section-label {
+      font-size: 0.78rem; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--green);
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      font-weight: 800; color: var(--black);
+      margin-bottom: 48px;
+    }
+    .section-title span { color: var(--green); }
+
+    /* ── STATS ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 24px; margin-top: 48px;
+    }
+    .stat-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 24px; text-align: center;
+      transition: box-shadow .2s;
+    }
+    .stat-card:hover { box-shadow: 0 8px 30px rgba(26,92,56,.1); }
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.4rem; font-weight: 800; color: var(--green);
+    }
+    .stat-label { font-size: 0.88rem; color: var(--muted); margin-top: 4px; }
+
+    /* ── ABOUT ── */
+    .about-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 60px; align-items: start;
+    }
+    .about-text p { color: var(--muted); margin-bottom: 16px; }
+
+    /* ── SKILLS ── */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+    }
+    .skill-category h4 {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem; font-weight: 700;
+      color: var(--green); text-transform: uppercase;
+      letter-spacing: .06em; margin-bottom: 14px;
+    }
+    .skill-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .skill-tag {
+      background: var(--green-pale); color: var(--green);
+      padding: 6px 14px; border-radius: 50px;
+      font-size: 0.82rem; font-weight: 600;
+      border: 1px solid rgba(26,92,56,.15);
+    }
+
+    /* ── TIMELINE ── */
+    .timeline { position: relative; padding-left: 32px; }
+    .timeline::before {
+      content: ''; position: absolute; left: 7px; top: 8px; bottom: 0;
+      width: 2px; background: var(--border);
+    }
+    .tl-item { position: relative; margin-bottom: 40px; }
+    .tl-dot {
+      position: absolute; left: -28px; top: 6px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--green); border: 3px solid var(--white);
+      box-shadow: 0 0 0 2px var(--green);
+    }
+    .tl-date {
+      font-size: 0.78rem; font-weight: 700; color: var(--green);
+      text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px;
+    }
+    .tl-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 700; color: var(--black); margin-bottom: 6px;
+    }
+    .tl-desc { font-size: 0.9rem; color: var(--muted); }
+
+    /* ── PROJECTS ── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 28px;
+    }
+    .project-card {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden; background: var(--white);
+      transition: box-shadow .25s, transform .2s;
+    }
+    .project-card:hover { box-shadow: 0 12px 40px rgba(0,0,0,.1); transform: translateY(-4px); }
+    .project-card img {
+      width: 100%; height: 200px; object-fit: cover;
+      display: block;
+    }
+    .project-body { padding: 22px; }
+    .project-badge {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--green);
+      background: var(--green-pale); padding: 3px 10px;
+      border-radius: 50px; display: inline-block; margin-bottom: 10px;
+    }
+    .project-body h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.05rem; font-weight: 700;
+      color: var(--black); margin-bottom: 8px;
+    }
+    .project-body p { font-size: 0.88rem; color: var(--muted); margin-bottom: 16px; }
+    .project-links { display: flex; gap: 10px; flex-wrap: wrap; }
+    .proj-link {
+      font-size: 0.8rem; font-weight: 600; color: var(--green);
+      text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
+      border: 1px solid var(--green); padding: 5px 12px;
+      border-radius: 50px; transition: all .2s;
+    }
+    .proj-link:hover { background: var(--green); color: var(--white); }
+
+    /* ── BLOGS ── */
+    .blogs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+    .blog-card {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden; background: var(--white);
+      position: relative;
+    }
+    .blog-card img { width: 100%; height: 170px; object-fit: cover; display: block; }
+    .blog-body { padding: 20px; }
+    .blog-body h4 {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.98rem; font-weight: 700; color: var(--black); margin-bottom: 6px;
+    }
+    .blog-body p { font-size: 0.84rem; color: var(--muted); }
+    .coming-soon-overlay {
+      position: absolute; inset: 0;
+      background: rgba(26,92,56,.82);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity .25s;
+    }
+    .blog-card:hover .coming-soon-overlay { opacity: 1; }
+    .coming-soon-overlay span {
+      color: var(--white); font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 1.1rem; letter-spacing: .05em;
+    }
+
+    /* ── CONTACT ── */
+    .contact-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 60px; align-items: start;
+    }
+    .contact-info-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      margin-bottom: 22px;
+    }
+    .contact-icon {
+      width: 42px; height: 42px; border-radius: 10px;
+      background: var(--green-pale); color: var(--green);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0;
+    }
+    .contact-info-item h5 {
+      font-size: 0.78rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .06em; margin-bottom: 2px;
+    }
+    .contact-info-item p, .contact-info-item a {
+      font-size: 0.95rem; color: var(--text);
+      text-decoration: none;
+    }
+    .social-links { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+    .social-link {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: var(--green); color: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      text-decoration: none; font-size: 1.1rem;
+      transition: background .2s, transform .15s;
+    }
+    .social-link:hover { background: var(--green-light); transform: translateY(-2px); }
+
+    /* ── CONTACT FORM ── */
+    .contact-form { display: flex; flex-direction: column; gap: 16px; }
+    .form-group input, .form-group textarea {
+      width: 100%; padding: 13px 16px;
+      border: 1.5px solid var(--border); border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+      color: var(--text); background: var(--white);
+      transition: border-color .2s; outline: none;
+      resize: none;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: var(--green);
+    }
+    .form-group textarea { height: 130px; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--black); color: rgba(255,255,255,.6);
+      text-align: center; padding: 32px 6%;
+      font-size: 0.88rem;
+    }
+    footer span { color: var(--green); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 36px; }
+      .nav-links { display: none; }
+    }
+  </style>
 </head>
+<body>
 
-<body class="main-content">
-    <header class="container header active" id="home">
-        <div class="header-content">
-            <div class="left-header">
-                <div class="h-shape"></div>
-                <div class="image">
-                    <img src="img/Zulfiqar Fullstack Logo (1).png" alt="Portfolio Logo...">
-                </div>
-            </div>
-            <div class="right-header">
-                <h1 class="name">
-                    Hi, I'm <span>ZULFIQAR</span>
-                    Frontend + Backend + MERNSTACK = FullStack Developer...
-                </h1>
-                <p>
-                    “Full Stack Developer and Computer Science
-                    Professional with strong skills in MERN Stack
-                    development and modern web technologies.
-                    Experienced in building responsive, user-focused web applications using frontend and
-                    backend technologies. Passionate about clean
-                    code, problem-solving, and continuous
-                    learning. Seeking remote clients
-                    opportunities to apply technical skills in real-world projects..”
-                </p>
-                <div class="btn-con">
-                    <a href="img/Resume - Full Stack Developer.pdf" class="main-btn">
-                        <span class="btn-text">Download CV</span>
-                        <span class="btn-icon"><i class="fas fa-download"></i></span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
-    <main>
-        <section class="container about" id="about">
-            <div class="main-title">
-                <h2>About <span>me</span><span class="bg-text">my stats</span></h2>
-            </div>
-            <div class="about-container">
-                <div class="left-about">
-                    <h4>Information About me</h4>
-                    <p>
-                        Versatile and detail-oriented developer with hands-on experience in C++,
-                        Python, and JavaScript, specializing in building dynamic web applications
-                        using HTML5, CSS3, React, and Node.js. Adept at version control using Git
-                        and containerization with Docker, with a strong understanding of
-                        responsive design and RESTful API integration. Passionate about clean
-                        code, continuous learning, and delivering high-quality solutions. Skilled in
-                        both frontend and backend development, with additional experience in
-                        data entry and task automation. A fast learner and reliable team player
-                        committed to improving workflows and contributing to modern, efficient
-                        software projects.
-                    </p>
-                    <div class="btn-con">
-                        <a href="img/Resume - Full Stack Developer.pdf" class="main-btn">
-                            <span class="btn-text">Download CV</span>
-                            <span class="btn-icon"><i class="fas fa-download"></i></span>
-                        </a>
-                    </div>
-                </div>
-                <div class="right-about">
-                    <div class="about-item">
-                        <div class="abt-text">
-                            <p class="large-text">5+</p>
-                            <p class="small-text">Projects <br /> Completed</p>
-                        </div>
-                    </div>
-                    <div class="about-item">
-                        <div class="abt-text">
-                            <p class="large-text">2+</p>
-                            <p class="small-text">Years of <br /> experience</p>
-                        </div>
-                    </div>
-                    <div class="about-item">
-                        <div class="abt-text">
-                            <p class="large-text">10+</p>
-                            <p class="small-text">Happy <br /> Clients</p>
-                        </div>
-                    </div>
-                    <div class="about-item">
-                        <div class="abt-text">
-                            <p class="large-text">10+</p>
-                            <p class="small-text">Customer <br /> reviews</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="about-stats">
-                <h4 class="stat-title">My Skills</h4>
-                <div class="progress-bars">
-                    <div class="progress-bar">
-                        <p class="prog-title">html5</p>
-                        <div class="progress-con">
-                            <p class="prog-text">80%</p>
-                            <div class="progress">
-                                <span class="html"></span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="progress-bar">
-                        <p class="prog-title">css3</p>
-                        <div class="progress-con">
-                            <p class="prog-text">95%</p>
-                            <div class="progress">
-                                <span class="css"></span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="progress-bar">
-                        <p class="prog-title">javascript</p>
-                        <div class="progress-con">
-                            <p class="prog-text">75%</p>
-                            <div class="progress">
-                                <span class="js"></span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="progress-bar">
-                        <p class="prog-title">C++</p>
-                        <div class="progress-con">
-                            <p class="prog-text">75%</p>
-                            <div class="progress">
-                                <span class="react"></span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="progress-bar">
-                        <p class="prog-title">SQL</p>
-                        <div class="progress-con">
-                            <p class="prog-text">87%</p>
-                            <div class="progress">
-                                <span class="node"></span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="progress-bar">
-                        <p class="prog-title">Python</p>
-                        <div class="progress-con">
-                            <p class="prog-text">70%</p>
-                            <div class="progress">
-                                <span class="python"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <h4 class="stat-title">My Timeline</h4>
-            <div class="timeline">
-                <div class="timeline-item">
-                    <div class="tl-icon">
-                        <i class="fas fa-briefcase"></i>
-                    </div>
-                    <p class="tl-duration">2025 - present</p>
-                    <h5>Website Developer<span> - Working on Chicken Project</span></h5>
-                    <p>
-                        "That's really a great Experience to enhance coding skills by practicing in my
-                        Personal Projects and this is one of them."
-                    </p>
-                </div>
-                <div class="timeline-item">
-                    <div class="tl-icon">
-                        <i class="fas fa-briefcase"></i>
-                    </div>
-                    <p class="tl-duration">2024</p>
-                    <h5>Portfolio Website<span> - Personal Portfolio, Website.</span></h5>
-                    <p>
-                        "In 2024, I joined Punjab University to pursue a degree in Computer Science, for enhancing my
-                        knowledge
-                        and skills in the field of technology and programming."
-                    </p>
-                </div>
-                <div class="timeline-item">
-                    <div class="tl-icon">
-                        <i class="fas fa-briefcase"></i>
-                    </div>
-                    <p class="tl-duration">2023</p>
-                    <h5>WordPress Diploma <span>AL-Syed Computer College</span></h5>
-                    <p>
-                        "From there I got experience how to work with people online and how to handle clients to enhance
-                        my
-                        capabilites. I enjoyed Working There."
-                    </p>
-                </div>
-                <div class="timeline-item">
-                    <div class="tl-icon">
-                        <i class="fas fa-briefcase"></i>
-                    </div>
-                    <p class="tl-duration">2022</p>
-                    <h5>Basic Courses<span> - Standard Computer College</span></h5>
-                    <p>
-                        Studying Their To become a Certified Student having a lot of
-                        knowledge in <b>Computer Foundations</b>.
-                    </p>
-                </div>
-                <div class="timeline-item">
-                    <div class="tl-icon">
-                        <i class="fas fa-briefcase"></i>
-                    </div>
-                    <p class="tl-duration">2013 - 2016</p>
-                    <h5>Website Developer<span> - CISD College</span></h5>
-                    <p>
-                        "I learned web development including HTML, CSS, JavaScript, and basic backend technologies.
-                        I worked on several projects that helped me build a strong foundation in web development."
-                    </p>
-                </div>
-                <div class="timeline-item">
-                    <div class="tl-icon">
-                        <i class="fas fa-briefcase"></i>
-                    </div>
-                    <p class="tl-duration">2025 - present</p>
-                    <h5>Python(ML) Developer<span> - Youtube 😊</span></h5>
-                    <p>
-                        "I am currently learning Advanced ML to integerate chatbots with websites and working on
-                        projects to improve my skills in this programming language, Also made youtube tutorials for
-                        beginners.".
-                    </p>
-                </div>
-            </div>
-        </section>
-        <section class="container" id="portfolio">
-            <div class="main-title">
-                <h2>My <span>Portfolio</span><span class="bg-text">My Work</span></h2>
-            </div>
-            <p class="port-text">
-                Here is some of my work that I've done in various programming languages.
-            </p>
-            <div class="portfolios">
-                <!-- WEATHER APP -->
-                <div class="portfolio-item">
-                    <div class="image">
-                        <img src="Weather_APP/images/Weather_image.png" class="gray" alt="Weather App">
-                    </div>
-                    <div class="hover-items">
-                        <h3>WEATHER APP</h3>
-                        <div class="icons">
-                            <a href="https://github.com/zulfiqarteams" class="icon" target="_blank">
-                                <i class="fab fa-github"></i>
-                            </a>
-                            <a href="https://wa.me/+923136473895" target="_blank" class="icon">
-                                <i class="fab fa-whatsapp"></i>
-                            </a>
-                            <a href="Weather_APP/index.html" target="_blank" class="icon">
-                                <i class="fas fa-external-link-alt"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
+<!-- ── NAV ── -->
+<nav>
+  <a href="#hero" class="nav-logo">ZT.</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="img/Resume - Full Stack Developer.pdf" download class="nav-cta"><i class="fa fa-download"></i> Resume</a></li>
+  </ul>
+</nav>
 
-                <!-- TO_DO_LIST APP -->
-                <div class="portfolio-item">
-                    <div class="image">
-                        <img src="To_Do_List_App/images/todo.png" alt="To Do List App">
-                    </div>
-                    <div class="hover-items">
-                        <h3>TO_DO_LIST APP</h3>
-                        <div class="icons">
-                            <a href="https://github.com/zulfiqarteams" class="icon" target="_blank">
-                                <i class="fab fa-github"></i>
-                            </a>
-                            <a href="https://wa.me/+923136473895" target="_blank" class="icon">
-                                <i class="fab fa-whatsapp"></i>
-                            </a>
-                            <a href="To_Do_List_App/index.html" class="icon" target="_blank">
-                                <i class="fas fa-external-link-alt"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- PORTFOLIO ITEM 4 -->
-                <div class="portfolio-item">
-                    <div class="image">
-                        <img src="img/port4.jpg" alt="Portfolio Item 4">
-                    </div>
-                </div>
-
-                <!-- ZULFIQAR RESTAURANT -->
-                <div class="portfolio-item">
-                    <div class="image">
-                        <img src="Zulfiqar_Restuarant/assets/image.png" alt="Zulfiqar Restaurant Image">
-                    </div>
-                    <div class="hover-items">
-                        <h3>Zulfiqar Restaurant</h3>
-                        <div class="icons">
-                            <a href="https://github.com/zulfiqarteams" class="icon" target="_blank">
-                                <i class="fab fa-github"></i>
-                            </a>
-                            <a href="https://wa.me/+923136473895" target="_blank" class="icon">
-                                <i class="fab fa-whatsapp"></i>
-                            </a>
-                            <a href="Zulfiqar_Restuarant/index.html" class="icon" target="_blank">
-                                <i class="fas fa-external-link-alt"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- RIWAYAAH CLOTHING WEBSITE -->
-                <div class="portfolio-item">
-                    <div class="image">
-                        <img src="Riwaayah/images/riwayaah.png" alt="Riwayaah Clothing Website">
-                    </div>
-                    <div class="hover-items">
-                        <h3>Riwayaah Clothing Website</h3>
-                        <div class="icons">
-                            <a href="https://zulfiqarteams.github.io/Portfolio_Website/Riwaayah/index.html" class="icon"
-                                target="_blank">
-                                <i class="fab fa-github"></i>
-                            </a>
-                            <a href="https://wa.me/+923136473895" target="_blank" class="icon">
-                                <i class="fab fa-whatsapp"></i>
-                            </a>
-                            <a href="Riwaayah/index.html" class="icon" target="_blank">
-                                <i class="fas fa-external-link-alt"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CHICKEN WEBSITE -->
-                <div class="portfolio-item">
-                    <div class="image">
-                        <img src="img/port5.jpg" alt="Chicken Website">
-                    </div>
-                    <div class="hover-items">
-                        <h3>Chicken Website</h3>
-                        <div class="icons">
-                            <a href="https://github.com/HamzaSajid-bro/Chicken_Website" class="icon" target="_blank">
-                                <i class="fab fa-github"></i>
-                            </a>
-                            <a href="https://wa.me/+923136473895" target="_blank" class="icon">
-                                <i class="fab fa-whatsapp"></i>
-                            </a>
-                            <a href="https://github.com/zulfiqarteams" class="icon" target="_blank">
-                                <i class="fas fa-external-link-alt"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ECOMMERCE WEBSITE -->
-                <div class="portfolio-item">
-                    <div class="image">
-                        <img src="img/port3.jpg" alt="Ecommerce Website">
-                    </div>
-                    <div class="hover-items">
-                        <h3>Ecommrce Website</h3>
-                        <div class="icons">
-                            <a href="https://github.com/HamzaSajid-bro/Ecommrce_Website" class="icon" target="_blank">
-                                <i class="fab fa-github"></i>
-                            </a>
-                            <a href="https://wa.me/+923136473895" target="_blank" class="icon">
-                                <i class="fab fa-whatsapp"></i>
-                            </a>
-                            <a href="https://github.com/zulfiqarteams" class="icon" target="_blank">
-                                <i class="fas fa-external-link-alt"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- URDU TYPING WEBAPP -->
-                <div class="portfolio-item">
-                    <div class="image">
-                        <img src="img/port2.jpg" alt="Urdu Typing WebApp">
-                    </div>
-                    <div class="hover-items">
-                        <h3>Urdu Typing WEBAPP</h3>
-                        <div class="icons">
-                            <a href="https://github.com/HamzaSajid-bro/Urdu_Typing_WebApp" class="icon" target="_blank">
-                                <i class="fab fa-github"></i>
-                            </a>
-                            <a href="https://wa.me/+923136473895" target="_blank" class="icon">
-                                <i class="fab fa-whatsapp"></i>
-                            </a>
-                            <a href="https://www.linkedin.com/in/zulfiqarteams" class="icon" target="_blank">
-                                <i class="fas fa-external-link-alt"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <section class="container" id="blogs">
-            <div class="blogs-content">
-                <div class="main-title">
-                    <h2>My <span>Blogs</span><span class="bg-text">My Blogs</span></h2>
-                </div>
-                <div class="blogs">
-                    <div class="blog">
-                        <img src="img/port6.jpg" alt="">
-                        <div class="blog-text">
-                            <h4>
-                                How to Create Your Own Website
-                            </h4>
-                            <p>
-                                7 Steps to Make Your First Website ...
-                            </p>
-                        </div>
-                    </div>
-                    <div class="blog">
-                        <img src="img/blog1.jpg" alt="">
-                        <div class="blog-text">
-                            <h4>
-                                How to Become an Expert in Web Design
-                            </h4>
-                            <p>
-                                Want to make a webdesigner here is the roadmap...
-                            </p>
-                        </div>
-                    </div>
-                    <div class="blog">
-                        <img src="img/blog2.jpg" alt="">
-                        <div class="blog-text">
-                            <h4>
-                                Become a Web Designer in 10 Days
-                            </h4>
-                            <p>
-                                Quick Learning is also possible...
-                            </p>
-                        </div>
-                    </div>
-                    <div class="blog">
-                        <img src="img/blog3.jpg" alt="">
-                        <div class="blog-text">
-                            <h4>
-                                Debbuging made easy with Web Inspector
-                            </h4>
-                            <p>
-                                Debugging Code is the great skill...
-                            </p>
-                        </div>
-                    </div>
-                    <div class="blog">
-                        <img src="img/port1.jpg" alt="">
-                        <div class="blog-text">
-                            <h4>
-                                Why To Learn MENRSTACK?
-                            </h4>
-                            <p>
-                                Learning MERNSTACK is the great Opportunity to Boost your Website Development Career...
-                            </p>
-                        </div>
-                    </div>
-                    <div class="blog">
-                        <img src="img/port3.jpg" alt="">
-                        <div class="blog-text">
-                            <h4>
-                                This is what you need to know about Web Design
-                            </h4>
-                            <p>
-                                Do You Need A website Developer!
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <section class="container contact" id="contact">
-            <div class="contact-container">
-                <div class="main-title">
-                    <h2>Contact <span>Me</span><span class="bg-text">Contact</span></h2>
-                </div>
-                <div class="contact-content-con">
-                    <div class="left-contact">
-                        <h4>Contact me here</h4>
-                        <p>
-                            Click here to contact me...
-                        </p>
-                        <div class="contact-info">
-                            <div class="contact-item">
-                                <div class="icon">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span>Location</span>
-                                </div>
-                                <p>
-                                    : Jalapur road , Hafizabad
-                                </p>
-                            </div>
-                            <div class="contact-item">
-                                <div class="icon">
-                                    <i class="fas fa-envelope"></i>
-                                    <span>Email</span>
-                                </div>
-                                <p>
-                                    <span>: zulfiqarteams@gmail.com</span>
-                                </p>
-                            </div>
-                            <div class="contact-item">
-                                <div class="icon">
-                                    <i class="fas fa-user-graduate"></i>
-                                    <span>Education</span>
-                                </div>
-                                <p>
-                                    <span>: CISD , Punjab University</span>
-                                </p>
-                            </div>
-                            <div class="contact-item">
-                                <div class="icon">
-                                    <i class="fas fa-user-graduate"></i>
-                                    <span>Mobile Number</span>
-                                </div>
-                                <p>
-                                    <span>: 0326 - 4131088</span>
-                                </p>
-                            </div>
-                            <div class="contact-item">
-                                <div class="icon">
-                                    <i class="fas fa-globe-africa"></i>
-                                    <span>Languages</span>
-                                </div>
-                                <p>
-                                    <span>: Urdu, English, Punjabi</span>
-                                </p>
-                            </div>
-                        </div>
-                        <div class="contact-icons">
-                            <div class="contact-icon">
-                                <a href="https://wa.me/+923136473895" target="_blank">
-                                    <i class="fab fa-whatsapp"></i>
-                                </a>
-                                <a href="https://https://www.facebook.com/zulfiqarteams/" target="_blank">
-                                    <i class="fab fa-facebook-f"></i>
-                                </a>
-                                <a href="https://github.com/HamzaSajid-bro" target="_blank">
-                                    <i class="fab fa-github"></i>
-                                </a>
-                                <a href="https://www.youtube.com/@HamzaSajid-0786" target="_blank">
-                                    <i class="fab fa-youtube"></i>
-                                </a>
-                                <a href="www.linkedin.com/in/zulfiqarteams" target="_blank">
-                                    <i class="fab fa-linkedin"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="right-contact">
-                        <form action="" class="contact-form">
-                            <div class="input-control i-c-2">
-                                <input type="text" required placeholder="YOUR NAME">
-                                <input type="email" required placeholder="YOUR EMAIL">
-                            </div>
-                            <div class="input-control">
-                                <input type="text" required placeholder="ENTER SUBJECT">
-                            </div>
-                            <div class="input-control">
-                                <textarea name="" id="" cols="15" rows="8" placeholder="Message Here..."></textarea>
-                            </div>
-                            <div class="submit-btn">
-                                <a href="img/Resume - Full Stack Developer.pdf" class="main-btn">
-                                    <span class="btn-text">Download CV</span>
-                                    <span class="btn-icon"><i class="fas fa-download"></i></span>
-                                </a>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <div class="controls">
-        <div class="control active-btn" data-id="home">
-            <i class="fas fa-home"></i>
-        </div>
-        <div class="control" data-id="about">
-            <i class="fas fa-user"></i>
-        </div>
-        <div class="control" data-id="portfolio">
-            <i class="fas fa-briefcase"></i>
-        </div>
-        <div class="control" data-id="blogs">
-            <i class="far fa-newspaper"></i>
-        </div>
-        <div class="control" data-id="contact">
-            <i class="fas fa-envelope-open"></i>
-        </div>
+<!-- ── HERO ── -->
+<section id="hero">
+  <div class="hero-content">
+    <div class="hero-badge">Available for Remote Internship</div>
+    <h1>Hi, I'm <span>Zulfiqar</span> —<br/>Full Stack Developer</h1>
+    <p>MERN Stack specialist building responsive, user-focused web applications. Computer Science student at Punjab University, passionate about clean code and real-world problem solving.</p>
+    <div class="hero-btns">
+      <a href="#projects" class="btn-primary"><i class="fa fa-eye"></i> View My Work</a>
+      <a href="img/Resume - Full Stack Developer.pdf" download class="btn-outline"><i class="fa fa-download"></i> Download CV</a>
     </div>
-    <div class="theme-btn">
-        <i class="fas fa-adjust"></i>
+  </div>
+</section>
+
+<!-- ── ABOUT ── -->
+<section id="about">
+  <div class="section-label">Who I Am</div>
+  <div class="section-title">About <span>Me</span></div>
+  <div class="about-grid">
+    <div class="about-text">
+      <p>I'm a Full Stack Developer and Computer Science student at Punjab University (2024–2028), specializing in the MERN Stack. I build end-to-end web applications — from designing clean, responsive frontends with React.js to architecting robust backend APIs with Node.js and Express.js.</p>
+      <p>I've delivered real-world projects for private clients, which taught me how to translate business requirements into working software. I'm currently deepening my skills in JWT authentication, Redux Toolkit, and payment gateway integration.</p>
+      <p>I'm seeking a remote internship where I can contribute to production-level projects and grow alongside an experienced engineering team.</p>
+      <div style="margin-top:28px;">
+        <a href="img/Resume - Full Stack Developer.pdf" download class="btn-primary"><i class="fa fa-download"></i> Download Resume</a>
+      </div>
     </div>
-    <script src="app.js"></script>
+    <div>
+      <div class="stats-grid" style="margin-top:0;">
+        <div class="stat-card"><div class="stat-num">5+</div><div class="stat-label">Projects Completed</div></div>
+        <div class="stat-card"><div class="stat-num">1+</div><div class="stat-label">Year of Experience</div></div>
+        <div class="stat-card"><div class="stat-num">3+</div><div class="stat-label">Happy Clients</div></div>
+        <div class="stat-card"><div class="stat-num">4+</div><div class="stat-label">Certifications</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SKILLS ── -->
+<section id="skills">
+  <div class="section-label">What I Know</div>
+  <div class="section-title">Technical <span>Skills</span></div>
+  <div class="skills-grid">
+    <div class="skill-category">
+      <h4>Frontend</h4>
+      <div class="skill-tags">
+        <span class="skill-tag">HTML5</span>
+        <span class="skill-tag">CSS3</span>
+        <span class="skill-tag">JavaScript</span>
+        <span class="skill-tag">React.js</span>
+        <span class="skill-tag">Tailwind CSS</span>
+        <span class="skill-tag">Bootstrap</span>
+        <span class="skill-tag">Responsive Design</span>
+      </div>
+    </div>
+    <div class="skill-category">
+      <h4>Backend</h4>
+      <div class="skill-tags">
+        <span class="skill-tag">Node.js</span>
+        <span class="skill-tag">Express.js</span>
+        <span class="skill-tag">REST APIs</span>
+        <span class="skill-tag">JWT Auth</span>
+      </div>
+    </div>
+    <div class="skill-category">
+      <h4>Database & Tools</h4>
+      <div class="skill-tags">
+        <span class="skill-tag">MongoDB</span>
+        <span class="skill-tag">Firebase</span>
+        <span class="skill-tag">Git</span>
+        <span class="skill-tag">GitHub</span>
+        <span class="skill-tag">npm</span>
+        <span class="skill-tag">VS Code</span>
+      </div>
+    </div>
+    <div class="skill-category">
+      <h4>Other</h4>
+      <div class="skill-tags">
+        <span class="skill-tag">WordPress</span>
+        <span class="skill-tag">UI/UX Basics</span>
+        <span class="skill-tag">Photoshop</span>
+        <span class="skill-tag">CorelDRAW</span>
+        <span class="skill-tag">Python</span>
+        <span class="skill-tag">C++</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TIMELINE ── -->
+<section id="timeline">
+  <div class="section-label">My Journey</div>
+  <div class="section-title">Experience &amp; <span>Education</span></div>
+  <div class="timeline">
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2025 – Present</div>
+      <div class="tl-title">Full Stack Developer — Business Management System (MERN)</div>
+      <div class="tl-desc">Building a complete full-stack business management platform using React.js, Node.js, Express.js and MongoDB. Implementing custom admin dashboard to automate client workflows.</div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2025 – Present</div>
+      <div class="tl-title">Python (ML) Developer — Self-Learning via YouTube</div>
+      <div class="tl-desc">Learning advanced Machine Learning to integrate AI chatbots with web applications. Creating beginner tutorial content on YouTube.</div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2025</div>
+      <div class="tl-title">Website Development Diploma — CISD College</div>
+      <div class="tl-desc">Completed a professional web development program covering HTML, CSS, JavaScript, and backend technologies. Built multiple projects to solidify skills.</div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2024</div>
+      <div class="tl-title">BSc Computer Science — Punjab University of Lahore</div>
+      <div class="tl-desc">Enrolled in BSCS program (2024–2028) to deepen knowledge in computer science fundamentals, algorithms, and software engineering.</div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2023</div>
+      <div class="tl-title">WordPress Diploma — Al-Syed Computer College</div>
+      <div class="tl-desc">Gained practical experience working with clients online, managing WordPress sites, and delivering professional web solutions.</div>
+    </div>
+
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-date">2022</div>
+      <div class="tl-title">Computer Fundamentals — Standard Computer College</div>
+      <div class="tl-desc">Completed foundational certification in MS Office, CorelDRAW, and Photoshop.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── PROJECTS ── -->
+<section id="projects">
+  <div class="section-label">What I've Built</div>
+  <div class="section-title">My <span>Projects</span></div>
+  <div class="projects-grid">
+
+    <div class="project-card">
+      <img src="https://zulfiqarteams.github.io/Portfolio_Website/Weather_APP/images/Weather_image.png" alt="Weather App" loading="lazy" />
+      <div class="project-body">
+        <span class="project-badge">JavaScript</span>
+        <h3>Weather App</h3>
+        <p>Real-time weather application fetching live data from a public API with clean UI and city search functionality.</p>
+        <div class="project-links">
+          <a href="https://zulfiqarteams.github.io/Portfolio_Website/Weather_APP/index.html" target="_blank" class="proj-link"><i class="fa fa-external-link"></i> Live Demo</a>
+          <a href="https://github.com/zulfiqarteams" target="_blank" class="proj-link"><i class="fab fa-github"></i> GitHub</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <img src="https://zulfiqarteams.github.io/Portfolio_Website/To_Do_List_App/images/todo.png" alt="To Do List App" loading="lazy" />
+      <div class="project-body">
+        <span class="project-badge">JavaScript</span>
+        <h3>To-Do List App</h3>
+        <p>A productivity app with task creation, completion tracking, and local persistence built with vanilla JavaScript.</p>
+        <div class="project-links">
+          <a href="https://zulfiqarteams.github.io/Portfolio_Website/To_Do_List_App/index.html" target="_blank" class="proj-link"><i class="fa fa-external-link"></i> Live Demo</a>
+          <a href="https://github.com/zulfiqarteams" target="_blank" class="proj-link"><i class="fab fa-github"></i> GitHub</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <img src="https://zulfiqarteams.github.io/Portfolio_Website/Zulfiqar_Restuarant/assets/image.png" alt="Restaurant Website" loading="lazy" />
+      <div class="project-body">
+        <span class="project-badge">HTML / CSS / JS</span>
+        <h3>Zulfiqar Restaurant</h3>
+        <p>A full restaurant landing page with menu showcase, responsive layout, and contact integration.</p>
+        <div class="project-links">
+          <a href="https://zulfiqarteams.github.io/Portfolio_Website/Zulfiqar_Restuarant/index.html" target="_blank" class="proj-link"><i class="fa fa-external-link"></i> Live Demo</a>
+          <a href="https://github.com/zulfiqarteams" target="_blank" class="proj-link"><i class="fab fa-github"></i> GitHub</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <img src="https://zulfiqarteams.github.io/Portfolio_Website/Riwaayah/images/riwayaah.png" alt="Riwayaah Clothing" loading="lazy" />
+      <div class="project-body">
+        <span class="project-badge">HTML / CSS / JS</span>
+        <h3>Riwayaah Clothing Website</h3>
+        <p>A clothing brand website featuring product collections, responsive grid layout, and a polished storefront UI.</p>
+        <div class="project-links">
+          <a href="https://zulfiqarteams.github.io/Portfolio_Website/Riwaayah/index.html" target="_blank" class="proj-link"><i class="fa fa-external-link"></i> Live Demo</a>
+          <a href="https://github.com/zulfiqarteams" target="_blank" class="proj-link"><i class="fab fa-github"></i> GitHub</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <img src="https://zulfiqarteams.github.io/Portfolio_Website/img/port5.jpg" alt="Business Management System" loading="lazy" />
+      <div class="project-body">
+        <span class="project-badge" style="background:#fff3cd;color:#92660a;">MERN Stack · Private</span>
+        <h3>Business Management System</h3>
+        <p>Full-stack MERN application built for a private client. Reduced manual data entry through a custom admin dashboard with full CRUD operations.</p>
+        <div class="project-links">
+          <a href="https://github.com/zulfiqarteams" target="_blank" class="proj-link"><i class="fab fa-github"></i> GitHub</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <img src="https://zulfiqarteams.github.io/Portfolio_Website/img/port3.jpg" alt="E-Commerce Platform" loading="lazy" />
+      <div class="project-body">
+        <span class="project-badge" style="background:#dbeafe;color:#1e40af;">MERN Stack · In Progress</span>
+        <h3>E-Commerce Platform</h3>
+        <p>Full-stack e-commerce app with JWT authentication, Redux Toolkit state management, product listings, cart, and payment gateway integration (in progress).</p>
+        <div class="project-links">
+          <a href="https://github.com/HamzaSajid-bro/Ecommrce_Website" target="_blank" class="proj-link"><i class="fab fa-github"></i> GitHub</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <img src="https://zulfiqarteams.github.io/Portfolio_Website/img/port2.jpg" alt="Urdu Typing WebApp" loading="lazy" />
+      <div class="project-body">
+        <span class="project-badge">JavaScript</span>
+        <h3>Urdu Typing WebApp</h3>
+        <p>A web application for Urdu keyboard typing practice, supporting RTL text rendering and custom input handling.</p>
+        <div class="project-links">
+          <a href="https://github.com/HamzaSajid-bro/Urdu_Typing_WebApp" target="_blank" class="proj-link"><i class="fab fa-github"></i> GitHub</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── BLOGS ── -->
+<section id="blogs">
+  <div class="section-label">Insights</div>
+  <div class="section-title">My <span>Blog</span></div>
+  <div class="blogs-grid">
+
+    <div class="blog-card">
+      <img src="https://zulfiqarteams.github.io/Portfolio_Website/img/port6.jpg" alt="Blog 1" loading="lazy" />
+      <div class="blog-body">
+        <h4>How to Create Your Own Website</h4>
+        <p>7 steps to build and launch your first website from scratch.</p>
+      </div>
+      <div class="coming-soon-overlay"><span>Coming Soon</span></div>
+    </div>
+
+    <div class="blog-card">
+      <img src="https://zulfiqarteams.github.io/Portfolio_Website/img/blog1.jpg" alt="Blog 2" loading="lazy" />
+      <div class="blog-body">
+        <h4>How to Become an Expert in Web Design</h4>
+        <p>A practical roadmap for mastering web design skills.</p>
+      </div>
+      <div class="coming-soon-overlay"><span>Coming Soon</span></div>
+    </div>
+
+    <div class="blog-card">
+      <img src="https://zulfiqarteams.github.io/Portfolio_Website/img/blog2.jpg" alt="Blog 3" loading="lazy" />
+      <div class="blog-body">
+        <h4>Become a Web Designer in 10 Days</h4>
+        <p>Quick learning techniques that actually work for beginners.</p>
+      </div>
+      <div class="coming-soon-overlay"><span>Coming Soon</span></div>
+    </div>
+
+    <div class="blog-card">
+      <img src="https://zulfiqarteams.github.io/Portfolio_Website/img/blog3.jpg" alt="Blog 4" loading="lazy" />
+      <div class="blog-body">
+        <h4>Debugging Made Easy with Web Inspector</h4>
+        <p>Master your browser's DevTools to squash bugs faster.</p>
+      </div>
+      <div class="coming-soon-overlay"><span>Coming Soon</span></div>
+    </div>
+
+    <div class="blog-card">
+      <img src="https://zulfiqarteams.github.io/Portfolio_Website/img/port1.jpg" alt="Blog 5" loading="lazy" />
+      <div class="blog-body">
+        <h4>Why Learn the MERN Stack?</h4>
+        <p>How MERN Stack can accelerate your full stack developer career.</p>
+      </div>
+      <div class="coming-soon-overlay"><span>Coming Soon</span></div>
+    </div>
+
+    <div class="blog-card">
+      <img src="https://zulfiqarteams.github.io/Portfolio_Website/img/port3.jpg" alt="Blog 6" loading="lazy" />
+      <div class="blog-body">
+        <h4>What You Need to Know About Web Design</h4>
+        <p>Core principles every developer should understand about design.</p>
+      </div>
+      <div class="coming-soon-overlay"><span>Coming Soon</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── CONTACT ── -->
+<section id="contact">
+  <div class="section-label">Get In Touch</div>
+  <div class="section-title">Contact <span>Me</span></div>
+  <div class="contact-grid">
+    <div>
+      <div class="contact-info-item">
+        <div class="contact-icon"><i class="fa fa-map-marker-alt"></i></div>
+        <div><h5>Location</h5><p>Jalapur Road, Hafizabad, Punjab, Pakistan</p></div>
+      </div>
+      <div class="contact-info-item">
+        <div class="contact-icon"><i class="fa fa-envelope"></i></div>
+        <div><h5>Email</h5><a href="mailto:zulfiqarteams@gmail.com">zulfiqarteams@gmail.com</a></div>
+      </div>
+      <div class="contact-info-item">
+        <div class="contact-icon"><i class="fa fa-phone"></i></div>
+        <div><h5>Phone</h5><a href="tel:+923264131088">0326 – 413 1088</a></div>
+      </div>
+      <div class="contact-info-item">
+        <div class="contact-icon"><i class="fa fa-language"></i></div>
+        <div><h5>Languages</h5><p>Urdu, English, Punjabi</p></div>
+      </div>
+      <div class="social-links">
+        <a href="https://wa.me/+923264131088" target="_blank" class="social-link" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+        <a href="https://www.linkedin.com/in/zulfiqarteams" target="_blank" class="social-link" title="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+        <a href="https://github.com/zulfiqarteams" target="_blank" class="social-link" title="GitHub"><i class="fab fa-github"></i></a>
+        <a href="https://www.facebook.com/zulfiqarteams/" target="_blank" class="social-link" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+        <a href="https://www.youtube.com/@HamzaSajid-0786" target="_blank" class="social-link" title="YouTube"><i class="fab fa-youtube"></i></a>
+      </div>
+    </div>
+    <div>
+      <form class="contact-form" onsubmit="handleSubmit(event)">
+        <div class="form-group"><input type="text" placeholder="Your Name" required /></div>
+        <div class="form-group"><input type="email" placeholder="Your Email" required /></div>
+        <div class="form-group"><input type="text" placeholder="Subject" /></div>
+        <div class="form-group"><textarea placeholder="Your Message..." required></textarea></div>
+        <button type="submit" class="btn-primary" style="border:none;cursor:pointer;width:fit-content;">
+          <i class="fa fa-paper-plane"></i> Send Message
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <p>© 2025 <span>Zulfiqar</span> · Full Stack Developer · Hafizabad, Pakistan · Built with HTML, CSS & JS</p>
+</footer>
+
+<script>
+  function handleSubmit(e) {
+    e.preventDefault();
+    alert('Thank you! Your message has been received. I will get back to you soon.');
+    e.target.reset();
+  }
+
+  // Smooth active nav highlight
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 100) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.style.color = a.getAttribute('href') === '#' + current ? 'var(--green)' : '';
+    });
+  });
+</script>
+
 </body>
-
 </html>
