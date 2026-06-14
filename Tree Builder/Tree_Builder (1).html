@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📐 Draughtsman // Visual Tree Architect — by Zulfiqar Teams</title>
+    <link rel="icon" href="https://zulfiqarteams.github.io/Portfolio_Website/assets/favicon.ico" type="image/x-icon">
+    <style>
+        :root {
+            --bg-blueprint: #0b0f19;
+            --bg-canvas: #111827;
+            --accent-cyan: #00e5ff;
+            --accent-orange: #ff6b35;
+            --border-grid: #1e293b;
+            --text-primary: #f8fafc;
+            --text-muted: #64748b;
+            --overlay-bg: rgba(0,0,0,0.65);
+            --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        }
+
+        /* LIGHT THEME OVERRIDES */
+        html[data-theme="light"] {
+            --bg-blueprint: #f1f5f9;
+            --bg-canvas: #ffffff;
+            --accent-cyan: #0284c7;
+            --accent-orange: #ea580c;
+            --border-grid: #cbd5e1;
+            --text-primary: #0f172a;
+            --text-muted: #64748b;
+            --overlay-bg: rgba(15, 23, 42, 0.55);
+        }
+
+        html[data-theme="light"] .output-box {
+            background: #f8fafc;
+            color: #166534;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-blueprint);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 30px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(var(--border-grid) 1px, transparent 1px),
+                              linear-gradient(90deg, var(--border-grid) 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.4;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        main { flex: 1; }
+
+        header {
+            border-bottom: 2px dashed var(--border-grid);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        header h1 {
+            font-family: var(--font-mono);
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        header h1 span { color: var(--accent-cyan); }
+
+        .project-meta {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .input-text {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-grid);
+            color: var(--accent-cyan);
+            font-family: var(--font-mono);
+            padding: 10px 14px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .input-text:focus { outline: none; border-color: var(--accent-cyan); }
+
+        /* Toggle pills */
+        .toggle-btn {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-grid);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 10px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .toggle-btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .workspace { grid-template-columns: 1fr; }
+            header { flex-direction: column; align-items: flex-start; }
+        }
+
+        .card {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-grid);
+            border-radius: 6px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+            transition: background-color 0.25s ease, border-color 0.25s ease;
+        }
+
+        .card-header {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-grid);
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        /* How-to panel */
+        .howto { margin-bottom: 30px; }
+        .howto ol {
+            list-style: none;
+            counter-reset: step;
+            display: grid;
+            gap: 12px;
+        }
+        .howto li {
+            counter-increment: step;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        .howto li::before {
+            content: counter(step);
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        .howto code {
+            background: rgba(0, 229, 255, 0.1);
+            color: var(--accent-cyan);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+        }
+
+        /* Urdu RTL support */
+     /* Urdu RTL support enhancements */
+[dir="rtl"] {
+    text-align: right;
+}
+
+[dir="rtl"] .howto li, 
+[dir="rtl"] .card-header, 
+[dir="rtl"] p, 
+[dir="rtl"] .tutorial-text {
+    text-align: right;
+}
+
+        /* Builder */
+        .control-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: rgba(127,127,127,0.08);
+            padding: 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border-grid);
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: transparent;
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 10px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: var(--accent-cyan);
+            color: var(--bg-blueprint);
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.3);
+        }
+
+        .btn-orange {
+            border-color: var(--accent-orange);
+            color: var(--accent-orange);
+        }
+        .btn-orange:hover {
+            background: var(--accent-orange);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .nodes-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .nodes-table th {
+            text-align: left;
+            color: var(--text-muted);
+            padding: 10px;
+            border-bottom: 1px solid var(--border-grid);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .nodes-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border-grid);
+        }
+
+        .node-row:hover { background: rgba(127,127,127,0.06); }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .badge-dir { background: rgba(255, 107, 53, 0.15); color: var(--accent-orange); }
+        .badge-file { background: rgba(0, 229, 255, 0.15); color: var(--accent-cyan); }
+
+        .action-delete {
+            color: #ef4444;
+            cursor: pointer;
+            text-align: center;
+        }
+        .action-delete:hover { text-decoration: underline; }
+
+        .output-box {
+            width: 100%;
+            height: 400px;
+            background: #070a12;
+            border: 1px solid var(--border-grid);
+            color: #a9dc76;
+            font-family: var(--font-mono);
+            font-size: 0.95rem;
+            padding: 20px;
+            border-radius: 4px;
+            resize: none;
+            white-space: pre;
+            overflow: auto;
+            line-height: 1.5;
+        }
+
+        .output-box:focus { outline: none; border-color: var(--accent-cyan); }
+
+        .copy-banner {
+            margin-top: 15px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px dashed var(--border-grid);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        footer a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+        }
+        footer a:hover { text-decoration: underline; }
+        #liveClock { color: var(--accent-orange); }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-grid); border-radius: 3px; }
+
+        /* ================= TUTORIAL OVERLAY ================= */
+  #tutorialOverlay {
+    position: fixed;
+    top: 100px; /* Header ke neeche se shuru ho */
+    right: 20px; /* Right side par fixed rahe */
+    bottom: auto;
+    left: auto;
+    width: 350px; /* Width fix kar dein taake overlap na ho */
+    background: transparent; /* Background semi-transparent hata dein */
+    z-index: 999;
+    display: none;
+    pointer-events: none; /* Taake background par click ho sake */
+}
+
+#tutorialOverlay.active { 
+    display: block; 
+    pointer-events: auto; /* Active hone par click allowed */
+}
+
+.tutorial-box {
+    background: var(--bg-canvas);
+    border: 1px solid var(--accent-cyan);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    /* Animation mein sirf slide-in rakhein */
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(50px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@media (max-width: 900px) {
+    #tutorialOverlay {
+        top: auto;
+        bottom: 20px;
+        right: 10px;
+        left: 10px;
+        width: auto;
+    }
+}
+        .tutorial-step-badge {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent-cyan);
+            border: 1px solid var(--accent-cyan);
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tutorial-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .tutorial-text {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            margin-bottom: 22px;
+        }
+        .tutorial-text code {
+            background: rgba(0, 229, 255, 0.1);
+            color: var(--accent-cyan);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+        }
+
+        .tutorial-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tutorial-dots {
+            display: flex;
+            gap: 6px;
+        }
+        .tutorial-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border-grid);
+            transition: background 0.2s ease;
+        }
+        .tutorial-dots span.active { background: var(--accent-cyan); }
+
+        .tutorial-skip {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+        html[dir="rtl"] .tutorial-skip { right: auto; left: 14px; }
+        .tutorial-skip:hover { color: var(--accent-orange); }
+
+        .highlight-pulse {
+            position: relative;
+            z-index: 1000;
+            outline: 3px solid var(--accent-cyan);
+            outline-offset: 4px;
+            border-radius: 6px;
+            animation: pulseGlow 1.2s infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(0, 229, 255, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================= TUTORIAL OVERLAY ================= -->
+    <div id="tutorialOverlay">
+        <div class="tutorial-box">
+            <button class="tutorial-skip" onclick="endTutorial()">✕</button>
+            <div class="tutorial-step-badge" id="tutStepBadge">Step 1 / 6</div>
+            <div class="tutorial-title" id="tutTitle"></div>
+            <div class="tutorial-text" id="tutText"></div>
+            <div class="tutorial-nav">
+                <button class="btn" id="tutPrevBtn" onclick="prevTutorialStep()">‹ Back</button>
+                <div class="tutorial-dots" id="tutDots"></div>
+                <button class="btn btn-orange" id="tutNextBtn" onclick="nextTutorialStep()">Next ›</button>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <header>
+            <h1>📐 Draughtsman // <span>Tree Structural Generator</span></h1>
+            <div class="project-meta">
+                <label style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted)" id="rootNodeLabel">ROOT NODE:</label>
+                <input type="text" id="rootNodeName" class="input-text" value="my-project" oninput="generateOutputTree()">
+                <button class="toggle-btn" id="themeToggleBtn" onclick="toggleTheme()">🌙 <span id="themeToggleLabel">Dark</span></button>
+                <button class="toggle-btn" id="langToggleBtn" onclick="toggleLanguage()">🌐 <span id="langToggleLabel">اردو</span></button>
+                <button class="toggle-btn" id="tutorialBtn" onclick="startTutorial()">🎓 <span id="tutorialBtnLabel">Tutorial</span></button>
+            </div>
+        </header>
+
+        <div class="card howto">
+            <div class="card-header"><span id="howtoHeader">How To Use</span></div>
+            <ol id="howtoList">
+                <!-- populated by JS for translation -->
+            </ol>
+        </div>
+
+        <div class="workspace">
+            <div class="card" id="cardEditor">
+                <div class="card-header"><span id="editorHeader">Interactive Blueprint Editor</span></div>
+
+                <div class="control-row">
+                    <input type="text" id="nodePath" class="input-text" style="flex: 1" placeholder="Path (e.g., css/style.css or js/audio.js)">
+                    <button class="btn btn-orange" id="addFolderBtn" onclick="addNode('directory')">+ Folder</button>
+                    <button class="btn" id="addFileBtn" onclick="addNode('file')">+ File</button>
+                </div>
+
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table class="nodes-table">
+                        <thead>
+                            <tr>
+                                <th id="thType">Type</th>
+                                <th id="thPath">Relative Path</th>
+                                <th style="width: 50px; text-align: center;" id="thWipe">Wipe</th>
+                            </tr>
+                        </thead>
+                        <tbody id="nodesListTable"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" id="cardOutput">
+                <div class="card-header"><span id="outputHeader">Generated Tree Structure Output</span></div>
+                <textarea id="treeOutputBlock" class="output-box" readonly></textarea>
+                <div class="copy-banner">
+                    <button class="btn" style="width: 100%;" id="copyTreeBtn" onclick="copyTreeToClipboard()">Copy Structural Text Payload</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 30px;" id="cardPython">
+            <div class="card-header">
+                <span id="pyHeaderTitle">Offline Python Generator Script</span>
+                <span style="color: var(--text-muted); font-weight: normal; text-transform: none;" id="pyHeaderSubtitle">Run locally to build this structure on disk</span>
+            </div>
+            <textarea id="pythonScriptBlock" class="output-box" style="height: 320px;" readonly></textarea>
+            <div class="copy-banner">
+                <button class="btn" style="width: 100%;" id="copyScriptBtn" onclick="copyPythonScript()">Copy Script</button>
+                <button class="btn btn-orange" style="width: 100%;" id="downloadScriptBtn" onclick="downloadPythonScript()">⬇ Download create_structure.py</button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <span id="footerText">© <span id="liveYear"></span> Made with ❤️ by <a href="https://zulfiqarteams.github.io/Portfolio_Website/" target="_blank" rel="noopener">Zulfiqar Teams</a></span>
+          <div class="footer-name">⚔️ ZULFIQAR — Fullstack Developer</div>
+  <div class="footer-links">
+    <a href="https://zulfiqarteams.github.io/Portfolio_Website/" target="_blank">🌐 Portfolio</a>
+    <a href="https://wa.me/+923136473895" target="_blank">📱 WhatsApp: 0313-6473895</a>
+    <a href="mailto:zulfiqarteams@gmail.com">📧 zulfiqarteams@gmail.com</a>
+    <a href="https://github.com/zulfiqarteams" target="_blank">💻 GitHub</a>
+    <a href="https://www.linkedin.com/in/zulfiqarteams" target="_blank">🔗 LinkedIn</a>
+  </div>
+  <div style="margin-top:0.5rem;color:var(--dim);font-size:0.72rem;">Jalapur Road, Hafizabad · Punjab University CS Student</div>
+        <span id="liveClock"></span>
+    </footer>
+
+    <script>
+        /* ================= TRANSLATIONS ================= */
+        const translations = {
+            en: {
+                dir: 'ltr',
+                rootNodeLabel: 'ROOT NODE:',
+                themeDark: 'Dark', themeLight: 'Light',
+                langLabel: 'اردو',
+                tutorialLabel: 'Tutorial',
+                howtoHeader: 'How To Use',
+                editorHeader: 'Interactive Blueprint Editor',
+                outputHeader: 'Generated Tree Structure Output',
+                pyHeaderTitle: 'Offline Python Generator Script',
+                pyHeaderSubtitle: 'Run locally to build this structure on disk',
+                thType: 'Type', thPath: 'Relative Path', thWipe: 'Wipe',
+                addFolderBtn: '+ Folder', addFileBtn: '+ File',
+                copyTreeBtn: 'Copy Structural Text Payload',
+                copyScriptBtn: 'Copy Script',
+                downloadScriptBtn: '⬇ Download create_structure.py',
+                nodePathPlaceholder: 'Path (e.g., css/style.css or js/audio.js)',
+                emptyTable: 'Blueprint layout is empty. Add elements above.',
+                alertNoPath: 'Please specify a path entry.',
+                alertDuplicate: 'This path already exists.',
+                alertTreeCopied: 'Structural Tree successfully copied to system clipboard!',
+                alertScriptCopied: 'Python script copied to clipboard!',
+                howtoSteps: [
+                    "Set your project's <strong>root folder name</strong> in the field at the top right — this becomes the first line of your tree.",
+                    'Type a relative path into the input box, e.g. <code>css/style.css</code> or <code>js/audio.js</code>.',
+                    'Click <strong>+ Folder</strong> for directories or <strong>+ File</strong> for files. Parent folders are created automatically from the path.',
+                    'Watch the tree build live on the right. Remove any row with the <strong>✕</strong> button.',
+                    'Click <strong>Copy Structural Text Payload</strong> to copy the finished tree — paste it straight into your README.',
+                    'Below that, a matching <strong>Python script</strong> is generated automatically. Click <strong>Download create_structure.py</strong>, then run <code>python create_structure.py</code> in your target folder to create all the files/folders on disk.'
+                ],
+                tutorial: [
+                    {
+                        title: 'Step 1 — Set the Root Folder Name',
+                        text: 'Write the <strong>main project folder name</strong> here, e.g. <code>my-portfolio</code>. This is the very first line of your generated tree and the folder your Python script will create.',
+                        target: 'rootNodeName'
+                    },
+                    {
+                        title: 'Step 2 — Add a Path',
+                        text: 'Type a relative file or folder path here, e.g. <code>css/style.css</code> or <code>images/logo.png</code>. Nested folders are detected automatically from the slashes (<code>/</code>).',
+                        target: 'nodePath'
+                    },
+                    {
+                        title: 'Step 3 — Choose File or Folder',
+                        text: 'Click <strong>+ Folder</strong> to add a directory, or <strong>+ File</strong> to add a file. The entry appears instantly in the table below and in the live tree preview.',
+                        target: 'cardEditor'
+                    },
+                    {
+                        title: 'Step 4 — Review Your Tree',
+                        text: 'The right panel shows your full tree structure with proper <code>├──</code> / <code>└──</code> connectors, updating live as you add or remove items.',
+                        target: 'cardOutput'
+                    },
+                    {
+                        title: 'Step 5 — Copy the Tree for Your README',
+                        text: 'Click <strong>Copy Structural Text Payload</strong> to copy the tree text. Paste it inside a code block in your <code>README.md</code> so visitors see your project layout.',
+                        target: 'copyTreeBtn'
+                    },
+                    {
+                        title: 'Step 6 — Download the Python Script',
+                        text: 'A matching <strong>Python script</strong> is auto-generated below. Click <strong>Download create_structure.py</strong>, place the file in your project folder, then run <code>python create_structure.py</code> to build the entire structure on your computer — fully offline.',
+                        target: 'downloadScriptBtn'
+                    }
+                ]
+            },
+            ur: {
+                dir: 'rtl',
+                rootNodeLabel: ':روٹ فولڈر کا نام',
+                themeDark: 'ڈارک', themeLight: 'لائٹ',
+                langLabel: 'English',
+                tutorialLabel: 'ٹیوٹوریل',
+                howtoHeader: 'استعمال کا طریقہ',
+                editorHeader: 'انٹرایکٹو بلیو پرنٹ ایڈیٹر',
+                outputHeader: 'تیار شدہ ٹری ساخت کا آؤٹ پٹ',
+                pyHeaderTitle: 'آف لائن پائتھون اسکرپٹ جنریٹر',
+                pyHeaderSubtitle: 'یہ اسکرپٹ کمپیوٹر پر چلائیں تاکہ یہی ساخت بن جائے',
+                thType: 'قسم', thPath: 'متعلقہ راستہ (پاتھ)', thWipe: 'حذف کریں',
+                addFolderBtn: '+ فولڈر', addFileBtn: '+ فائل',
+                copyTreeBtn: 'ٹری ٹیکسٹ کاپی کریں',
+                copyScriptBtn: 'اسکرپٹ کاپی کریں',
+                downloadScriptBtn: '⬇ create_structure.py ڈاؤن لوڈ کریں',
+                nodePathPlaceholder: 'راستہ لکھیں (مثلاً css/style.css یا js/audio.js)',
+                emptyTable: 'ابھی کوئی فائل یا فولڈر شامل نہیں ہوا۔ اوپر سے شامل کریں۔',
+                alertNoPath: 'براہ کرم ایک راستہ (پاتھ) درج کریں۔',
+                alertDuplicate: 'یہ راستہ پہلے ہی موجود ہے۔',
+                alertTreeCopied: 'ٹری ساخت کامیابی سے کاپی ہو گئی!',
+                alertScriptCopied: 'پائتھون اسکرپٹ کامیابی سے کاپی ہو گیا!',
+                howtoSteps: [
+                    'سب سے پہلے اوپر دائیں جانب <strong>روٹ فولڈر کا نام</strong> لکھیں — یہی آپ کے ٹری کی پہلی لائن بنے گا۔',
+                    'انپٹ باکس میں متعلقہ راستہ (path) لکھیں، مثلاً <code>css/style.css</code> یا <code>js/audio.js</code>۔',
+                    'فولڈر کے لیے <strong>+ Folder</strong> اور فائل کے لیے <strong>+ File</strong> پر کلک کریں۔ بڑے فولڈرز خود بخود راستے سے بن جائیں گے۔',
+                    'دائیں جانب لائیو ٹری بنتی دیکھیں۔ کسی بھی اندراج کو <strong>✕</strong> بٹن سے حذف کریں۔',
+                    '<strong>Copy Structural Text Payload</strong> پر کلک کر کے ٹری کاپی کریں اور اپنے README میں کوڈ بلاک میں چسپاں کریں۔',
+                    'نیچے ایک <strong>پائتھون اسکرپٹ</strong> خود بخود بن جاتی ہے۔ <strong>Download create_structure.py</strong> پر کلک کریں اور اپنے کمپیوٹر پر <code>python create_structure.py</code> چلا کر یہی ساخت بنا لیں۔'
+                ],
+                tutorial: [
+                    {
+                        title: 'مرحلہ 1 — روٹ فولڈر کا نام لکھیں',
+                        text: 'یہاں اپنے <strong>مین پراجیکٹ فولڈر کا نام</strong> لکھیں، مثلاً <code>my-portfolio</code>۔ یہی نام آپ کے ٹری کی پہلی لائن اور پائتھون اسکرپٹ کا مین فولڈر ہوگا۔',
+                        target: 'rootNodeName'
+                    },
+                    {
+                        title: 'مرحلہ 2 — راستہ (Path) لکھیں',
+                        text: 'یہاں فائل یا فولڈر کا راستہ لکھیں، مثلاً <code>css/style.css</code> یا <code>images/logo.png</code>۔ سلیش (<code>/</code>) سے اندر کے فولڈرز خود بخود پہچان لیے جاتے ہیں۔',
+                        target: 'nodePath'
+                    },
+                    {
+                        title: 'مرحلہ 3 — فائل یا فولڈر منتخب کریں',
+                        text: 'فولڈر شامل کرنے کے لیے <strong>+ Folder</strong> اور فائل کے لیے <strong>+ File</strong> پر کلک کریں۔ اندراج فوراً نیچے ٹیبل اور لائیو ٹری میں نظر آئے گا۔',
+                        target: 'cardEditor'
+                    },
+                    {
+                        title: 'مرحلہ 4 — اپنا ٹری دیکھیں',
+                        text: 'دائیں جانب پینل میں آپ کا مکمل ٹری <code>├──</code> اور <code>└──</code> لائنوں کے ساتھ نظر آئے گا، جو ہر تبدیلی پر فوراً اپڈیٹ ہوتا ہے۔',
+                        target: 'cardOutput'
+                    },
+                    {
+                        title: 'مرحلہ 5 — README کے لیے ٹری کاپی کریں',
+                        text: '<strong>Copy Structural Text Payload</strong> پر کلک کریں اور یہ ٹیکسٹ اپنے <code>README.md</code> میں کوڈ بلاک کے اندر چسپاں کریں۔',
+                        target: 'copyTreeBtn'
+                    },
+                    {
+                        title: 'مرحلہ 6 — پائتھون اسکرپٹ ڈاؤن لوڈ کریں',
+                        text: 'نیچے ایک <strong>پائتھون اسکرپٹ</strong> خود بخود بن جاتی ہے۔ <strong>Download create_structure.py</strong> پر کلک کریں، فائل کو اپنے پراجیکٹ فولڈر میں رکھیں، اور <code>python create_structure.py</code> چلائیں — یہ مکمل ساخت آپ کے کمپیوٹر پر بنا دے گا، بغیر انٹرنیٹ کے۔',
+                        target: 'downloadScriptBtn'
+                    }
+                ]
+            }
+        };
+
+        let currentLang = 'en';
+
+        let nodePayloadList = [
+            { path: 'index.html', type: 'file' },
+            { path: 'css/style.css', type: 'file' },
+            { path: 'js/timeline.js', type: 'file' },
+            { path: 'js/camera.js', type: 'file' }
+        ];
+
+        function renderNodesTable() {
+            const tableBody = document.getElementById('nodesListTable');
+            tableBody.innerHTML = '';
+            const t = translations[currentLang];
+
+            if (nodePayloadList.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color: var(--text-muted); padding:30px;">${t.emptyTable}</td></tr>`;
+                return;
+            }
+
+            nodePayloadList.forEach((node, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'node-row';
+
+                const badgeClass = node.type === 'directory' ? 'badge-dir' : 'badge-file';
+
+                tr.innerHTML = `
+                    <td><span class="badge ${badgeClass}">${node.type}</span></td>
+                    <td style="color: var(--text-primary); font-weight: 500;">${node.path}</td>
+                    <td class="action-delete" onclick="deleteNode(${index})">✕</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function addNode(type) {
+            const t = translations[currentLang];
+            const pathInput = document.getElementById('nodePath');
+            let rawPath = pathInput.value.trim();
+
+            if(rawPath.startsWith('/')) rawPath = rawPath.substring(1);
+            if(rawPath.endsWith('/') && type === 'directory') rawPath = rawPath.slice(0, -1);
+
+            if(!rawPath) return alert(t.alertNoPath);
+
+            const isDuplicate = nodePayloadList.some(item => item.path === rawPath);
+            if (isDuplicate) return alert(t.alertDuplicate);
+
+            nodePayloadList.push({ path: rawPath, type: type });
+            pathInput.value = '';
+
+            renderNodesTable();
+            generateOutputTree();
+        }
+
+        function deleteNode(index) {
+            nodePayloadList.splice(index, 1);
+            renderNodesTable();
+            generateOutputTree();
+        }
+
+        function generateOutputTree() {
+            const rootLabel = document.getElementById('rootNodeName').value.trim() || 'root';
+
+            let structuralTreeData = {};
+
+            nodePayloadList.forEach(node => {
+                const routeSegments = node.path.split('/');
+                let currentLevel = structuralTreeData;
+
+                routeSegments.forEach((segment, segmentIndex) => {
+                    if (!currentLevel[segment]) {
+                        currentLevel[segment] = {
+                            _type: (segmentIndex === routeSegments.length - 1) ? node.type : 'directory',
+                            _children: {}
+                        };
+                    }
+                    currentLevel = currentLevel[segment]._children;
+                });
+            });
+
+            let outputLinesString = `${rootLabel}/\n`;
+
+            function printTreeHierarchy(objectLevel, currentPrefix = "") {
+                const itemsKeys = Object.keys(objectLevel);
+
+                itemsKeys.forEach((key, index) => {
+                    const isLastNodeElement = index === itemsKeys.length - 1;
+                    const visualBranchSymbol = isLastNodeElement ? "└── " : "├── ";
+
+                    const nodeType = objectLevel[key]._type;
+                    const appendedFolderSlash = nodeType === 'directory' ? '/' : '';
+
+                    outputLinesString += `${currentPrefix}${visualBranchSymbol}${key}${appendedFolderSlash}\n`;
+
+                    const nestedChildKeys = Object.keys(objectLevel[key]._children);
+                    if (nestedChildKeys.length > 0) {
+                        const extendedNextPrefix = currentPrefix + (isLastNodeElement ? "    " : "│   ");
+                        printTreeHierarchy(objectLevel[key]._children, extendedNextPrefix);
+                    }
+                });
+            }
+
+            printTreeHierarchy(structuralTreeData);
+            document.getElementById('treeOutputBlock').value = outputLinesString;
+
+            generatePythonScript(rootLabel);
+        }
+
+        function generatePythonScript(rootLabel) {
+            const dirs = [];
+            const files = [];
+
+            nodePayloadList.forEach(node => {
+                const fullPath = `${rootLabel}/${node.path}`;
+                if (node.type === 'directory') {
+                    dirs.push(fullPath);
+                } else {
+                    files.push(fullPath);
+                    const parts = fullPath.split('/');
+                    if (parts.length > 1) {
+                        dirs.push(parts.slice(0, -1).join('/'));
+                    }
+                }
+            });
+
+            const uniqueDirs = [...new Set(dirs)];
+            const uniqueFiles = [...new Set(files)];
+
+            const dirLines = uniqueDirs.map(d => `    "${d}",`).join('\n');
+            const fileLines = uniqueFiles.map(f => `    "${f}",`).join('\n');
+
+            const script = `#!/usr/bin/env python3
+"""
+Offline Project Structure Generator
+Auto-generated by Draughtsman // Tree Structural Generator
+https://zulfiqarteams.github.io/Portfolio_Website/
+
+Usage:
+    python create_structure.py
+
+This will create the folder/file layout below in the current directory.
+Existing files and folders are left untouched.
+"""
+
+import os
+
+ROOT = "${rootLabel}"
+
+DIRECTORIES = [
+${dirLines || '    # no folders defined'}
+]
+
+FILES = [
+${fileLines || '    # no files defined'}
+]
+
+
+def main():
+    for d in DIRECTORIES:
+        os.makedirs(d, exist_ok=True)
+        print(f"[DIR]  {d}")
+
+    for f in FILES:
+        folder = os.path.dirname(f)
+        if folder:
+            os.makedirs(folder, exist_ok=True)
+        if not os.path.exists(f):
+            with open(f, "w", encoding="utf-8") as fh:
+                fh.write("")
+            print(f"[FILE] {f}")
+        else:
+            print(f"[SKIP] {f} (already exists)")
+
+    print("\\nDone! Project structure for '" + ROOT + "' is ready.")
+
+
+if __name__ == "__main__":
+    main()
+`;
+
+            document.getElementById('pythonScriptBlock').value = script;
+        }
+
+        function copyPythonScript() {
+            const t = translations[currentLang];
+            const scriptArea = document.getElementById('pythonScriptBlock');
+            scriptArea.select();
+            document.execCommand('copy');
+            alert(t.alertScriptCopied);
+        }
+
+        function downloadPythonScript() {
+            const scriptContent = document.getElementById('pythonScriptBlock').value;
+            const blob = new Blob([scriptContent], { type: 'text/x-python' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'create_structure.py';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function copyTreeToClipboard() {
+            const t = translations[currentLang];
+            const outputArea = document.getElementById('treeOutputBlock');
+            outputArea.select();
+            document.execCommand('copy');
+            alert(t.alertTreeCopied);
+        }
+
+        function updateLiveClock() {
+            const now = new Date();
+            document.getElementById('liveYear').textContent = now.getFullYear();
+            document.getElementById('liveClock').textContent = now.toLocaleString();
+        }
+
+        /* ================= THEME TOGGLE ================= */
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isLight = html.getAttribute('data-theme') === 'light';
+            setTheme(isLight ? 'dark' : 'light');
+        }
+
+        function setTheme(theme) {
+            const html = document.documentElement;
+            const t = translations[currentLang];
+            html.setAttribute('data-theme', theme);
+            const label = document.getElementById('themeToggleLabel');
+            const btn = document.getElementById('themeToggleBtn');
+            if (theme === 'light') {
+                label.textContent = t.themeLight;
+                btn.firstChild.textContent = '☀️ ';
+            } else {
+                label.textContent = t.themeDark;
+                btn.firstChild.textContent = '🌙 ';
+            }
+            localStorage.setItem('draughtsman-theme', theme);
+        }
+
+        /* ================= LANGUAGE TOGGLE ================= */
+        function toggleLanguage() {
+            setLanguage(currentLang === 'en' ? 'ur' : 'en');
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            document.documentElement.lang = lang;
+            document.documentElement.dir = t.dir;
+
+            document.getElementById('rootNodeLabel').textContent = t.rootNodeLabel;
+            document.getElementById('langToggleLabel').textContent = t.langLabel;
+            document.getElementById('tutorialBtnLabel').textContent = t.tutorialLabel;
+            document.getElementById('howtoHeader').textContent = t.howtoHeader;
+            document.getElementById('editorHeader').textContent = t.editorHeader;
+            document.getElementById('outputHeader').textContent = t.outputHeader;
+            document.getElementById('pyHeaderTitle').textContent = t.pyHeaderTitle;
+            document.getElementById('pyHeaderSubtitle').textContent = t.pyHeaderSubtitle;
+            document.getElementById('thType').textContent = t.thType;
+            document.getElementById('thPath').textContent = t.thPath;
+            document.getElementById('thWipe').textContent = t.thWipe;
+            document.getElementById('addFolderBtn').textContent = t.addFolderBtn;
+            document.getElementById('addFileBtn').textContent = t.addFileBtn;
+            document.getElementById('copyTreeBtn').textContent = t.copyTreeBtn;
+            document.getElementById('copyScriptBtn').textContent = t.copyScriptBtn;
+            document.getElementById('downloadScriptBtn').textContent = t.downloadScriptBtn;
+            document.getElementById('nodePath').placeholder = t.nodePathPlaceholder;
+
+            // theme button label refresh
+            const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+            document.getElementById('themeToggleLabel').textContent = isLight ? t.themeLight : t.themeDark;
+
+            // howto steps
+            const howtoList = document.getElementById('howtoList');
+            howtoList.innerHTML = t.howtoSteps.map(step => `<li>${step}</li>`).join('');
+
+            renderNodesTable();
+            localStorage.setItem('draughtsman-lang', lang);
+
+            // refresh tutorial if open
+            if (document.getElementById('tutorialOverlay').classList.contains('active')) {
+                renderTutorialStep();
+            }
+        }
+
+        /* ================= INTERACTIVE TUTORIAL ================= */
+        let tutorialStep = 0;
+        let tutorialHighlightEl = null;
+
+        function startTutorial() {
+            tutorialStep = 0;
+            document.getElementById('tutorialOverlay').classList.add('active');
+            renderTutorialStep();
+        }
+
+        function endTutorial() {
+            document.getElementById('tutorialOverlay').classList.remove('active');
+            clearHighlight();
+        }
+
+        function clearHighlight() {
+            if (tutorialHighlightEl) {
+                tutorialHighlightEl.classList.remove('highlight-pulse');
+                tutorialHighlightEl = null;
+            }
+        }
+
+        function renderTutorialStep() {
+            const t = translations[currentLang];
+            const steps = t.tutorial;
+            const step = steps[tutorialStep];
+
+            clearHighlight();
+
+            document.getElementById('tutStepBadge').textContent =
+                (currentLang === 'ur' ? `مرحلہ ${tutorialStep + 1} / ${steps.length}` : `Step ${tutorialStep + 1} / ${steps.length}`);
+            document.getElementById('tutTitle').textContent = step.title;
+            document.getElementById('tutText').innerHTML = step.text;
+
+            // dots
+            const dotsContainer = document.getElementById('tutDots');
+            dotsContainer.innerHTML = steps.map((_, i) =>
+                `<span class="${i === tutorialStep ? 'active' : ''}"></span>`).join('');
+
+            // nav buttons
+            const prevBtn = document.getElementById('tutPrevBtn');
+            const nextBtn = document.getElementById('tutNextBtn');
+            prevBtn.style.visibility = tutorialStep === 0 ? 'hidden' : 'visible';
+
+            if (currentLang === 'ur') {
+                prevBtn.textContent = '› پیچھے';
+                nextBtn.textContent = tutorialStep === steps.length - 1 ? 'مکمل ✓' : '‹ آگے';
+            } else {
+                prevBtn.textContent = '‹ Back';
+                nextBtn.textContent = tutorialStep === steps.length - 1 ? 'Finish ✓' : 'Next ›';
+            }
+
+            // highlight target
+            const targetEl = document.getElementById(step.target);
+            if (targetEl) {
+                targetEl.classList.add('highlight-pulse');
+                tutorialHighlightEl = targetEl;
+                targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function nextTutorialStep() {
+            const steps = translations[currentLang].tutorial;
+            if (tutorialStep < steps.length - 1) {
+                tutorialStep++;
+                renderTutorialStep();
+            } else {
+                endTutorial();
+            }
+        }
+
+        function prevTutorialStep() {
+            if (tutorialStep > 0) {
+                tutorialStep--;
+                renderTutorialStep();
+            }
+        }
+
+        window.onload = () => {
+            // restore saved theme & language preferences
+            const savedTheme = localStorage.getItem('draughtsman-theme') || 'dark';
+            const savedLang = localStorage.getItem('draughtsman-lang') || 'en';
+
+            setTheme(savedTheme);
+            setLanguage(savedLang);
+
+            renderNodesTable();
+            generateOutputTree();
+            updateLiveClock();
+            setInterval(updateLiveClock, 1000);
+        };
+    </script>
+</body>
+</html>
