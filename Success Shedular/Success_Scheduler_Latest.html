@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Success_Scheduler — زلفقار</title>
+<link rel="icon" type="image/png" id="faviconLink" href="">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --fire:#FF4500;--fire2:#FF6B35;--gold:#D4AF37;--gold2:#F5D97A;
+  --deep:#080810;--dark:#0D0D18;--card:#12121E;--card2:#1A1A28;
+  --border:rgba(212,175,55,0.15);--text:#EEE8D5;--dim:#8A7F6A;
+  --green:#2ECC71;--blue:#3498DB;--purple:#9B59B6;--red:#E74C3C;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--deep);color:var(--text);font-family:'Cairo','Amiri',serif;direction:rtl;overflow-x:hidden;}
+
+#canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.35;}
+
+/* NAV */
+header{position:relative;z-index:10;text-align:center;padding:2rem 2rem 1.5rem;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(255,69,0,0.07)0%,transparent 100%);}
+.header-inner{display:flex;align-items:center;justify-content:center;gap:1.2rem;flex-wrap:wrap;}
+.logo-img{width:54px;height:54px;object-fit:contain;filter:brightness(0) invert(1);border-radius:8px;}
+.header-titles{text-align:right;}
+.top-label{font-size:0.72rem;letter-spacing:6px;color:var(--fire);text-transform:uppercase;margin-bottom:0.3rem;}
+.main-title{font-size:clamp(1.5rem,4vw,2.8rem);font-weight:900;line-height:1.1;background:linear-gradient(135deg,var(--gold2),var(--gold),var(--fire2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.sub-title{font-size:0.85rem;color:var(--dim);}
+
+/* TABS NAV */
+.main-nav{position:sticky;top:0;z-index:60;background:rgba(8,8,16,0.97);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);display:flex;gap:0;overflow-x:auto;scrollbar-width:none;}
+.main-nav::-webkit-scrollbar{display:none;}
+.nav-tab{flex:1;min-width:80px;padding:0.7rem 0.5rem;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--dim);font-family:'Cairo',serif;font-size:0.78rem;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap;text-align:center;}
+.nav-tab:hover{color:var(--gold);border-bottom-color:rgba(212,175,55,0.3);}
+.nav-tab.active{color:var(--gold2);border-bottom-color:var(--gold);}
+
+/* CLOCK BAR */
+.clock-bar{position:relative;z-index:10;background:rgba(10,10,18,0.9);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0.7rem 1.5rem;flex-wrap:wrap;gap:0.5rem;}
+.live-clock{font-size:1.5rem;font-weight:700;color:var(--gold);letter-spacing:2px;font-variant-numeric:tabular-nums;}
+.current-info{font-size:0.8rem;color:var(--fire2);font-weight:600;max-width:300px;text-align:center;}
+.namaz-row{display:flex;gap:0.5rem;flex-wrap:wrap;}
+.namaz-pill{background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:6px;padding:0.2rem 0.55rem;font-size:0.68rem;color:var(--gold);font-weight:600;cursor:pointer;transition:all 0.2s;}
+.namaz-pill:hover{background:rgba(212,175,55,0.15);}
+.namaz-pill.next{background:rgba(255,69,0,0.15);border-color:rgba(255,69,0,0.4);color:var(--fire2);}
+
+/* PAGE SECTIONS */
+.page{display:none;position:relative;z-index:5;}
+.page.active{display:block;}
+
+/* DAY TABS */
+.day-tabs-wrap{position:relative;z-index:10;background:rgba(10,10,18,0.9);border-bottom:1px solid var(--border);padding:0.8rem 1rem;display:flex;gap:0.5rem;overflow-x:auto;scrollbar-width:none;}
+.day-tabs-wrap::-webkit-scrollbar{display:none;}
+.day-tab{flex-shrink:0;padding:0.5rem 1.1rem;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--dim);font-family:'Cairo',serif;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.day-tab:hover{border-color:rgba(212,175,55,0.3);color:var(--gold);}
+.day-tab.active{background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(255,69,0,0.1));border-color:var(--gold);color:var(--gold2);}
+.day-tab.today{border-color:var(--fire);color:var(--fire2);}
+.day-tab.today.active{background:linear-gradient(135deg,rgba(255,69,0,0.2),rgba(212,175,55,0.1));}
+
+/* STATS */
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:0.8rem;max-width:860px;margin:1.5rem auto;padding:0 1.5rem;position:relative;z-index:5;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;text-align:center;}
+.stat-num{font-size:1.6rem;font-weight:900;color:var(--gold);line-height:1;margin-bottom:0.2rem;}
+.stat-label{font-size:0.65rem;color:var(--dim);font-weight:600;letter-spacing:1px;}
+
+/* MAIN */
+main{position:relative;z-index:5;max-width:860px;margin:0 auto;padding:1rem 1.5rem 4rem;}
+
+/* PERIOD DIVIDER */
+.period-label{display:flex;align-items:center;gap:1rem;margin:1.8rem 0 1rem;position:relative;z-index:2;}
+.period-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(212,175,55,0.2),transparent);}
+.period-badge{background:linear-gradient(135deg,var(--pc1,var(--gold)),var(--pc2,var(--fire)));color:#000;font-size:0.68rem;font-weight:900;letter-spacing:3px;padding:0.35rem 0.9rem;border-radius:4px;white-space:nowrap;}
+
+/* BLOCK */
+.timeline{position:relative;}
+.timeline::before{content:'';position:absolute;right:36px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--fire)0%,var(--gold)50%,var(--purple)100%);opacity:0.25;}
+.block{display:grid;grid-template-columns:1fr 72px;margin-bottom:1rem;animation:slideIn 0.4s ease both;position:relative;}
+.block-content{background:var(--card);border:1px solid var(--border);border-radius:14px 0 0 14px;padding:1.2rem 1.4rem;transition:all 0.3s ease;position:relative;overflow:hidden;}
+.block-content::before{content:'';position:absolute;top:0;right:0;width:3px;height:100%;background:var(--ac,var(--gold));opacity:0.6;}
+.block:hover .block-content{background:var(--card2);border-color:rgba(212,175,55,0.3);transform:translateX(-3px);}
+.block.active-block .block-content{border-color:var(--fire);background:linear-gradient(135deg,rgba(255,69,0,0.07),var(--card));box-shadow:0 0 25px rgba(255,69,0,0.12);}
+.block.done .block-content{border-color:rgba(46,204,113,0.25);background:linear-gradient(135deg,rgba(46,204,113,0.04),var(--card));opacity:0.72;}
+.block.important-block .block-content{border-color:rgba(255,69,0,0.5);box-shadow:0 0 15px rgba(255,69,0,0.15);}
+.block.class-block .block-content{border-color:rgba(52,152,219,0.3);}
+.block.shop-block .block-content{border-color:rgba(255,165,0,0.3);}
+.block.namaz-block .block-content{border-color:rgba(155,89,182,0.35);}
+.block.academic-block .block-content{border-color:rgba(46,204,113,0.3);}
+
+.block-time-col{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--card2);border:1px solid var(--border);border-right:none;border-radius:0 14px 14px 0;padding:0.7rem 0.3rem;gap:0.3rem;}
+.block.active-block .block-time-col{background:rgba(255,69,0,0.08);border-color:var(--fire);}
+.block.done .block-time-col{background:rgba(46,204,113,0.04);}
+.time-dot{width:10px;height:10px;border-radius:50%;background:var(--ac,var(--gold));flex-shrink:0;box-shadow:0 0 7px var(--ac,var(--gold));}
+.block.active-block .time-dot{background:var(--fire);box-shadow:0 0 10px var(--fire);animation:dotPulse 1s infinite;}
+.time-text{font-size:0.62rem;color:var(--dim);writing-mode:vertical-rl;font-weight:600;letter-spacing:1px;}
+
+.block-top{display:flex;align-items:flex-start;gap:0.9rem;margin-bottom:0.7rem;}
+.block-icon{font-size:1.6rem;flex-shrink:0;width:44px;height:44px;background:rgba(212,175,55,0.07);border-radius:10px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(212,175,55,0.12);}
+.block.active-block .block-icon{background:rgba(255,69,0,0.1);border-color:rgba(255,69,0,0.25);}
+.block-meta{flex:1;}
+.block-name{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:0.1rem;line-height:1.3;}
+.block.active-block .block-name{color:var(--gold2);}
+.block-duration{font-size:0.68rem;color:var(--dim);font-weight:600;letter-spacing:1px;}
+.block-quote{font-size:0.78rem;color:var(--dim);line-height:1.55;font-style:italic;border-right:2px solid rgba(212,175,55,0.18);padding-right:0.7rem;margin-bottom:0.7rem;}
+.block.active-block .block-quote{border-color:rgba(255,69,0,0.35);color:rgba(238,232,213,0.65);}
+
+.block-tasks{display:flex;flex-wrap:wrap;gap:0.35rem;}
+.task-pill{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:0.22rem 0.65rem;font-size:0.72rem;color:var(--dim);transition:all 0.2s;cursor:pointer;user-select:none;}
+.task-pill:hover{background:rgba(212,175,55,0.07);color:var(--gold);border-color:rgba(212,175,55,0.18);}
+.task-pill.ticked{background:rgba(46,204,113,0.09);color:var(--green);border-color:rgba(46,204,113,0.18);text-decoration:line-through;}
+
+.block-footer{display:flex;align-items:center;justify-content:space-between;margin-top:0.7rem;padding-top:0.7rem;border-top:1px solid rgba(255,255,255,0.04);flex-wrap:wrap;gap:0.4rem;}
+.source-badge{font-size:0.67rem;color:var(--gold);background:rgba(212,175,55,0.07);border:1px solid rgba(212,175,55,0.15);border-radius:4px;padding:0.18rem 0.55rem;font-weight:600;}
+.done-btn{background:rgba(46,204,113,0.07);border:1px solid rgba(46,204,113,0.18);color:var(--green);border-radius:20px;padding:0.28rem 0.85rem;font-size:0.72rem;cursor:pointer;font-family:'Cairo',serif;transition:all 0.2s;font-weight:600;}
+.done-btn:hover{background:rgba(46,204,113,0.14);}
+.block.done .done-btn{background:rgba(46,204,113,0.14);}
+.important-badge{font-size:0.62rem;background:rgba(255,69,0,0.12);color:var(--fire2);border:1px solid rgba(255,69,0,0.25);border-radius:4px;padding:0.15rem 0.45rem;font-weight:700;animation:impPulse 2s infinite;}
+
+/* TYPE BADGES */
+.type-badge{font-size:0.6rem;font-weight:700;letter-spacing:2px;padding:0.15rem 0.5rem;border-radius:3px;margin-right:0.5rem;}
+.tb-class{background:rgba(52,152,219,0.15);color:#5DADE2;border:1px solid rgba(52,152,219,0.25);}
+.tb-shop{background:rgba(255,165,0,0.12);color:#F0A500;border:1px solid rgba(255,165,0,0.22);}
+.tb-namaz{background:rgba(155,89,182,0.12);color:#BB8FCE;border:1px solid rgba(155,89,182,0.22);}
+.tb-academic{background:rgba(46,204,113,0.1);color:#52BE80;border:1px solid rgba(46,204,113,0.2);}
+.tb-skill{background:rgba(255,69,0,0.1);color:#FF7043;border:1px solid rgba(255,69,0,0.2);}
+.tb-book{background:rgba(212,175,55,0.1);color:var(--gold);border:1px solid rgba(212,175,55,0.2);}
+
+/* FLASH */
+.flash-banner{background:linear-gradient(135deg,rgba(255,69,0,0.1),rgba(212,175,55,0.06));border:1px solid rgba(255,69,0,0.25);border-radius:12px;padding:1.2rem 1.5rem;text-align:center;margin:1rem 0 1.5rem;position:relative;overflow:hidden;}
+.flash-text{position:relative;z-index:1;font-size:0.95rem;color:var(--gold2);font-weight:700;line-height:1.5;}
+
+/* PROGRESS */
+.week-progress{display:grid;grid-template-columns:repeat(7,1fr);gap:0.4rem;max-width:860px;margin:0 auto 1rem;padding:0 1.5rem;position:relative;z-index:5;}
+.wp-day{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:0.5rem 0.3rem;text-align:center;}
+.wp-day.today{border-color:var(--fire);}
+.wp-name{font-size:0.6rem;color:var(--dim);margin-bottom:0.3rem;font-weight:600;}
+.wp-bar{width:100%;height:5px;background:rgba(255,255,255,0.05);border-radius:10px;overflow:hidden;}
+.wp-fill{height:100%;background:linear-gradient(90deg,var(--fire),var(--gold));border-radius:10px;transition:width 0.5s;}
+.wp-pct{font-size:0.65rem;color:var(--gold);font-weight:700;margin-top:0.2rem;}
+
+/* ─── IMPORTANT TASKS NOTIFICATION ─── */
+.imp-notify{position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:999;background:linear-gradient(135deg,rgba(255,69,0,0.95),rgba(200,40,0,0.95));border:1px solid rgba(255,150,50,0.5);border-radius:14px;padding:1rem 1.5rem;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(255,69,0,0.35);display:none;animation:slideDown 0.4s ease;}
+.imp-notify-title{font-size:0.9rem;font-weight:900;color:#fff;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.5rem;}
+.imp-notify-list{list-style:none;display:flex;flex-direction:column;gap:0.3rem;}
+.imp-notify-list li{font-size:0.8rem;color:rgba(255,255,255,0.9);display:flex;align-items:center;gap:0.4rem;}
+.imp-notify-close{position:absolute;top:0.5rem;left:0.5rem;background:rgba(255,255,255,0.15);border:none;color:#fff;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:0.8rem;display:flex;align-items:center;justify-content:center;}
+
+/* ─── HABITS PAGE ─── */
+.habits-page{max-width:1000px;margin:0 auto;padding:1.5rem;}
+.page-header{text-align:center;margin-bottom:2rem;}
+.page-title{font-size:1.8rem;font-weight:900;color:var(--gold);margin-bottom:0.3rem;}
+.page-sub{font-size:0.85rem;color:var(--dim);}
+.habits-progress-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;text-align:center;}
+.h-prog-title{font-size:1rem;color:var(--gold);margin-bottom:1rem;}
+.h-prog-bar-wrap{background:rgba(255,255,255,0.05);border-radius:50px;height:12px;overflow:hidden;margin-bottom:0.5rem;}
+.h-prog-bar{height:100%;background:linear-gradient(90deg,var(--fire),var(--gold));border-radius:50px;transition:width 0.5s;width:0%;}
+.h-prog-text{font-size:0.85rem;color:var(--dim);}
+.h-prog-text span{color:var(--gold2);font-weight:700;}
+.habits-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;}
+.habit-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.4rem;transition:all 0.3s;cursor:pointer;position:relative;overflow:hidden;}
+.habit-card::before{content:'';position:absolute;top:0;right:0;width:60px;height:60px;background:radial-gradient(circle,rgba(212,175,55,0.08),transparent);border-radius:0 16px 0 60px;}
+.habit-card:hover{border-color:rgba(212,175,55,0.4);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.3);}
+.habit-card.done{border-color:rgba(46,204,113,0.35);background:linear-gradient(135deg,var(--card),rgba(46,204,113,0.04));}
+.habit-header{display:flex;align-items:center;gap:0.8rem;margin-bottom:0.8rem;}
+.habit-icon{font-size:1.6rem;width:48px;height:48px;background:rgba(212,175,55,0.08);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.habit-card.done .habit-icon{background:rgba(46,204,113,0.12);}
+.habit-name{font-size:1rem;color:var(--gold2);font-weight:700;}
+.habit-source{font-size:0.72rem;color:var(--dim);margin-top:0.1rem;}
+.habit-desc{font-size:0.82rem;color:var(--dim);line-height:1.6;margin-bottom:1rem;}
+.habit-check-btn{background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);border-radius:20px;padding:0.4rem 1rem;color:var(--gold);font-size:0.78rem;cursor:pointer;transition:all 0.2s;font-family:'Cairo',serif;font-weight:600;}
+.habit-check-btn:hover,.habit-card.done .habit-check-btn{background:var(--green);border-color:var(--green);color:#fff;}
+
+/* ─── HABITS WISDOM ─── */
+.wisdom-section{margin-top:2.5rem;}
+.wisdom-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;}
+.wisdom-card{background:var(--card2);border-radius:14px;padding:1.5rem;text-align:center;border-top:2px solid var(--gold);transition:transform 0.3s;}
+.wisdom-card:hover{transform:translateY(-4px);}
+.wisdom-avatar{font-size:2rem;margin-bottom:0.5rem;}
+.wisdom-name{font-size:0.95rem;color:var(--gold);margin-bottom:0.4rem;font-weight:700;}
+.wisdom-text{font-size:0.82rem;color:var(--dim);line-height:1.65;font-style:italic;}
+
+/* ─── SETTINGS PAGE ─── */
+.settings-page{max-width:900px;margin:0 auto;padding:1.5rem;}
+.settings-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;}
+.settings-title{font-size:1rem;font-weight:700;color:var(--gold);margin-bottom:1.2rem;display:flex;align-items:center;gap:0.5rem;border-bottom:1px solid var(--border);padding-bottom:0.7rem;}
+.namaz-adj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0.8rem;}
+.namaz-field{display:flex;flex-direction:column;gap:0.3rem;}
+.namaz-field label{font-size:0.72rem;color:var(--dim);font-weight:600;}
+.namaz-field input{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:0.5rem 0.8rem;font-family:'Cairo',serif;font-size:0.85rem;text-align:center;}
+.namaz-field input:focus{outline:none;border-color:var(--gold);}
+.save-btn{background:linear-gradient(135deg,var(--fire),var(--gold));color:#000;border:none;border-radius:10px;padding:0.7rem 2rem;font-family:'Cairo',serif;font-size:0.9rem;font-weight:700;cursor:pointer;margin-top:1rem;transition:all 0.2s;}
+.save-btn:hover{opacity:0.85;}
+.block-editor{display:flex;flex-direction:column;gap:0.8rem;}
+.edit-row{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:1rem;}
+.edit-row-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.7rem;cursor:pointer;}
+.edit-row-title{font-size:0.85rem;font-weight:700;color:var(--text);}
+.edit-fields{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-top:0.7rem;}
+.edit-field{display:flex;flex-direction:column;gap:0.2rem;}
+.edit-field label{font-size:0.65rem;color:var(--dim);font-weight:600;letter-spacing:1px;}
+.edit-field input,.edit-field textarea,.edit-field select{background:var(--deep);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:0.4rem 0.6rem;font-family:'Cairo',serif;font-size:0.82rem;}
+.edit-field textarea{resize:vertical;min-height:60px;}
+.edit-field input:focus,.edit-field textarea:focus,.edit-field select:focus{outline:none;border-color:var(--gold);}
+.edit-full{grid-column:1/-1;}
+.imp-toggle{display:flex;align-items:center;gap:0.5rem;cursor:pointer;}
+.imp-toggle input[type=checkbox]{width:16px;height:16px;accent-color:var(--fire);}
+.imp-toggle label{font-size:0.78rem;color:var(--fire2);font-weight:600;cursor:pointer;}
+.del-btn{background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.25);color:var(--red);border-radius:6px;padding:0.3rem 0.7rem;font-size:0.72rem;cursor:pointer;font-family:'Cairo',serif;transition:all 0.2s;}
+.del-btn:hover{background:rgba(231,76,60,0.2);}
+.add-block-btn{background:rgba(46,204,113,0.08);border:1px dashed rgba(46,204,113,0.3);color:var(--green);border-radius:10px;padding:0.7rem;font-family:'Cairo',serif;font-size:0.85rem;font-weight:600;cursor:pointer;width:100%;transition:all 0.2s;}
+.add-block-btn:hover{background:rgba(46,204,113,0.14);}
+.habit-editor .h-edit-row{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:0.6rem;}
+.h-edit-fields{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-top:0.5rem;}
+.h-edit-field{display:flex;flex-direction:column;gap:0.2rem;}
+.h-edit-field label{font-size:0.65rem;color:var(--dim);font-weight:600;}
+.h-edit-field input,.h-edit-field textarea{background:var(--deep);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:0.4rem 0.6rem;font-family:'Cairo',serif;font-size:0.82rem;}
+.h-edit-field textarea{resize:vertical;min-height:55px;}
+.h-edit-field input:focus,.h-edit-field textarea:focus{outline:none;border-color:var(--gold);}
+.h-edit-full{grid-column:1/-1;}
+
+/* FOCUS TIMER */
+.timer-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;text-align:center;max-width:420px;margin:0 auto;}
+.timer-select{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:0.5rem 1rem;border-radius:8px;font-family:'Cairo',serif;font-size:0.85rem;margin-bottom:1rem;direction:rtl;}
+.timer-display{font-size:3.5rem;font-weight:900;color:var(--gold);margin:1rem 0;text-shadow:0 0 20px rgba(212,175,55,0.3);font-variant-numeric:tabular-nums;}
+.timer-btns{display:flex;gap:0.8rem;justify-content:center;flex-wrap:wrap;}
+.timer-btn{background:var(--card2);border:1px solid var(--border);color:var(--gold);padding:0.6rem 1.2rem;border-radius:20px;cursor:pointer;font-size:0.85rem;font-family:'Cairo',serif;transition:all 0.2s;}
+.timer-btn:hover{background:var(--gold);color:var(--deep);}
+
+/* FOOTER */
+footer{position:relative;z-index:5;text-align:center;padding:2.5rem 2rem;border-top:1px solid var(--border);color:var(--dim);font-size:0.82rem;}
+.footer-logo{width:44px;margin:0 auto 0.7rem;display:block;filter:brightness(0) invert(1);opacity:0.6;}
+.footer-links{display:flex;justify-content:center;gap:1.2rem;flex-wrap:wrap;margin:0.8rem 0;font-size:0.75rem;}
+.footer-links a{color:var(--dim);text-decoration:none;transition:color 0.2s;}
+.footer-links a:hover{color:var(--gold);}
+.footer-name{font-size:1rem;color:var(--gold);font-weight:700;margin-bottom:0.3rem;}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideDown{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes dotPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:0.7}}
+@keyframes impPulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+@media(max-width:600px){
+  .stats-bar{grid-template-columns:repeat(2,1fr);}
+  .week-progress{grid-template-columns:repeat(4,1fr);}
+  .timeline::before{right:28px;}
+  .block{grid-template-columns:1fr 55px;}
+  .time-text{display:none;}
+  .edit-fields,.h-edit-fields{grid-template-columns:1fr;}
+  .edit-full,.h-edit-full{grid-column:1;}
+}
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<!-- IMPORTANT TASKS NOTIFICATION -->
+<div class="imp-notify" id="impNotify">
+  <button class="imp-notify-close" onclick="document.getElementById('impNotify').style.display='none'">✕</button>
+  <div class="imp-notify-title">⚠️ ضروری کام — آج لازمی کرو!</div>
+  <ul class="imp-notify-list" id="impList"></ul>
+</div>
+
+<header>
+  <div class="header-inner">
+    <img class="logo-img" id="headerLogo" src="" alt="Zulfiqar Logo">
+    <div class="header-titles">
+      <div class="top-label">⚔️ Success_Scheduler ⚔️</div>
+      <h1 class="main-title">پورا ہفتہ — ایک سیکنڈ ضائع نہیں</h1>
+      <p class="sub-title">نبی ﷺ · علیؓ · خالدؓ · ابن عوفؓ · منسا موسیٰ کی زندگی سے الہام</p>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN NAVIGATION -->
+<nav class="main-nav">
+  <button class="nav-tab active" onclick="showPage('schedule',this)">📅 شیڈول</button>
+  <button class="nav-tab" onclick="showPage('habits',this)">✅ عادتیں</button>
+  <button class="nav-tab" onclick="showPage('timer',this)">⏱️ ٹائمر</button>
+  <button class="nav-tab" onclick="showPage('settings',this)">⚙️ سیٹنگ</button>
+</nav>
+
+<!-- CLOCK BAR (always visible) -->
+<div class="clock-bar">
+  <div>
+    <div class="live-clock" id="liveClock">00:00:00</div>
+    <div style="font-size:0.62rem;color:var(--dim);margin-top:1px;" id="dateLabel"></div>
+  </div>
+  <div class="current-info" id="currentInfo">⏳ لوڈ ہو رہا ہے...</div>
+  <div class="namaz-row" id="namazRow"></div>
+</div>
+
+<!-- ═══════ PAGE: SCHEDULE ═══════ -->
+<div class="page active" id="page-schedule">
+  <div class="day-tabs-wrap" id="dayTabs"></div>
+  <div class="week-progress" id="weekProgress"></div>
+  <div class="stats-bar">
+    <div class="stat-card"><div class="stat-num" id="statDone">0</div><div class="stat-label">آج مکمل</div></div>
+    <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">کل بلاکس</div></div>
+    <div class="stat-card"><div class="stat-num" id="statPct" style="color:var(--fire)">0%</div><div class="stat-label">آج کی پیشرفت</div></div>
+    <div class="stat-card"><div class="stat-num" id="statStreak" style="color:var(--fire)">0🔥</div><div class="stat-label">ہفتہ اسکور</div></div>
+  </div>
+  <main>
+    <div class="flash-banner"><div class="flash-text" id="flashText">"خالدؓ: جو اللہ کا ہو جائے — وقت اس کا غلام بن جاتا ہے۔"</div></div>
+    <div class="timeline" id="timeline"></div>
+  </main>
+</div>
+
+<!-- ═══════ PAGE: HABITS ═══════ -->
+<div class="page" id="page-habits">
+  <div class="habits-page">
+    <div class="page-header">
+      <div class="page-title">🎯 آج کی عادتیں</div>
+      <div class="page-sub">ہر عادت مکمل کریں اور ٹک لگائیں</div>
+    </div>
+    <div class="habits-progress-wrap">
+      <div class="h-prog-title">آج کی پیشرفت</div>
+      <div class="h-prog-bar-wrap"><div class="h-prog-bar" id="hProgBar"></div></div>
+      <div class="h-prog-text"><span id="hDone">0</span> / <span id="hTotal">0</span> عادتیں مکمل</div>
+    </div>
+    <div class="habits-grid" id="habitsGrid"></div>
+    <div class="wisdom-section">
+      <div class="page-header" style="margin-top:2rem;">
+        <div class="page-title">💛 عظیم لوگوں کی حکمت</div>
+        <div class="page-sub">ان کے اقوال — آج بھی زندہ ہیں</div>
+      </div>
+      <div class="wisdom-grid" id="wisdomGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ PAGE: TIMER ═══════ -->
+<div class="page" id="page-timer">
+  <div style="max-width:500px;margin:2rem auto;padding:0 1.5rem;">
+    <div class="page-header">
+      <div class="page-title">⏱️ فوکس ٹائمر</div>
+      <div class="page-sub">بغیر توجہ کے کامیابی نہیں — ابھی شروع کرو</div>
+    </div>
+    <div class="timer-wrap">
+      <select class="timer-select" id="timerSelect">
+        <option value="1500">📚 25 منٹ — پڑھائی</option>
+        <option value="1800">💼 30 منٹ — کام</option>
+        <option value="600">🧘 10 منٹ — مراقبہ</option>
+        <option value="300">🤲 5 منٹ — دعا</option>
+        <option value="3600">💪 60 منٹ — گہری توجہ</option>
+      </select>
+      <div class="timer-display" id="timerDisplay">25:00</div>
+      <div class="timer-btns">
+        <button class="timer-btn" onclick="startTimer()">▶️ شروع</button>
+        <button class="timer-btn" onclick="pauseTimer()">⏸️ رکو</button>
+        <button class="timer-btn" onclick="resetTimer()">🔄 دوبارہ</button>
+      </div>
+      <p style="color:var(--dim);margin-top:1.2rem;font-size:0.82rem;">"خالد بن ولیدؓ میدان میں پوری توجہ دیتے تھے — تم بھی دو!"</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ PAGE: SETTINGS ═══════ -->
+<div class="page" id="page-settings">
+  <div class="settings-page">
+    <div class="page-header">
+      <div class="page-title">⚙️ سیٹنگ اور ترمیم</div>
+      <div class="page-sub">اپنی مسجد کے مطابق نماز کے اوقات اور شیڈول تبدیل کریں</div>
+    </div>
+
+    <!-- NAMAZ TIMES ADJUSTER -->
+    <div class="settings-section">
+      <div class="settings-title">🕌 نماز کے اوقات — اپنی مسجد کے مطابق</div>
+      <div class="namaz-adj-grid">
+        <div class="namaz-field"><label>فجر</label><input type="time" id="adj-fajr"></div>
+        <div class="namaz-field"><label>ظہر</label><input type="time" id="adj-dhuhr"></div>
+        <div class="namaz-field"><label>عصر</label><input type="time" id="adj-asr"></div>
+        <div class="namaz-field"><label>مغرب</label><input type="time" id="adj-maghrib"></div>
+        <div class="namaz-field"><label>عشاء</label><input type="time" id="adj-isha"></div>
+      </div>
+      <div style="display:flex;gap:0.8rem;flex-wrap:wrap;margin-top:0.8rem;">
+        <button class="save-btn" onclick="saveNamazTimes()">💾 اوقات محفوظ کریں</button>
+        <button class="save-btn" style="background:linear-gradient(135deg,var(--blue),#1A5276);" onclick="fetchAndApplyPrayer()">🌐 API سے لو</button>
+      </div>
+      <div id="namazSaveMsg" style="font-size:0.78rem;color:var(--green);margin-top:0.5rem;display:none;">✅ اوقات محفوظ ہو گئے!</div>
+    </div>
+
+    <!-- SCHEDULE EDITOR -->
+    <div class="settings-section">
+      <div class="settings-title">📅 شیڈول ترمیم — <span id="editDayName" style="color:var(--fire2)"></span></div>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem;" id="editDayTabs"></div>
+      <div class="block-editor" id="blockEditor"></div>
+      <button class="add-block-btn" onclick="addNewBlock()">➕ نیا بلاک شامل کریں</button>
+      <div style="margin-top:1rem;"><button class="save-btn" onclick="saveScheduleEdits()">💾 شیڈول محفوظ کریں</button></div>
+      <div id="schedSaveMsg" style="font-size:0.78rem;color:var(--green);margin-top:0.5rem;display:none;">✅ شیڈول محفوظ ہو گیا!</div>
+    </div>
+
+    <!-- HABITS EDITOR -->
+    <div class="settings-section">
+      <div class="settings-title">✅ عادتیں ترمیم</div>
+      <div class="habit-editor" id="habitEditor"></div>
+      <button class="add-block-btn" onclick="addNewHabit()">➕ نئی عادت شامل کریں</button>
+      <div style="margin-top:1rem;"><button class="save-btn" onclick="saveHabitsEdits()">💾 عادتیں محفوظ کریں</button></div>
+      <div id="habitSaveMsg" style="font-size:0.78rem;color:var(--green);margin-top:0.5rem;display:none;">✅ عادتیں محفوظ ہو گئیں!</div>
+    </div>
+
+    <!-- RESET -->
+    <div class="settings-section">
+      <div class="settings-title">🔄 ری سیٹ</div>
+      <p style="font-size:0.82rem;color:var(--dim);margin-bottom:1rem;">تمام ڈیٹا، ترمیم اور progress مٹا کر اصل شیڈول پر واپس آئیں۔</p>
+      <button class="del-btn" style="font-size:0.85rem;padding:0.6rem 1.5rem;" onclick="confirmReset()">🗑️ سب ری سیٹ کریں</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <img class="footer-logo" id="footerLogo" src="" alt="logo">
+  <div class="footer-name">⚔️ ZULFIQAR — Fullstack Developer</div>
+  <div class="footer-links">
+    <a href="https://zulfiqarteams.github.io/Portfolio_Website/" target="_blank">🌐 Portfolio</a>
+    <a href="https://wa.me/+923136473895" target="_blank">📱 WhatsApp: 0313-6473895</a>
+    <a href="mailto:zulfiqarteams@gmail.com">📧 zulfiqarteams@gmail.com</a>
+    <a href="https://github.com/zulfiqarteams" target="_blank">💻 GitHub</a>
+    <a href="https://www.linkedin.com/in/zulfiqarteams" target="_blank">🔗 LinkedIn</a>
+  </div>
+  <div style="margin-top:0.5rem;color:var(--dim);font-size:0.72rem;">Jalapur Road, Hafizabad · Punjab University CS Student</div>
+  <div style="margin-top:0.8rem;color:var(--gold);">🤲 اللہ تمہیں کامیاب کرے — آمین</div>
+  <div style="margin-top:0.5rem;font-size:0.65rem;color:var(--dim);">Success_Scheduler v2.0 — by Zulfiqar</div>
+</footer>
+
+<script>
+// ════════════════════════════════════════════
+//  LOGO (base64 injected)
+// ════════════════════════════════════════════
+const LOGO_SRC = "data:image/png;base64,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a6qq66q66pqqqnmZmeZmUAAAAAAAAAAAAUzNM8xMxPqkAQJAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABCYQmAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQmEJgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEJhCYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABCYQmAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQmEJgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEJhCYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABCYQmAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQmEJgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEJhCYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABCYQkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEHJHicAcnJwIHJyeBwBych4AcnJwAcnJ4HAHJyHgBycnABycngcAcnIeAHJycAHJyeBwBych4AcnJwAcnJ4HAHJyHgBycnABycngcAcnIeAHJycAHJyeBwBych4AcnJwAcnJ4HAHJyHgBycnABycngcAcnIeAHJycAHJyeBwBych4AcnJwAcnJ4HAHJyHgBycnABycngcAcnIeAHJycAHJyeBwBych4AcnJwAcnJ4HAHJyHgBycnABycngcAcp5QeAJEEg//Z";
+(function(){
+  document.getElementById('headerLogo').src = LOGO_SRC;
+  document.getElementById('footerLogo').src = LOGO_SRC;
+  // Favicon
+  const link = document.getElementById('faviconLink');
+  link.href = LOGO_SRC;
+})();
+
+// ════════════════════════════════════════════
+//  DEFAULT DATA
+// ════════════════════════════════════════════
+let prayerTimes = { Fajr:"04:15", Dhuhr:"13:15", Asr:"17:30", Maghrib:"19:11", Isha:"20:30" };
+
+async function fetchAndApplyPrayer() {
+  try {
+    const res = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=Hafizabad&country=Pakistan&method=1&date=${new Date().toLocaleDateString('en-GB').split('/').reverse().join('-')}`);
+    const data = await res.json();
+    if(data.code===200){
+      const t=data.data.timings;
+      prayerTimes={Fajr:t.Fajr.substring(0,5),Dhuhr:t.Dhuhr.substring(0,5),Asr:t.Asr.substring(0,5),Maghrib:t.Maghrib.substring(0,5),Isha:t.Isha.substring(0,5)};
+      saveNamazToStorage();
+      updateNamazRow();
+      buildWeekSchedule();
+      renderDay(selectedDay);
+      document.getElementById('adj-fajr').value=prayerTimes.Fajr;
+      document.getElementById('adj-dhuhr').value=prayerTimes.Dhuhr;
+      document.getElementById('adj-asr').value=prayerTimes.Asr;
+      document.getElementById('adj-maghrib').value=prayerTimes.Maghrib;
+      document.getElementById('adj-isha').value=prayerTimes.Isha;
+      alert('✅ API سے نماز کے اوقات لے لیے!');
+    }
+  } catch(e){alert('API نہیں ملا — خود اوقات درج کریں');}
+}
+
+function saveNamazToStorage(){
+  localStorage.setItem('ssNamaz', JSON.stringify(prayerTimes));
+}
+
+function loadNamazFromStorage(){
+  const s=localStorage.getItem('ssNamaz');
+  if(s){ prayerTimes=JSON.parse(s); }
+  document.getElementById('adj-fajr').value=prayerTimes.Fajr;
+  document.getElementById('adj-dhuhr').value=prayerTimes.Dhuhr;
+  document.getElementById('adj-asr').value=prayerTimes.Asr;
+  document.getElementById('adj-maghrib').value=prayerTimes.Maghrib;
+  document.getElementById('adj-isha').value=prayerTimes.Isha;
+}
+
+function saveNamazTimes(){
+  prayerTimes.Fajr=document.getElementById('adj-fajr').value||prayerTimes.Fajr;
+  prayerTimes.Dhuhr=document.getElementById('adj-dhuhr').value||prayerTimes.Dhuhr;
+  prayerTimes.Asr=document.getElementById('adj-asr').value||prayerTimes.Asr;
+  prayerTimes.Maghrib=document.getElementById('adj-maghrib').value||prayerTimes.Maghrib;
+  prayerTimes.Isha=document.getElementById('adj-isha').value||prayerTimes.Isha;
+  saveNamazToStorage();
+  buildWeekSchedule();
+  renderDay(selectedDay);
+  updateNamazRow();
+  const msg=document.getElementById('namazSaveMsg');
+  msg.style.display='block';
+  setTimeout(()=>msg.style.display='none',2500);
+}
+
+function updateNamazRow(){
+  const now=timeToMins(currentTimeStr());
+  const prayers=[{n:'فجر',t:prayerTimes.Fajr},{n:'ظہر',t:prayerTimes.Dhuhr},{n:'عصر',t:prayerTimes.Asr},{n:'مغرب',t:prayerTimes.Maghrib},{n:'عشاء',t:prayerTimes.Isha}];
+  let nextIdx=prayers.findIndex(p=>timeToMins(p.t)>now);
+  document.getElementById('namazRow').innerHTML=prayers.map((p,i)=>`<span class="namaz-pill ${i===nextIdx?'next':''}">${p.n} ${p.t}</span>`).join('');
+}
+
+// ════════════════════════════════════════════
+//  DEFAULT SCHEDULE BLOCKS
+// ════════════════════════════════════════════
+function getDefaultBlocks(dayIdx) {
+  const isClassDay=[3,4].includes(dayIdx);
+  const isFriday=dayIdx===5;
+  const {Fajr:fajr,Dhuhr:dhuhr,Asr:asr,Maghrib:maghrib,Isha:isha}=prayerTimes;
+  const afterFajr=addMins(fajr,30),exEnd=addMins(afterFajr,40),freshEnd=addMins(exEnd,25);
+  let blocks=[];
+
+  blocks.push({id:'tahajjud',start:'03:30',end:fajr,icon:'🌙',name:'تہجد + استغفار + دعا',type:'ibadah',ac:'#9B59B6',badge:null,quote:'نبی ﷺ رات کو اٹھ کر اتنا نماز پڑھتے کہ پاؤں سوج جاتے — یہ کامیابی کا اصل راز ہے۔',tasks:['2 رکعت تہجد','100× استغفار','آج کی دعا','ذہنی سکون'],source:'نبی ﷺ کا طریقہ',important:false});
+  blocks.push({id:'fajr',start:fajr,end:afterFajr,icon:'🕌',name:'فجر کی نماز + قرآن + اذکار',type:'namaz',ac:'#D4AF37',badge:'tb-namaz',quote:'فجر کی نماز دن کی چابی ہے۔ "میری امت کے لیے صبح میں برکت رکھی گئی۔"',tasks:['فجر کی نماز','5 آیات ترجمہ کے ساتھ','اذکارِ صبح','درود شریف 100×'],source:'نبی ﷺ',important:true});
+  blocks.push({id:'exercise',start:afterFajr,end:exEnd,icon:'🏃',name:'ورزش — جسمانی طاقت',type:'health',ac:'#E74C3C',badge:null,quote:'خالدؓ: جسم تمہارا پہلا ہتھیار ہے — کمزور جسم کمزور ارادہ۔',tasks:['20 پش اپس','30 بیٹھک','2 کلو میٹر دوڑ','اسٹریچنگ 5 منٹ'],source:'خالد بن ولیدؓ',important:false});
+  blocks.push({id:'fresh',start:exEnd,end:freshEnd,icon:'🚿',name:'غسل + ناشتہ + تیاری',type:'routine',ac:'#3498DB',badge:null,quote:'ابن عوفؓ ہر صبح تیار ہو کر بازار جاتے — تیاری کامیابی کی بنیاد ہے۔',tasks:['ٹھنڈا غسل','پانی 2 گلاس','صحت مند ناشتہ','آج کا ارادہ'],source:'ابن عوفؓ',important:false});
+
+  if(isClassDay){
+    blocks.push({id:'class',start:'08:30',end:'13:00',icon:'🎓',name:'کالج کلاس — 4th سمیسٹر',type:'class',ac:'#3498DB',badge:'tb-class',quote:'علیؓ: علم کا ہر لمحہ قیمتی ہے — کلاس میں پوری توجہ دو۔',tasks:['پوری توجہ','نوٹس لکھنا','سوال پوچھنا','استاد سے بات'],source:'حضرت علیؓ',important:false});
+  } else if(isFriday){
+    blocks.push({id:'class',start:'08:00',end:'13:00',icon:'🎓',name:'کالج کلاس — جمعہ',type:'class',ac:'#3498DB',badge:'tb-class',quote:'علیؓ: علم سیکھتے رہو، موت تک۔',tasks:['پوری توجہ','نوٹس لکھنا','سوال پوچھنا','جمعہ کی تیاری'],source:'حضرت علیؓ',important:false});
+  } else {
+    blocks.push({id:'deepwork1',start:freshEnd,end:'08:45',icon:'📚',name:'علم + کتاب — 30 منٹ',type:'book',ac:'#D4AF37',badge:'tb-book',quote:'علیؓ: علم دولت سے بہتر ہے۔',tasks:['کتاب کا ایک باب','نوٹس لکھنا','کلیدی نکات','اگلا باب plan'],source:'حضرت علیؓ',important:false});
+    blocks.push({id:'deepwork2',start:'08:45',end:'10:45',icon:'🔥',name:'DEEP WORK — سب سے اہم کام',type:'work',ac:'#E74C3C',badge:'tb-skill',quote:'خالدؓ میدان میں پوری توجہ دیتے — فون بند، دروازہ بند، صرف کام۔',tasks:['فون بالکل بند','ایک ہی کام','مشکل task پہلے','کوئی وقفہ نہیں'],source:'خالد بن ولیدؓ',important:true});
+    blocks.push({id:'skill1',start:'10:45',end:'11:45',icon:'💻',name:'نئی Skill سیکھنا — 1 گھنٹہ',type:'skill',ac:'#FF7043',badge:'tb-skill',quote:'منسا موسیٰ نے تجارتی مہارتیں سیکھیں — آج کا ہنر کل کی دولت ہے۔',tasks:['آنلائن کورس','ہاتھ سے practice','نئی چیز build','سیکھا ہوا لکھنا'],source:'منسا موسیٰ + علیؓ',important:false});
+  }
+
+  if(isFriday) blocks.push({id:'jumuah',start:'13:00',end:'14:00',icon:'🕌',name:'جمعہ کی نماز + خطبہ',type:'namaz',ac:'#9B59B6',badge:'tb-namaz',quote:'جمعہ مسلمانوں کی عید ہے — جلدی جاؤ، پہلی صف میں بیٹھو۔',tasks:['جلدی مسجد جانا','درود شریف','خطبہ توجہ سے سننا','دعائے جمعہ'],source:'نبی ﷺ',important:true});
+
+  if(!isFriday) blocks.push({id:'dhuhr',start:dhuhr,end:addMins(dhuhr,20),icon:'🕌',name:'ظہر کی نماز + کھانا',type:'namaz',ac:'#9B59B6',badge:'tb-namaz',quote:'نبی ﷺ: قیلولہ کرو — یہ رات کی عبادت میں مدد دیتا ہے۔',tasks:['ظہر کی نماز','حلال کھانا','پانی','10 منٹ آرام'],source:'نبی ﷺ',important:false});
+  else blocks.push({id:'dhuhr',start:'14:00',end:'14:20',icon:'🍽️',name:'کھانا + آرام',type:'routine',ac:'#1ABC9C',badge:null,quote:'جسم کو ایندھن دو — ضرورت سے زیادہ نہیں۔',tasks:['حلال کھانا','پانی 2 گلاس','10 منٹ آرام','اگلے session کی تیاری'],source:'نبی ﷺ',important:false});
+
+  blocks.push({id:'academic',start:'14:00',end:'17:00',icon:'📖',name:'Academic Study — 3 گھنٹے (Paper Prep)',type:'academic',ac:'#2ECC71',badge:'tb-academic',quote:'علیؓ: علم بغیر محنت نہیں آتا — ہر دن 3 گھنٹے papers کے لیے فرض ہیں۔',tasks:['آج کا subject decide','Past papers حل','Topics یاد','کمزور topics نشان'],source:'حضرت علیؓ — Paper Prep',important:true});
+  blocks.push({id:'book',start:'17:00',end:'17:30',icon:'📚',name:'کتاب پڑھنا — 30 منٹ',type:'book',ac:'#D4AF37',badge:'tb-book',quote:'منسا موسیٰ نے ٹمبکٹو میں 25,000 طلباء کے لیے لائبریریاں بنوائیں۔',tasks:['Growth/Success کتاب','نوٹس لکھنا','1 کلیدی سبق','کل کا صفحہ نشان'],source:'منسا موسیٰ',important:false});
+  blocks.push({id:'asr',start:asr,end:addMins(asr,15),icon:'🕌',name:'عصر کی نماز + اذکار',type:'namaz',ac:'#9B59B6',badge:'tb-namaz',quote:'عمرؓ شام کو اپنا محاسبہ کرتے تھے — عصر کے بعد خود سے پوچھو: آج کیا کیا؟',tasks:['عصر کی نماز','اذکار','آج کا جائزہ','باقی کام list'],source:'عمر فاروقؓ',important:false});
+  blocks.push({id:'skill',start:addMins(asr,15),end:addMins(asr,135),icon:'💻',name:'New Skill سیکھنا — 2 گھنٹے',type:'skill',ac:'#FF7043',badge:'tb-skill',quote:'ابن عوفؓ نے نئی چیز سیکھی اور بازار گئے — آج کا ہنر کل کی دولت ہے۔',tasks:['ایک skill — ہر روز same','ہاتھ سے practice','چھوٹا project build','آج کا سیکھا لکھنا'],source:'ابن عوفؓ + منسا موسیٰ',important:false});
+  const sabziStart=addMins(asr,135);
+  blocks.push({id:'sabzi',start:sabziStart,end:addMins(sabziStart,20),icon:'🥬',name:'دکان سے سبزی لانا — 20 منٹ',type:'errand',ac:'#27AE60',badge:null,quote:'ابن عوفؓ: گھر کی ذمہ داری بھی عبادت ہے۔',tasks:['گھر کی ضرورت لسٹ','سبزی منڈی یا دکان','جلدی واپسی','گھر والوں کی مدد'],source:'ابن عوفؓ',important:false});
+  blocks.push({id:'maghrib',start:maghrib,end:addMins(maghrib,20),icon:'🕌',name:'مغرب کی نماز + اذکارِ شام',type:'namaz',ac:'#9B59B6',badge:'tb-namaz',quote:'مغرب کی نماز دن کی تھکاوٹ کو روحانی توانائی میں بدل دیتی ہے۔',tasks:['مغرب کی نماز','اذکارِ شام','درود شریف','اللہ کا شکر'],source:'نبی ﷺ',important:false});
+  blocks.push({id:'shop',start:'20:00',end:'21:00',icon:'🏪',name:'پاپا کی دکان — 1 گھنٹہ',type:'shop',ac:'#F39C12',badge:'tb-shop',quote:'ابن عوفؓ: والدین کی مدد کرنا سب سے بڑی تجارت ہے۔',tasks:['وقت پر پہنچنا','پوری توجہ دکان پر','گاہکوں سے اچھا رویہ','پاپا کی مدد'],source:'ابن عوفؓ — والدین کی خدمت',important:false});
+  blocks.push({id:'isha',start:isha,end:addMins(isha,20),icon:'🕌',name:'عشاء کی نماز + قرآن',type:'namaz',ac:'#9B59B6',badge:'tb-namaz',quote:'عشاء کی نماز — مومن کا دن کا تاج۔',tasks:['عشاء کی نماز','3 آیات قرآن','توبہ','دعائے سونے سے پہلے'],source:'نبی ﷺ',important:false});
+  blocks.push({id:'review',start:addMins(isha,20),end:'23:00',icon:'📊',name:'دن کا جائزہ + کل کا پلان + سونا',type:'review',ac:'#8E44AD',badge:null,quote:'عمرؓ: اپنا حساب کرو — قبل اس کے کہ اللہ کرے۔',tasks:['آج کیا کیا؟','کیا مِس ہوا؟','کل کے 3 اہم کام','فون بند 10 بجے','سونے کی دعا','صبح 3:30 الارم'],source:'عمر فاروقؓ',important:false});
+
+  return blocks;
+}
+
+// ════════════════════════════════════════════
+//  CUSTOM SCHEDULE STORAGE
+// ════════════════════════════════════════════
+let customSchedule = {};
+let customHabits = null;
+
+function loadCustomData(){
+  const cs=localStorage.getItem('ssCustomSchedule');
+  if(cs) customSchedule=JSON.parse(cs);
+  const ch=localStorage.getItem('ssCustomHabits');
+  if(ch) customHabits=JSON.parse(ch);
+}
+
+function getBlocks(dayIdx){
+  if(customSchedule[dayIdx]) return customSchedule[dayIdx];
+  return getDefaultBlocks(dayIdx);
+}
+
+// ════════════════════════════════════════════
+//  WEEK SCHEDULE
+// ════════════════════════════════════════════
+const dayNames=['اتوار','پیر','منگل','بدھ','جمعرات','جمعہ','ہفتہ'];
+const dayNamesEn=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+let weekSchedule={};
+function buildWeekSchedule(){
+  for(let d=0;d<7;d++) weekSchedule[d]=getBlocks(d);
+}
+
+// ════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════
+function timeToMins(t){if(!t)return 0;const[h,m]=t.split(':').map(Number);return h*60+m;}
+function addMins(t,mins){let[h,m]=t.split(':').map(Number);m+=mins;h+=Math.floor(m/60);m=m%60;return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;}
+function currentTimeStr(){const n=new Date();return`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;}
+function tm(h,m){return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;}
+
+// ════════════════════════════════════════════
+//  PERIODS
+// ════════════════════════════════════════════
+const periods={
+  tahajjud:{label:'🌙 رات کا آخری پہر',pc1:'#9B59B6',pc2:'#6C3483'},
+  fajr:{label:'🌅 فجر — نئی شروعات',pc1:'#D4AF37',pc2:'#B7950B'},
+  exercise:{label:'💪 جسمانی تیاری',pc1:'#E74C3C',pc2:'#C0392B'},
+  class:{label:'🎓 کلاس کا وقت',pc1:'#2980B9',pc2:'#1A5276'},
+  deepwork1:{label:'☀️ صبح کی فتح',pc1:'#E67E22',pc2:'#D35400'},
+  academic:{label:'📖 Academic — Paper Prep',pc1:'#27AE60',pc2:'#1E8449'},
+  book:{label:'📚 کتاب کا وقت',pc1:'#D4AF37',pc2:'#9A7D0A'},
+  asr:{label:'🌆 سہ پہر',pc1:'#E67E22',pc2:'#A04000'},
+  skill:{label:'💻 Skill Learning',pc1:'#FF4500',pc2:'#C0392B'},
+  sabzi:{label:'🥬 گھریلو ذمہ داری',pc1:'#27AE60',pc2:'#1D6A39'},
+  maghrib:{label:'🌇 شام — روحانی وقت',pc1:'#8E44AD',pc2:'#6C3483'},
+  shop:{label:'🏪 پاپا کی دکان',pc1:'#F39C12',pc2:'#D68910'},
+  isha:{label:'🌙 رات کا آغاز',pc1:'#2C3E50',pc2:'#1A252F'},
+  review:{label:'📊 جائزہ + آرام',pc1:'#4A235A',pc2:'#2C1A3E'},
+};
+
+// ════════════════════════════════════════════
+//  RENDER SCHEDULE
+// ════════════════════════════════════════════
+let selectedDay=new Date().getDay();
+
+function renderDay(dayIdx){
+  selectedDay=dayIdx;
+  const blocks=weekSchedule[dayIdx]||[];
+  const tl=document.getElementById('timeline');
+  tl.innerHTML='';
+  const saved=JSON.parse(localStorage.getItem('wsDoneW')||'{}');
+  const key=`${new Date().toLocaleDateString('en-CA')}-d${dayIdx}`;
+  const doneArr=saved[key]||[];
+  let lastPeriodKey=null;
+
+  blocks.forEach((blk,idx)=>{
+    const pKey=Object.keys(periods).find(k=>blk.id.startsWith(k));
+    if(pKey&&pKey!==lastPeriodKey){
+      lastPeriodKey=pKey;
+      const p=periods[pKey];
+      const div=document.createElement('div');
+      div.className='period-label';
+      div.innerHTML=`<span class="period-badge" style="background:linear-gradient(135deg,${p.pc1},${p.pc2})">${p.label}</span>`;
+      tl.appendChild(div);
+    }
+    const isDone=doneArr.includes(blk.id);
+    const el=document.createElement('div');
+    el.className=`block ${isDone?'done':''} ${blk.type==='class'?'class-block':''} ${blk.type==='shop'?'shop-block':''} ${blk.type==='namaz'?'namaz-block':''} ${blk.type==='academic'?'academic-block':''} ${blk.important?'important-block':''}`;
+    el.id='blk-'+blk.id;
+    el.style.animationDelay=(idx*0.04)+'s';
+    el.style.setProperty('--ac',blk.ac||'var(--gold)');
+    const tasks=(blk.tasks||[]).map((t,i)=>`<span class="task-pill ${doneArr.includes(blk.id+'-t'+i)?'ticked':''}" onclick="toggleTask('${blk.id}','${i}',this,'${dayIdx}')">${t}</span>`).join('');
+    const badge=blk.badge?`<span class="type-badge ${blk.badge}">${typeName(blk.type)}</span>`:'';
+    const impBadge=blk.important?`<span class="important-badge">⚠️ ضروری</span>`:'';
+    el.innerHTML=`
+      <div class="block-content">
+        <div class="block-top">
+          <div class="block-icon">${blk.icon||'📌'}</div>
+          <div class="block-meta">
+            <div class="block-name">${badge}${blk.name}${impBadge}</div>
+            <div class="block-duration">⏱ ${blk.start} — ${blk.end}</div>
+          </div>
+        </div>
+        <div class="block-quote">${blk.quote||''}</div>
+        <div class="block-tasks">${tasks}</div>
+        <div class="block-footer">
+          <span class="source-badge">📌 ${blk.source||''}</span>
+          <button class="done-btn" onclick="toggleDone('${blk.id}','${dayIdx}',this)">${isDone?'✅ مکمل!':'☐ مکمل کریں'}</button>
+        </div>
+      </div>
+      <div class="block-time-col">
+        <div class="time-dot"></div>
+        <div class="time-text">${blk.start}</div>
+      </div>`;
+    tl.appendChild(el);
+  });
+  updateStats(dayIdx);
+  highlightActive(dayIdx);
+}
+
+function typeName(t){const m={class:'کلاس',shop:'دکان',namaz:'نماز',academic:'پیپر',skill:'Skill',book:'کتاب'};return m[t]||t;}
+
+// ════════════════════════════════════════════
+//  TABS
+// ════════════════════════════════════════════
+function renderTabs(){
+  const wrap=document.getElementById('dayTabs');
+  const today=new Date().getDay();
+  wrap.innerHTML=dayNames.map((d,i)=>`<button class="day-tab ${i===today?'today':''} ${i===selectedDay?'active':''}" onclick="selectDay(${i})">${d}<br><span style="font-size:0.6rem;opacity:0.6">${dayNamesEn[i]}</span></button>`).join('');
+}
+
+function selectDay(d){
+  selectedDay=d;
+  renderTabs();
+  renderDay(d);
+  renderWeekProgress();
+}
+
+// ════════════════════════════════════════════
+//  DONE / TASK
+// ════════════════════════════════════════════
+function toggleDone(id,dayIdx,btn){
+  const saved=JSON.parse(localStorage.getItem('wsDoneW')||'{}');
+  const key=`${new Date().toLocaleDateString('en-CA')}-d${dayIdx}`;
+  if(!saved[key])saved[key]=[];
+  const arr=saved[key];
+  const i=arr.indexOf(id);
+  if(i===-1)arr.push(id);else arr.splice(i,1);
+  localStorage.setItem('wsDoneW',JSON.stringify(saved));
+  const el=document.getElementById('blk-'+id);
+  el.classList.toggle('done');
+  btn.textContent=el.classList.contains('done')?'✅ مکمل!':'☐ مکمل کریں';
+  updateStats(dayIdx);
+  renderWeekProgress();
+}
+
+function toggleTask(blockId,taskIdx,el,dayIdx){
+  const saved=JSON.parse(localStorage.getItem('wsDoneW')||'{}');
+  const key=`${new Date().toLocaleDateString('en-CA')}-d${dayIdx}`;
+  if(!saved[key])saved[key]=[];
+  const k2=blockId+'-t'+taskIdx;
+  const arr=saved[key];
+  const i=arr.indexOf(k2);
+  if(i===-1){arr.push(k2);el.classList.add('ticked');}
+  else{arr.splice(i,1);el.classList.remove('ticked');}
+  localStorage.setItem('wsDoneW',JSON.stringify(saved));
+}
+
+// ════════════════════════════════════════════
+//  STATS
+// ════════════════════════════════════════════
+function updateStats(dayIdx){
+  const saved=JSON.parse(localStorage.getItem('wsDoneW')||'{}');
+  const key=`${new Date().toLocaleDateString('en-CA')}-d${dayIdx}`;
+  const doneBlocks=(saved[key]||[]).filter(k=>!k.includes('-t')).length;
+  const total=(weekSchedule[dayIdx]||[]).length;
+  const pct=total?Math.round(doneBlocks/total*100):0;
+  document.getElementById('statDone').textContent=doneBlocks;
+  document.getElementById('statTotal').textContent=total;
+  document.getElementById('statPct').textContent=pct+'%';
+  let weekDone=0,weekTotal=0;
+  for(let d=0;d<7;d++){
+    const k=`${new Date().toLocaleDateString('en-CA')}-d${d}`;
+    weekDone+=(saved[k]||[]).filter(x=>!x.includes('-t')).length;
+    weekTotal+=(weekSchedule[d]||[]).length;
+  }
+  document.getElementById('statStreak').textContent=weekDone+'🔥';
+}
+
+// ════════════════════════════════════════════
+//  WEEK PROGRESS
+// ════════════════════════════════════════════
+function renderWeekProgress(){
+  const saved=JSON.parse(localStorage.getItem('wsDoneW')||'{}');
+  const today=new Date().getDay();
+  document.getElementById('weekProgress').innerHTML=dayNames.map((d,i)=>{
+    const k=`${new Date().toLocaleDateString('en-CA')}-d${i}`;
+    const done=(saved[k]||[]).filter(x=>!x.includes('-t')).length;
+    const total=(weekSchedule[i]||[]).length;
+    const pct=total?Math.round(done/total*100):0;
+    return`<div class="wp-day ${i===today?'today':''}"><div class="wp-name">${d}</div><div class="wp-bar"><div class="wp-fill" style="width:${pct}%"></div></div><div class="wp-pct">${pct}%</div></div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════
+//  ACTIVE HIGHLIGHT
+// ════════════════════════════════════════════
+function highlightActive(dayIdx){
+  const today=new Date().getDay();
+  if(dayIdx!==today)return;
+  const nowMins=timeToMins(currentTimeStr());
+  const blocks=weekSchedule[dayIdx]||[];
+  const saved=JSON.parse(localStorage.getItem('wsDoneW')||'{}');
+  const key=`${new Date().toLocaleDateString('en-CA')}-d${dayIdx}`;
+  const doneArr=saved[key]||[];
+  blocks.forEach(blk=>{
+    const el=document.getElementById('blk-'+blk.id);
+    if(!el)return;
+    const s=timeToMins(blk.start),e=timeToMins(blk.end);
+    const isDone=doneArr.includes(blk.id);
+    if(nowMins>=s&&nowMins<e&&!isDone)el.classList.add('active-block');
+    else el.classList.remove('active-block');
+  });
+  const active=blocks.find(b=>{const s=timeToMins(b.start),e=timeToMins(b.end);return nowMins>=s&&nowMins<e;});
+  const infoEl=document.getElementById('currentInfo');
+  if(active)infoEl.textContent='▶ ابھی: '+active.name;
+  else if(nowMins<timeToMins('03:30'))infoEl.textContent='😴 ابھی سو جاؤ — صبح 3:30 بجے اٹھنا ہے';
+  else if(nowMins>=timeToMins('23:00'))infoEl.textContent='🌙 آج کا دن مکمل — کل کے لیے تیار ہو';
+  else infoEl.textContent='⚡ بلاکس کے درمیان — اگلے کی تیاری کرو';
+}
+
+// ════════════════════════════════════════════
+//  IMPORTANT TASKS NOTIFICATION
+// ════════════════════════════════════════════
+function showImportantNotification(){
+  const today=new Date().getDay();
+  const blocks=weekSchedule[today]||[];
+  const saved=JSON.parse(localStorage.getItem('wsDoneW')||'{}');
+  const key=`${new Date().toLocaleDateString('en-CA')}-d${today}`;
+  const doneArr=saved[key]||[];
+  const imp=blocks.filter(b=>b.important&&!doneArr.includes(b.id));
+  if(imp.length===0)return;
+  const list=document.getElementById('impList');
+  list.innerHTML=imp.map(b=>`<li>⚠️ ${b.name} (${b.start}–${b.end})</li>`).join('');
+  const notify=document.getElementById('impNotify');
+  notify.style.display='block';
+  setTimeout(()=>notify.style.display='none',8000);
+}
+
+// ════════════════════════════════════════════
+//  CLOCK TICK
+// ════════════════════════════════════════════
+const quotes=[
+  '"خالدؓ: جو اللہ کا ہو جائے — وقت اس کا غلام بن جاتا ہے۔"',
+  '"علیؓ: کام کو کل پر مت ٹالو — کل کا بھی اپنا بوجھ ہے۔"',
+  '"نبی ﷺ: محنت کرو جیسے ہمیشہ جینا ہے، عبادت کرو جیسے کل مرنا ہے۔"',
+  '"ابن عوفؓ: ہنر سیکھو، پھر بازار میں جاؤ — دولت خود آئے گی۔"',
+  '"منسا موسیٰ: دولت کا مقصد ہو — بے مقصد دولت قید ہے۔"',
+  '"عمرؓ: اپنا حساب کرو — قبل اس کے کہ اللہ کرے۔"',
+  '"علیؓ: مشکل وقت میں ثابت قدم رہو — یہی اصل طاقت ہے۔"',
+  '"نبی ﷺ: صبح کے وقت میں میری امت کے لیے برکت رکھی گئی۔"',
+];
+let qIdx=0;
+function tick(){
+  const n=new Date();
+  const hh=String(n.getHours()).padStart(2,'0');
+  const mm=String(n.getMinutes()).padStart(2,'0');
+  const ss=String(n.getSeconds()).padStart(2,'0');
+  document.getElementById('liveClock').textContent=hh+':'+mm+':'+ss;
+  document.getElementById('dateLabel').textContent=n.toLocaleDateString('ur-PK',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  if(ss==='00'||ss==='30'){qIdx=(qIdx+1)%quotes.length;document.getElementById('flashText').textContent=quotes[qIdx];}
+  if(ss==='00'){highlightActive(selectedDay);updateNamazRow();}
+}
+
+// ════════════════════════════════════════════
+//  HABITS
+// ════════════════════════════════════════════
+const defaultHabits=[
+  {icon:'🕌',name:'فجر کی نماز',source:'نبی کریم ﷺ کا طریقہ',desc:'صبح کا آغاز اللہ کے ذکر سے کریں۔ یہ دن میں برکت کا سبب بنتا ہے۔'},
+  {icon:'📚',name:'30 منٹ پڑھائی',source:'حضرت علیؓ کا اصول',desc:'علم دولت سے بہتر ہے۔ ہر روز کچھ نیا سیکھو — کتاب، کورس، یا ہنر۔'},
+  {icon:'💪',name:'ورزش',source:'خالد بن ولیدؓ کا طریقہ',desc:'جسمانی طاقت ذہنی طاقت لاتی ہے۔ 30 منٹ پیدل چلنا بھی کافی ہے۔'},
+  {icon:'💰',name:'آمدن کا ذریعہ',source:'عبدالرحمٰن بن عوفؓ',desc:'آج کوئی ایک کام کرو جو پیسے لائے — چھوٹا ہو تو بھی ٹھیک ہے۔'},
+  {icon:'🤝',name:'نیٹ ورک بڑھاؤ',source:'منسا موسیٰ کا فارمولا',desc:'ایک نئے شخص سے ملو یا پرانے رابطے کو مضبوط کرو۔'},
+  {icon:'🤲',name:'شکرگزاری + دعا',source:'قرآن — سورۃ ابراہیم',desc:'"اگر تم شکر ادا کرو تو میں اور زیادہ دوں گا۔" رات سونے سے پہلے 5 چیزوں کا شکر ادا کرو۔'},
+  {icon:'🚫',name:'حرام سے بچو',source:'عبدالرحمٰن بن عوفؓ',desc:'آج کوئی بھی بے ایمانی، دھوکہ، یا حرام کام نہ کرو۔ حلال میں برکت ہے۔'},
+  {icon:'📊',name:'دن کا جائزہ',source:'منسا موسیٰ کا حساب',desc:'سونے سے پہلے 5 منٹ — کیا ہوا، کیا سیکھا، کل کیا بہتر کرنا ہے۔'},
+  {icon:'💧',name:'صدقہ / مدد',source:'نبی ﷺ کا حکم',desc:'کسی کی مدد کرو — پیسے سے، وقت سے، یا مسکراہٹ سے۔'},
+];
+
+const wisdomData=[
+  {avatar:'🕌',name:'نبی کریم ﷺ',text:'"وہ شخص جو رسی لے کر لکڑی کاٹے اور بیچے — یہ بھیک مانگنے سے بہتر ہے۔"'},
+  {avatar:'⚔️',name:'حضرت علیؓ',text:'"علم دولت سے بہتر ہے — دولت کو تم حفاظت کرتے ہو، علم تمہاری حفاظت کرتا ہے۔"'},
+  {avatar:'🗡️',name:'خالد بن ولیدؓ',text:'"میں اللہ کے لیے لڑتا تھا، عہدے کے لیے نہیں۔ جب مقصد صاف ہو — کوئی نقصان نہیں توڑتا۔"'},
+  {avatar:'💰',name:'عبدالرحمٰن بن عوفؓ',text:'"مجھے مال نہیں، بازار کا راستہ چاہیے تھا۔ کام مانگو، خیرات نہیں۔"'},
+  {avatar:'👑',name:'منسا موسیٰ',text:'"سونا میرے پاس تھا، لیکن میرا دل اللہ کے پاس تھا — یہی میری اصل دولت تھی۔"'},
+  {avatar:'📿',name:'اللہ کا وعدہ',text:'"اگر تم شکر ادا کرو — تو میں تمہیں اور زیادہ دوں گا۔" (سورۃ ابراہیم: 7)'},
+];
+
+function getHabits(){ return customHabits||defaultHabits; }
+
+function renderHabits(){
+  const habits=getHabits();
+  const grid=document.getElementById('habitsGrid');
+  const today=new Date().toDateString();
+  const done=JSON.parse(localStorage.getItem('ssHabitsDone')||'{}')[today]||[];
+  grid.innerHTML='';
+  habits.forEach((h,i)=>{
+    const isDone=done.includes(i);
+    const card=document.createElement('div');
+    card.className=`habit-card ${isDone?'done':''}`;
+    card.innerHTML=`<div class="habit-header"><div class="habit-icon">${h.icon}</div><div><div class="habit-name">${h.name}</div><div class="habit-source">📌 ${h.source}</div></div></div><div class="habit-desc">${h.desc}</div><button class="habit-check-btn" onclick="toggleHabit(${i})">${isDone?'✅ مکمل!':'☐ مکمل کریں'}</button>`;
+    grid.appendChild(card);
+  });
+  updateHabitProgress();
+  renderWisdom();
+}
+
+function toggleHabit(i){
+  const today=new Date().toDateString();
+  const all=JSON.parse(localStorage.getItem('ssHabitsDone')||'{}');
+  if(!all[today])all[today]=[];
+  const idx=all[today].indexOf(i);
+  if(idx===-1)all[today].push(i);else all[today].splice(idx,1);
+  localStorage.setItem('ssHabitsDone',JSON.stringify(all));
+  renderHabits();
+}
+
+function updateHabitProgress(){
+  const habits=getHabits();
+  const today=new Date().toDateString();
+  const done=(JSON.parse(localStorage.getItem('ssHabitsDone')||'{}')[today]||[]).length;
+  const total=habits.length;
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('hProgBar').style.width=pct+'%';
+  document.getElementById('hDone').textContent=done;
+  document.getElementById('hTotal').textContent=total;
+}
+
+function renderWisdom(){
+  document.getElementById('wisdomGrid').innerHTML=wisdomData.map(w=>`<div class="wisdom-card"><div class="wisdom-avatar">${w.avatar}</div><div class="wisdom-name">${w.name}</div><div class="wisdom-text">${w.text}</div></div>`).join('');
+}
+
+// ════════════════════════════════════════════
+//  SETTINGS — SCHEDULE EDITOR
+// ════════════════════════════════════════════
+let editDay=new Date().getDay();
+
+function renderEditDayTabs(){
+  document.getElementById('editDayTabs').innerHTML=dayNames.map((d,i)=>`<button class="day-tab ${i===editDay?'active':''}" onclick="setEditDay(${i})" style="font-size:0.75rem;padding:0.4rem 0.8rem;">${d}</button>`).join('');
+  document.getElementById('editDayName').textContent=dayNames[editDay];
+}
+
+function setEditDay(d){
+  editDay=d;
+  renderEditDayTabs();
+  renderBlockEditor();
+}
+
+function renderBlockEditor(){
+  const blocks=JSON.parse(JSON.stringify(getBlocks(editDay)));
+  const editor=document.getElementById('blockEditor');
+  editor.innerHTML='';
+  blocks.forEach((blk,idx)=>{
+    const row=document.createElement('div');
+    row.className='edit-row';
+    row.id='edit-row-'+idx;
+    row.innerHTML=`
+      <div class="edit-row-header" onclick="toggleEditRow(${idx})">
+        <span class="edit-row-title">${blk.icon||'📌'} ${blk.name}</span>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="del-btn" onclick="event.stopPropagation();deleteBlock(${idx})">🗑️</button>
+          <span style="color:var(--dim);font-size:0.8rem;">▼</span>
+        </div>
+      </div>
+      <div id="edit-fields-${idx}" style="display:none;">
+        <div class="edit-fields">
+          <div class="edit-field"><label>نام</label><input value="${blk.name}" data-idx="${idx}" data-field="name"></div>
+          <div class="edit-field"><label>آئیکن (Emoji)</label><input value="${blk.icon||''}" data-idx="${idx}" data-field="icon"></div>
+          <div class="edit-field"><label>شروع</label><input type="time" value="${blk.start}" data-idx="${idx}" data-field="start"></div>
+          <div class="edit-field"><label>ختم</label><input type="time" value="${blk.end}" data-idx="${idx}" data-field="end"></div>
+          <div class="edit-field edit-full"><label>اقتباس</label><textarea data-idx="${idx}" data-field="quote">${blk.quote||''}</textarea></div>
+          <div class="edit-field edit-full"><label>کام (کاما سے الگ کریں)</label><input value="${(blk.tasks||[]).join(',')}" data-idx="${idx}" data-field="tasks"></div>
+          <div class="edit-field edit-full"><label>ماخذ</label><input value="${blk.source||''}" data-idx="${idx}" data-field="source"></div>
+        </div>
+        <div class="imp-toggle" style="margin-top:0.7rem;">
+          <input type="checkbox" id="imp-${idx}" ${blk.important?'checked':''} data-idx="${idx}" data-field="important">
+          <label for="imp-${idx}">⚠️ ضروری کام — notification بھیجو</label>
+        </div>
+      </div>`;
+    editor.appendChild(row);
+  });
+  // Attach input listeners
+  editor.querySelectorAll('input,textarea').forEach(inp=>{
+    inp.addEventListener('change',()=>updateEditField(inp));
+  });
+}
+
+function toggleEditRow(idx){
+  const f=document.getElementById('edit-fields-'+idx);
+  f.style.display=f.style.display==='none'?'block':'none';
+}
+
+function updateEditField(inp){
+  const idx=parseInt(inp.dataset.idx);
+  const field=inp.dataset.field;
+  const blocks=JSON.parse(JSON.stringify(getBlocks(editDay)));
+  if(field==='tasks') blocks[idx].tasks=inp.value.split(',').map(t=>t.trim()).filter(Boolean);
+  else if(field==='important') blocks[idx].important=inp.checked;
+  else blocks[idx][field]=inp.value;
+  if(!customSchedule[editDay]) customSchedule[editDay]=blocks;
+  else customSchedule[editDay]=blocks;
+}
+
+function deleteBlock(idx){
+  if(!confirm('یہ بلاک مٹانا ہے؟'))return;
+  const blocks=JSON.parse(JSON.stringify(getBlocks(editDay)));
+  blocks.splice(idx,1);
+  customSchedule[editDay]=blocks;
+  renderBlockEditor();
+}
+
+function addNewBlock(){
+  const blocks=JSON.parse(JSON.stringify(getBlocks(editDay)));
+  blocks.push({id:'custom'+Date.now(),start:'12:00',end:'13:00',icon:'📌',name:'نیا بلاک',type:'work',ac:'#D4AF37',badge:null,quote:'',tasks:['کام 1','کام 2'],source:'',important:false});
+  customSchedule[editDay]=blocks;
+  renderBlockEditor();
+}
+
+function saveScheduleEdits(){
+  // Read all current values from editor
+  const editor=document.getElementById('blockEditor');
+  const blocks=JSON.parse(JSON.stringify(getBlocks(editDay)));
+  editor.querySelectorAll('input[data-field],textarea[data-field]').forEach(inp=>{
+    const idx=parseInt(inp.dataset.idx);
+    const field=inp.dataset.field;
+    if(isNaN(idx)||!field)return;
+    if(field==='tasks') blocks[idx].tasks=inp.value.split(',').map(t=>t.trim()).filter(Boolean);
+    else if(field==='important') blocks[idx].important=inp.checked;
+    else blocks[idx][field]=inp.value;
+  });
+  customSchedule[editDay]=blocks;
+  localStorage.setItem('ssCustomSchedule',JSON.stringify(customSchedule));
+  buildWeekSchedule();
+  renderDay(selectedDay);
+  const msg=document.getElementById('schedSaveMsg');
+  msg.style.display='block';
+  setTimeout(()=>msg.style.display='none',2500);
+}
+
+// ════════════════════════════════════════════
+//  SETTINGS — HABITS EDITOR
+// ════════════════════════════════════════════
+function renderHabitEditor(){
+  const habits=JSON.parse(JSON.stringify(getHabits()));
+  const editor=document.getElementById('habitEditor');
+  editor.innerHTML='';
+  habits.forEach((h,i)=>{
+    const row=document.createElement('div');
+    row.className='h-edit-row';
+    row.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+        <span style="font-size:0.85rem;font-weight:700;color:var(--text)">${h.icon} ${h.name}</span>
+        <button class="del-btn" onclick="deleteHabit(${i})">🗑️</button>
+      </div>
+      <div class="h-edit-fields">
+        <div class="h-edit-field"><label>آئیکن</label><input value="${h.icon}" data-hi="${i}" data-hf="icon"></div>
+        <div class="h-edit-field"><label>نام</label><input value="${h.name}" data-hi="${i}" data-hf="name"></div>
+        <div class="h-edit-field h-edit-full"><label>ماخذ</label><input value="${h.source}" data-hi="${i}" data-hf="source"></div>
+        <div class="h-edit-field h-edit-full"><label>تفصیل</label><textarea data-hi="${i}" data-hf="desc">${h.desc}</textarea></div>
+      </div>`;
+    editor.appendChild(row);
+  });
+}
+
+function deleteHabit(i){
+  if(!confirm('یہ عادت مٹانی ہے؟'))return;
+  const habits=JSON.parse(JSON.stringify(getHabits()));
+  habits.splice(i,1);
+  customHabits=habits;
+  renderHabitEditor();
+}
+
+function addNewHabit(){
+  const habits=JSON.parse(JSON.stringify(getHabits()));
+  habits.push({icon:'⭐',name:'نئی عادت',source:'',desc:'یہاں تفصیل لکھیں'});
+  customHabits=habits;
+  renderHabitEditor();
+}
+
+function saveHabitsEdits(){
+  const habits=JSON.parse(JSON.stringify(getHabits()));
+  document.querySelectorAll('#habitEditor input[data-hf],#habitEditor textarea[data-hf]').forEach(inp=>{
+    const i=parseInt(inp.dataset.hi);
+    const f=inp.dataset.hf;
+    if(!isNaN(i)&&f) habits[i][f]=inp.value;
+  });
+  customHabits=habits;
+  localStorage.setItem('ssCustomHabits',JSON.stringify(customHabits));
+  renderHabits();
+  const msg=document.getElementById('habitSaveMsg');
+  msg.style.display='block';
+  setTimeout(()=>msg.style.display='none',2500);
+}
+
+// ════════════════════════════════════════════
+//  PAGE NAVIGATION
+// ════════════════════════════════════════════
+function showPage(name,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(name==='habits')renderHabits();
+  if(name==='settings'){renderEditDayTabs();renderBlockEditor();renderHabitEditor();}
+}
+
+// ════════════════════════════════════════════
+//  RESET
+// ════════════════════════════════════════════
+function confirmReset(){
+  if(confirm('کیا آپ واقعی سب کچھ ری سیٹ کرنا چاہتے ہیں؟ تمام ترمیم اور progress مٹ جائے گی۔')){
+    ['wsDoneW','ssNamaz','ssCustomSchedule','ssCustomHabits','ssHabitsDone'].forEach(k=>localStorage.removeItem(k));
+    customSchedule={};customHabits=null;
+    prayerTimes={Fajr:"04:15",Dhuhr:"13:15",Asr:"17:30",Maghrib:"19:11",Isha:"20:30"};
+    buildWeekSchedule();renderDay(selectedDay);renderWeekProgress();renderTabs();updateNamazRow();
+    alert('✅ سب ری سیٹ ہو گیا!');
+  }
+}
+
+// ════════════════════════════════════════════
+//  TIMER
+// ════════════════════════════════════════════
+let timerInterval=null,timeLeft=1500,timerRunning=false;
+document.getElementById('timerSelect').addEventListener('change',resetTimer);
+function formatTime(s){return`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;}
+function startTimer(){if(timerRunning)return;timerRunning=true;timerInterval=setInterval(()=>{timeLeft--;document.getElementById('timerDisplay').textContent=formatTime(timeLeft);if(timeLeft<=0){clearInterval(timerInterval);timerRunning=false;document.getElementById('timerDisplay').textContent='✅ مکمل!';}},1000);}
+function pauseTimer(){clearInterval(timerInterval);timerRunning=false;}
+function resetTimer(){clearInterval(timerInterval);timerRunning=false;timeLeft=parseInt(document.getElementById('timerSelect').value);document.getElementById('timerDisplay').textContent=formatTime(timeLeft);}
+
+// ════════════════════════════════════════════
+//  CANVAS PARTICLES
+// ════════════════════════════════════════════
+(function(){
+  const c=document.getElementById('canvas');
+  const ctx=c.getContext('2d');
+  let W,H,parts=[];
+  function resize(){W=c.width=innerWidth;H=c.height=innerHeight;}
+  resize();window.addEventListener('resize',resize);
+  for(let i=0;i<55;i++)parts.push({x:Math.random()*3000,y:Math.random()*3000,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,r:Math.random()*1.4+0.3,a:Math.random(),color:Math.random()>.5?'212,175,55':'255,100,50'});
+  function draw(){ctx.clearRect(0,0,W,H);parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(${p.color},${p.a})`;ctx.fill();});requestAnimationFrame(draw);}
+  draw();
+})();
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+loadCustomData();
+loadNamazFromStorage();
+buildWeekSchedule();
+renderTabs();
+renderDay(selectedDay);
+renderWeekProgress();
+updateNamazRow();
+tick();
+setInterval(tick,1000);
+fetchAndApplyPrayer();
+setTimeout(showImportantNotification, 3000);
+setInterval(showImportantNotification, 3600000);
+resetTimer();
+</script>
+</body>
+</html>
