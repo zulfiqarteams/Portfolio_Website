@@ -375,7 +375,7 @@
     }
 
     .zc-launcher {
-      position: fixed; bottom: 22px; right: 22px; z-index: 99999;
+      position: fixed; bottom: calc(22px + var(--zc-bottom-offset, 0px)); right: 22px; z-index: 99999;
       width: 58px; height: 58px; border-radius: 50%;
       background: var(--color-secondary);
       display: flex; align-items: center; justify-content: center;
@@ -386,9 +386,9 @@
     .zc-launcher svg { width: 26px; height: 26px; fill: var(--color-white); }
 
     .zc-panel {
-      position: fixed; bottom: 92px; right: 22px; z-index: 99999;
+      position: fixed; bottom: calc(92px + var(--zc-bottom-offset, 0px)); right: 22px; z-index: 99999;
       width: 340px; max-width: calc(100vw - 32px);
-      height: 460px; max-height: calc(100vh - 140px);
+      height: 460px; max-height: calc(100vh - 140px - var(--zc-bottom-offset, 0px));
       background: var(--color-primary); border: 1px solid var(--color-grey-4);
       border-radius: var(--br-sm-2); display: none; flex-direction: column;
       overflow: hidden; box-shadow: var(--box-shadow-1);
@@ -462,13 +462,13 @@
     @media (max-width: 480px) {
       .zc-launcher {
         width: 52px; height: 52px; right: 16px;
-        bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        bottom: calc(16px + var(--zc-bottom-offset, 0px) + env(safe-area-inset-bottom, 0px));
       }
       .zc-panel {
         left: 12px; right: 12px; width: auto;
-        bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+        bottom: calc(80px + var(--zc-bottom-offset, 0px) + env(safe-area-inset-bottom, 0px));
         height: min(68vh, 520px);
-        max-height: calc(100vh - 110px);
+        max-height: calc(100vh - 110px - var(--zc-bottom-offset, 0px));
       }
       .zc-header { padding: 12px 14px; }
       .zc-msg { font-size: 13.5px; max-width: 88%; }
@@ -513,6 +513,38 @@
   root.appendChild(launcher);
   root.appendChild(panel);
   document.body.appendChild(root);
+
+  /* -------- Avoid overlapping the site's own fixed bottom nav bar --------
+     Scans for other fixed, bottom-pinned, full-width-ish elements (a
+     mobile tab bar / bottom menu) and pushes the launcher + panel up by
+     that element's height so they never sit on top of it. Re-checked on
+     resize/orientation change since a responsive bottom bar can appear
+     or change height at different widths. */
+  function detectBottomNavHeight() {
+    let maxHeight = 0;
+    const all = document.body.querySelectorAll("*");
+    for (let i = 0; i < all.length; i++) {
+      const el = all[i];
+      if (el === root || root.contains(el)) continue;
+      const cs = getComputedStyle(el);
+      if (cs.position !== "fixed") continue;
+      if (Math.abs(parseFloat(cs.bottom) || 0) > 5) continue; // must hug the bottom edge
+      const rect = el.getBoundingClientRect();
+      if (rect.width < window.innerWidth * 0.6) continue; // must span most of the width
+      if (rect.height < 30 || rect.height > 140) continue; // plausible nav-bar height range
+      if (rect.height > maxHeight) maxHeight = rect.height;
+    }
+    return maxHeight;
+  }
+
+  function syncBottomOffset() {
+    const h = detectBottomNavHeight();
+    root.style.setProperty("--zc-bottom-offset", h ? h + "px" : "0px");
+  }
+
+  syncBottomOffset();
+  window.addEventListener("resize", syncBottomOffset);
+  window.addEventListener("orientationchange", () => setTimeout(syncBottomOffset, 200));
 
   const messagesEl = panel.querySelector("#zc-messages");
   const chipsEl = panel.querySelector("#zc-chips");
