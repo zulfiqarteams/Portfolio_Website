@@ -50,7 +50,8 @@ a {
   font-family: inherit;
 }
 
-header {
+header,
+header.container {
   min-height: 100vh;
   color: var(--color-white);
   overflow: hidden;
