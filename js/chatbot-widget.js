@@ -16,9 +16,16 @@
    - Quick-reply chips are now contextual: tapping "Skills" or "Contact"
      shows a follow-up row of chips for each individual item, with a
      "⬅ Menu" chip to go back.
-   - Color theme swapped to the CSS variable palette you provided, with a
-     light/dark mode toggle button in the widget header (saved in
-     localStorage so it's remembered next visit).
+   - Color theme swapped to the CSS variable palette you provided. The
+     widget no longer has its own toggle — it automatically follows the
+     host website's light/dark mode (by watching for a `.light-mode`
+     class on <html>/<body>, with a `prefers-color-scheme` fallback if
+     the site doesn't expose one), and light mode has been tuned for
+     better contrast/readability.
+   - Fully responsive on mobile: safe-area aware positioning, no iOS
+     auto-zoom on the input, and a panel size that adapts to small
+     screens.
+   - Assistant is now introduced as "Zulfi" (Zulfiqar's portfolio bot).
 
    HOW TO CUSTOMIZE:
    - Edit the KB (knowledge base) object below to update your info.
@@ -34,6 +41,7 @@
   /* ---------------------- 1. YOUR DATA (edit this) ---------------------- */
   const KB = {
     name: "Zulfiqar",
+    assistantName: "Zulfi",
     role: "Full Stack Developer | MERN Stack Specialist",
 
     about:
@@ -98,9 +106,9 @@
       "The site is deployed via GitHub Pages, with GitHub Actions handling the automated deployment workflow (CI/CD) whenever the repo is updated.",
 
     greeting:
-      "Hi! 👋 I'm Zulfiqar's portfolio assistant. Ask me about his skills, projects, experience, education, or how to contact him — or tap a button below.",
+      "Hi! 👋 I'm Zulfi, Zulfiqar's portfolio assistant. Ask me about his skills, projects, experience, education, or how to contact him — or tap a button below.",
     fallback:
-      "I'm not sure about that one — I can only answer questions about Zulfiqar's skills, projects, experience, education, or contact info. Try one of the quick options below, or message him directly on WhatsApp!",
+      "I'm not sure about that one — I'm Zulfi, and I can only answer questions about Zulfiqar's skills, projects, experience, education, or contact info. Try one of the quick options below, or message him directly on WhatsApp!",
   };
 
   /* ------------------- 2. KEYWORD → INTENT MAPPING -------------------
@@ -242,9 +250,11 @@
     return { text: intent ? KB[intent] : KB.fallback, intent };
   }
 
-  /* ------------------- 3. LINK-IFYING BOT REPLIES -------------------
-     Any email / WhatsApp number / URL / bare domain inside a KB answer
-     is turned into a real clickable link when rendered.
+  /* ------------------- 3. LINK-IFYING & HIGHLIGHTING BOT REPLIES -------------------
+     Any email / WhatsApp number / URL / bare domain inside a KB answer is
+     turned into a real clickable link when rendered, and genuinely
+     important facts (skill %, contact labels, timeline dates, key status
+     call-outs) get visually highlighted so they're easy to spot at a glance.
   --------------------------------------------------------------------- */
   function escapeHtml(str) {
     return str
@@ -253,33 +263,76 @@
       .replace(/>/g, "&gt;");
   }
 
+  // Wraps genuinely important facts (skill scores, contact field labels,
+  // timeline dates, key status call-outs) so they visually stand out from
+  // the surrounding sentence — without touching anything that's about to
+  // become a clickable link (that step runs after this one).
+  function highlightImportant(text) {
+    let out = text;
+
+    // Contact field labels at the start of a (possibly bulleted) line,
+    // e.g. "Email:", "• WhatsApp:"
+    out = out.replace(
+      /(^|\n)([•\-*]?\s*)(Email|WhatsApp|Phone|Location|LinkedIn|GitHub)(:)/g,
+      (m, pre, bullet, label, colon) => pre + bullet + '<strong class="zc-hl">' + label + "</strong>" + colon
+    );
+
+    // Skill / proficiency percentages, e.g. "80%", "95%"
+    out = out.replace(/\b(\d{1,3}%)/g, '<mark class="zc-hl">$1</mark>');
+
+    // Timeline years and ranges, e.g. "2025–present", "2022–2025", "2024"
+    out = out.replace(
+      /\b(20\d{2}(?:\s?[–-]\s?(?:present|20\d{2}))?)\b/g,
+      '<mark class="zc-hl">$1</mark>'
+    );
+
+    // Key status call-outs worth a glance at
+    out = out.replace(
+      /(open to remote client opportunities|in progress|private client project)/gi,
+      '<mark class="zc-hl">$1</mark>'
+    );
+
+    return out;
+  }
+
   function linkify(raw) {
     let text = escapeHtml(raw);
+    text = highlightImportant(text);
+
+    // Every generated <a> tag is stashed behind an opaque placeholder token
+    // until the very end. Without this, a later regex pass (e.g. the plain
+    // "https?://..." matcher) can re-match the href/text of a link that an
+    // earlier pass just inserted (like the wa.me link below) and wrap it in
+    // a second, broken, nested <a> tag.
+    const tokens = [];
+    function stash(html) {
+      tokens.push(html);
+      return "\u0000" + (tokens.length - 1) + "\u0000";
+    }
 
     // emails
-    text = text.replace(
-      /([\w.+-]+@[\w-]+\.[\w.-]+)/g,
-      '<a href="mailto:$1" target="_blank" rel="noopener">$1</a>'
+    text = text.replace(/([\w.+-]+@[\w-]+\.[\w.-]+)/g, (m) =>
+      stash('<a href="mailto:' + m + '" target="_blank" rel="noopener">' + m + "</a>")
     );
 
     // Pakistani-style phone / WhatsApp numbers, e.g. +92 313 6473895
-    text = text.replace(/(\+92[\d\s-]{8,})/g, (m) => {
+    text = text.replace(/(\+92[\d \-]{8,})/g, (m) => {
       const digits = m.replace(/[^\d]/g, "");
-      return '<a href="https://wa.me/' + digits + '" target="_blank" rel="noopener">' + m.trim() + "</a>";
+      return stash('<a href="https://wa.me/' + digits + '" target="_blank" rel="noopener">' + m.trim() + "</a>");
     });
 
     // full URLs already containing a protocol
-    text = text.replace(
-      /(https?:\/\/[^\s<]+)/g,
-      '<a href="$1" target="_blank" rel="noopener">$1</a>'
+    text = text.replace(/(https?:\/\/[^\s<]+)/g, (m) =>
+      stash('<a href="' + m + '" target="_blank" rel="noopener">' + m + "</a>")
     );
 
     // bare domains without protocol (github.com/..., linkedin.com/...)
-    // skipped if already preceded by "//" (i.e. already wrapped above)
-    text = text.replace(
-      /(?<!\/\/)((?:github|linkedin)\.com\/[^\s<]+)/gi,
-      (m) => '<a href="https://' + m + '" target="_blank" rel="noopener">' + m + "</a>"
+    text = text.replace(/((?:github|linkedin)\.com\/[^\s<]+)/gi, (m) =>
+      stash('<a href="https://' + m + '" target="_blank" rel="noopener">' + m + "</a>")
     );
+
+    // restore stashed links now that no more regex passes will run
+    text = text.replace(/\u0000(\d+)\u0000/g, (_, i) => tokens[Number(i)]);
 
     return text;
   }
@@ -351,11 +404,10 @@
     .zc-header-title { color: var(--color-white); font-weight: 600; font-size: 14px; }
     .zc-header-sub { color: var(--color-grey-2); font-size: 11px; margin-top: 2px; }
     .zc-header-actions { display: flex; align-items: center; gap: 6px; }
-    .zc-theme-toggle, .zc-close {
+    .zc-close {
       background: none; border: none; color: var(--color-grey-2);
-      cursor: pointer; font-size: 16px; line-height: 1;
+      cursor: pointer; font-size: 18px; line-height: 1;
     }
-    .zc-close { font-size: 18px; }
 
     .zc-messages {
       flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px;
@@ -364,7 +416,9 @@
     .zc-msg.bot { align-self: flex-start; background: var(--color-grey-5); color: var(--color-white); border-bottom-left-radius: 4px; }
     .zc-msg.user { align-self: flex-end; background: var(--color-secondary); color: var(--color-white); border-bottom-right-radius: 4px; }
     .zc-msg.bot a { color: var(--color-secondary); text-decoration: underline; word-break: break-word; }
-    .zc-widget-root.light-mode .zc-msg.bot a { color: #1d7d3c; }
+    .zc-msg.bot mark.zc-hl, .zc-msg.bot strong.zc-hl {
+      background: none; color: var(--color-secondary); font-weight: 700;
+    }
 
     .zc-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px; }
     .zc-chip {
@@ -382,9 +436,46 @@
     .zc-send { background: var(--color-secondary); border: none; color: var(--color-white); border-radius: 10px; padding: 0 14px; cursor: pointer; font-size: 13px; }
     .zc-send:hover { filter: brightness(0.9); }
 
-    @media (max-width: 400px) {
-      .zc-panel { right: 16px; left: 16px; width: auto; }
-      .zc-launcher { right: 16px; }
+    /* ---- Light-mode readability overrides ----
+       The base variables reuse --color-secondary/--color-white for lots of
+       surfaces, which gives poor contrast in light mode (e.g. dark-grey
+       text on a red bubble). These overrides keep the same palette but
+       fix contrast on the specific surfaces that need it. */
+    .zc-widget-root.light-mode .zc-panel { border-color: var(--color-grey-1); }
+    .zc-widget-root.light-mode .zc-header { background: var(--color-grey0); border-bottom-color: var(--color-grey-1); }
+    .zc-widget-root.light-mode .zc-header-title { color: var(--color-grey-6); }
+    .zc-widget-root.light-mode .zc-header-sub { color: var(--color-grey-3); }
+    .zc-widget-root.light-mode .zc-close { color: var(--color-grey-4); }
+    .zc-widget-root.light-mode .zc-msg.bot { background: var(--color-grey0); color: var(--color-grey-6); border: 1px solid var(--color-grey-1); }
+    .zc-widget-root.light-mode .zc-msg.user { background: var(--color-secondary); color: #FFFFFF; }
+    .zc-widget-root.light-mode .zc-chip { background: var(--color-grey0); border-color: var(--color-grey-1); color: var(--color-grey-4); }
+    .zc-widget-root.light-mode .zc-chip:hover { border-color: var(--color-secondary); color: var(--color-grey-6); }
+    .zc-widget-root.light-mode .zc-inputbar { border-top-color: var(--color-grey-1); }
+    .zc-widget-root.light-mode .zc-input { background: var(--color-grey0); border-color: var(--color-grey-1); color: var(--color-grey-6); }
+    .zc-widget-root.light-mode .zc-input::placeholder { color: var(--color-grey-3); }
+    .zc-widget-root.light-mode .zc-send { color: #FFFFFF; }
+    .zc-widget-root.light-mode .zc-launcher svg { fill: #FFFFFF; }
+
+    /* ---- Mobile responsiveness ---- */
+    .zc-messages { -webkit-overflow-scrolling: touch; }
+
+    @media (max-width: 480px) {
+      .zc-launcher {
+        width: 52px; height: 52px; right: 16px;
+        bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      }
+      .zc-panel {
+        left: 12px; right: 12px; width: auto;
+        bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+        height: min(68vh, 520px);
+        max-height: calc(100vh - 110px);
+      }
+      .zc-header { padding: 12px 14px; }
+      .zc-msg { font-size: 13.5px; max-width: 88%; }
+      .zc-chip { padding: 7px 12px; font-size: 12px; }
+      /* 16px+ font-size on inputs stops iOS Safari auto-zooming on focus */
+      .zc-input { font-size: 16px; }
+      .zc-inputbar { padding: 10px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
     }
   `;
   document.head.appendChild(style);
@@ -395,7 +486,7 @@
 
   const launcher = document.createElement("button");
   launcher.className = "zc-launcher";
-  launcher.setAttribute("aria-label", "Open chat with Zulfiqar's assistant");
+  launcher.setAttribute("aria-label", "Open chat with Zulfi, Zulfiqar's assistant");
   launcher.innerHTML =
     '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.03 2 11c0 2.4 1.02 4.57 2.7 6.18L4 22l5.06-2.06c.94.23 1.93.36 2.94.36 5.52 0 10-4.03 10-9S17.52 2 12 2z"/></svg>';
 
@@ -404,18 +495,17 @@
   panel.innerHTML = `
     <div class="zc-header">
       <div>
-        <div class="zc-header-title">${KB.name}'s Assistant</div>
+        <div class="zc-header-title">${KB.assistantName} · ${KB.name}'s Assistant</div>
         <div class="zc-header-sub">${KB.role}</div>
       </div>
       <div class="zc-header-actions">
-        <button class="zc-theme-toggle" aria-label="Toggle light/dark theme">🌙</button>
         <button class="zc-close" aria-label="Close chat">✕</button>
       </div>
     </div>
     <div class="zc-messages" id="zc-messages"></div>
     <div class="zc-chips" id="zc-chips"></div>
     <div class="zc-inputbar">
-      <input class="zc-input" id="zc-input" type="text" placeholder="Ask something about ${KB.name}..." />
+      <input class="zc-input" id="zc-input" type="text" placeholder="Ask Zulfi about ${KB.name}..." />
       <button class="zc-send" id="zc-send">Send</button>
     </div>
   `;
@@ -429,7 +519,6 @@
   const inputEl = panel.querySelector("#zc-input");
   const sendBtn = panel.querySelector("#zc-send");
   const closeBtn = panel.querySelector(".zc-close");
-  const themeToggleBtn = panel.querySelector(".zc-theme-toggle");
 
   function addMessage(text, sender) {
     const div = document.createElement("div");
@@ -491,25 +580,52 @@
     if (e.key === "Enter") handleSend();
   });
 
-  // Theme toggle (persisted per-browser via localStorage)
-  function applyTheme(mode) {
-    root.classList.toggle("light-mode", mode === "light");
-    themeToggleBtn.textContent = mode === "light" ? "☀️" : "🌙";
+  /* --------------------- 6. FOLLOW THE SITE'S THEME ---------------------
+     No standalone toggle — the widget mirrors whatever light/dark mode
+     the host website is currently in.
+     1) If the site marks light mode with a `.light-mode` class on <html>
+        or <body> (like the theme you shared), the widget copies that.
+     2) If the site has no such class at all, it falls back to the OS/
+        browser's `prefers-color-scheme`, and keeps listening for changes.
+     3) A MutationObserver keeps the widget in sync live if the site's
+        theme toggle changes classes after the widget has loaded.
+  ------------------------------------------------------------------- */
+  function siteHasThemeClass() {
+    return (
+      document.documentElement.classList.contains("light-mode") ||
+      document.documentElement.classList.contains("dark-mode") ||
+      document.body.classList.contains("light-mode") ||
+      document.body.classList.contains("dark-mode")
+    );
   }
-  let savedTheme = "dark";
-  try {
-    savedTheme = localStorage.getItem("zc-theme") || "dark";
-  } catch (e) {
-    /* localStorage unavailable — default to dark, no crash */
-  }
-  applyTheme(savedTheme);
-  themeToggleBtn.addEventListener("click", () => {
-    const next = root.classList.contains("light-mode") ? "dark" : "light";
-    applyTheme(next);
-    try {
-      localStorage.setItem("zc-theme", next);
-    } catch (e) {
-      /* ignore if storage is blocked */
+
+  function siteIsLight() {
+    if (siteHasThemeClass()) {
+      return (
+        document.documentElement.classList.contains("light-mode") ||
+        document.body.classList.contains("light-mode")
+      );
     }
-  });
+    // No theme class on the site at all — fall back to OS/browser preference.
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+  }
+
+  function syncTheme() {
+    root.classList.toggle("light-mode", siteIsLight());
+  }
+
+  syncTheme();
+
+  const themeObserver = new MutationObserver(syncTheme);
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+  themeObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+
+  if (window.matchMedia) {
+    const mql = window.matchMedia("(prefers-color-scheme: light)");
+    const onSchemeChange = () => {
+      if (!siteHasThemeClass()) syncTheme();
+    };
+    if (mql.addEventListener) mql.addEventListener("change", onSchemeChange);
+    else if (mql.addListener) mql.addListener(onSchemeChange); // older Safari
+  }
 })();
