@@ -270,14 +270,14 @@ function renderProducts() {
     cardBody.className = 'card-body';
     cardBody.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
-        <div class="card-title" style="font-size: 15px; line-height: 1.4; cursor: pointer;" data-chat-ask="${product.name}" title="Ask the chatbot about this product">${product.name}</div>
+        <div class="card-title" style="font-size: 15px; line-height: 1.4;">${product.name}</div>
       </div>
       
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <div class="card-price" style="font-size: 18px; font-weight: 700; color: #111827;">
           Rs ${product.price?.toLocaleString() || product.price}
         </div>
-        ${product.category ? `<span style="font-size: 12px; color: #6b7280; background: #f3f4f6; padding: 4px 10px; border-radius: 20px; font-weight: 500; cursor: pointer;" data-chat-ask="${product.category}" title="Ask the chatbot about ${product.category}">${product.category}</span>` : ''}
+        ${product.category ? `<span style="font-size: 12px; color: #6b7280; background: #f3f4f6; padding: 4px 10px; border-radius: 20px; font-weight: 500;">${product.category}</span>` : ''}
       </div>
 
       <div style="display: flex; gap: 8px;">
