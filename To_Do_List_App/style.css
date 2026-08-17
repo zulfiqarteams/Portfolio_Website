@@ -1,0 +1,115 @@
+* {
+  padding: 0;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  box-sizing: border-box;
+}
+
+.container {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #153677, #4e085f);
+  padding: 10px;
+}
+
+.to-do-list {
+  width: 100%;
+  max-width: 540px;
+  background: #fff;
+  margin: 100px auto 20px;
+  padding: 20px 30px 70px;
+  border-radius: 10px; 
+}
+
+.to-do-list h2 {
+  display: flex;
+  align-items: center;
+  color: #4e085f;
+  margin-bottom: 20px;
+}
+
+.to-do-list img {
+  width: 30px;
+  margin-left: 10px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #edeef0;
+  border-radius: 30px;
+  padding-left: 20px;
+  margin-bottom: 30px;
+}
+
+input {
+  flex: 1; 
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 10px;
+}
+
+button {
+  outline: none;
+  border: none;
+  padding: 16px 20px;
+  background-color: #4e085f;
+  font-size: 16px;
+  color: white;
+  cursor: pointer;
+  border-radius: 30px;
+}
+
+ul li {
+  list-style: none;
+  font-size: 18px;
+  padding: 12px 8px 12px 50px;
+  user-select: none;
+  cursor: pointer;
+  position: relative;
+}
+
+ul li::before {
+  content: "";
+  position: absolute;
+  height: 28px;
+  width: 28px;
+  border-radius: 50%;
+  background-image: url(images/unchecked.png);
+  background-size: cover;
+  background-position: center;
+  left: 10px;
+  top: 12px;
+}
+
+ul li.checked {
+  color: #555;
+  text-decoration: line-through;
+}
+
+ul li.checked::before {
+  background-image: url(images/checked.png);
+}
+
+/* Delete button (cross) */
+ul li span {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  line-height: 40px;
+  color: #555;
+  font-size: 22px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+ul li span:hover {
+  background: #ff4d4d;
+  color: white;
+  border-radius: 50%;
+}

@@ -1,0 +1,209 @@
+/* --- CSS Reset & Variables --- */
+:root {
+  --bg-color: #0f172a;          /* Deep slate blue/black */
+  --card-bg: rgba(30, 41, 59, 0.7); /* Translucent slate */
+  --card-border: rgba(255, 255, 255, 0.08);
+  --text-main: #f8fafc;         /* Crisp off-white */
+  --text-muted: #94a3b8;        /* Soft gray */
+  --input-bg: #1e293b;          /* Darker contrast input */
+  --accent-color: #38bdf8;      /* Electric sky blue */
+  --error-color: #f87171;       /* Soft modern red */
+  --transition: all 0.3s ease;
+}
+
+* {
+  padding: 0;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-color);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* --- Card Styles --- */
+.card {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  width: 100%;
+  max-width: 450px;
+  color: var(--text-main);
+  border-radius: 24px;
+  text-align: center;
+  padding: 35px 30px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  transition: var(--transition);
+}
+
+/* --- Search Bar --- */
+.search {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.search input {
+  border: 1px solid var(--card-border);
+  outline: 0;
+  background: var(--input-bg);
+  color: var(--text-main);
+  padding: 10px 20px;
+  height: 54px;
+  border-radius: 27px;
+  flex: 1;
+  font-size: 16px;
+  transition: var(--transition);
+}
+
+.search input::placeholder {
+  color: var(--text-muted);
+}
+
+.search input:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+.search button {
+  border: 0;
+  outline: 0;
+  background: var(--accent-color);
+  color: #000;
+  height: 54px;
+  width: 54px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+}
+
+.search button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+  filter: brightness(1.1);
+}
+
+.search button:active {
+  transform: translateY(0);
+}
+
+.search button img {
+  width: 18px;
+  /* If your icon is black/dark, this keeps it crisp. 
+     If it's white, you can use: filter: invert(1); */
+}
+
+/* --- Weather Info --- */
+.weather-icon {
+  width: 150px;
+  margin-top: 25px;
+  filter: drop-shadow(0 8px 12px rgba(0,0,0,0.15));
+}
+
+.weather h1 {
+  font-size: 56px;
+  font-weight: 600;
+  margin-top: 15px;
+  background: linear-gradient(to right, #ffffff, #e2e8f0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.weather h2 {
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-top: 5px;
+}
+
+/* --- Details Panel --- */
+.details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 40px;
+  padding: 20px 10px 0;
+  border-top: 1px solid var(--card-border);
+}
+
+.col {
+  display: flex;
+  align-items: center;
+  text-align: left;
+}
+
+.details img {
+  width: 36px;
+  margin-right: 14px;
+}
+
+.humidity, .wind {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.details p {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* --- States --- */
+.weather {
+  display: none; /* Toggle via JS */
+}
+
+.error {
+  display: none; /* Toggle via JS */
+  text-align: left;
+  margin-left: 20px;
+  font-size: 14px;
+  margin-top: 12px;
+  color: var(--error-color);
+  font-weight: 500;
+}
+
+/* --- Responsiveness For Small Screens --- */
+@media (max-width: 400px) {
+  .card {
+    padding: 25px 20px;
+  }
+  
+  .search input {
+    height: 48px;
+    font-size: 15px;
+    padding: 10px 16px;
+  }
+  
+  .search button {
+    height: 48px;
+    width: 48px;
+  }
+  
+  .weather h1 {
+    font-size: 44px;
+  }
+  
+  .weather h2 {
+    font-size: 18px;
+  }
+  
+  .details {
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
+    padding-left: 15px;
+  }
+}

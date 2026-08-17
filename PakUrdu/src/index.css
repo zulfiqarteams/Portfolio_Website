@@ -1,0 +1,214 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /*
+   * Design tokens (light theme).
+   *
+   * These are the single source of truth for color — tailwind.config.ts
+   * points its semantic color names (paper, surface, ink, brand, gold,
+   * border, success, warning, error, info) at these variables instead
+   * of hard-coded hex values.
+   *
+   * The existing SettingsProvider applies the `.dark` class to <html>, so
+   * these semantic tokens repaint the complete application consistently.
+   */
+  :root {
+    --color-paper: #FAF7F1;
+    --color-surface: #FFFFFF;
+    --color-surface-elevated: #FFFFFF;
+
+    --color-ink: #17232E;
+    --color-ink-soft: #48566A;
+    --color-ink-faint: #8792A0;
+
+    --color-brand-50: #EAF4F2;
+    --color-brand-100: #CFE6E1;
+    --color-brand-300: #6DAA9F;
+    --color-brand-500: #0D6B5F;
+    --color-brand-600: #0A594F;
+    --color-brand-700: #08463F;
+
+    --color-gold-100: #F3E4C6;
+    --color-gold-300: #DDB674;
+    --color-gold-500: #C08A34;
+    --color-gold-600: #9C6F28;
+
+    --color-border: #E4DDCC;
+    --color-border-strong: #D2C9B4;
+
+    --color-success-50: #E9F5EC;
+    --color-success-500: #2F9153;
+    --color-success-600: #257A43;
+
+    --color-warning-50: #FBF1E1;
+    --color-warning-500: #C08A34;
+    --color-warning-600: #9C6F28;
+
+    --color-error-50: #FBEBE7;
+    --color-error-500: #B3402E;
+    --color-error-600: #92331F;
+
+    --color-info-50: #EAF1F8;
+    --color-info-500: #2E6CA4;
+    --color-info-600: #235684;
+  }
+
+  /*
+   * Dark theme tokens. The shared SettingsProvider toggles `.dark` on <html>
+   * so the navbar control and Settings page use the same theme state.
+   */
+  .dark {
+    --color-paper: #10161D;
+    --color-surface: #171F29;
+    --color-surface-elevated: #1E2733;
+
+    --color-ink: #F3F5F7;
+    --color-ink-soft: #B7C0CC;
+    --color-ink-faint: #7C8896;
+
+    --color-brand-50: #123430;
+    --color-brand-100: #164039;
+    --color-brand-300: #3E8E7F;
+    --color-brand-500: #3FA895;
+    --color-brand-600: #63BCAB;
+    --color-brand-700: #8ED0C3;
+
+    --color-gold-100: #3A2E19;
+    --color-gold-300: #B08B4C;
+    --color-gold-500: #DDB674;
+    --color-gold-600: #E8CB98;
+
+    --color-border: #2A3441;
+    --color-border-strong: #3B4756;
+
+    --color-success-50: #123423;
+    --color-success-500: #4CB479;
+    --color-success-600: #6FC694;
+
+    --color-warning-50: #362A14;
+    --color-warning-500: #DDB674;
+    --color-warning-600: #E8CB98;
+
+    --color-error-50: #3A1F1B;
+    --color-error-500: #E17B62;
+    --color-error-600: #E89985;
+
+    --color-info-50: #182A3A;
+    --color-info-500: #6FA8D8;
+    --color-info-600: #8FBEE3;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+  /* User-controlled interface scale. Tailwind spacing and typography use
+     rem units, so this scales the existing UI without changing layout rules. */
+  html.settings-large-text {
+    font-size: 112.5%;
+  }
+
+
+  body {
+    @apply bg-paper text-ink;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display text-ink;
+  }
+
+  /* Visible, consistent keyboard focus ring across all interactive elements */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background-color: var(--color-gold-300);
+    color: var(--color-ink);
+  }
+
+  /* Numeric/data values (WPM, timers, accuracy %) always read left-to-right,
+     even inside an RTL-flowing parent. */
+  .numeric {
+    font-family: theme("fontFamily.mono");
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
+  /* Urdu-script content: right-to-left with the Nastaliq display face. */
+  .urdu-text {
+    font-family: theme("fontFamily.urdu");
+    direction: rtl;
+    unicode-bidi: isolate;
+    line-height: 2;
+  }
+
+  /* Comfortable RTL block for longer runs of Urdu copy (labels, lesson
+     body text) — same face, slightly roomier tracking/line-height than
+     `.urdu-text` needs for a single large display word. */
+  .urdu-body {
+    font-family: theme("fontFamily.urdu");
+    direction: rtl;
+    unicode-bidi: isolate;
+    line-height: 2.1;
+    letter-spacing: 0.01em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /*
+   * Typography scale. Centralizes the heading/body hierarchy so pages
+   * pick a role (`text-display`, `text-page-heading`, ...) instead of
+   * hand-tuning font-size/leading/tracking per page. Existing pages
+   * that already used the equivalent utility classes directly (e.g.
+   * `text-2xl font-bold sm:text-3xl`) are visually unchanged — these
+   * classes formalize the same scale, they don't introduce a new one.
+   */
+  .text-display {
+    @apply font-display text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl;
+  }
+  .text-page-heading {
+    @apply font-display text-2xl font-bold leading-tight sm:text-3xl;
+  }
+  .text-section-heading {
+    @apply font-display text-2xl font-bold leading-snug sm:text-3xl;
+  }
+  .text-card-heading {
+    @apply font-display text-base font-semibold leading-snug;
+  }
+  .text-body {
+    @apply font-body text-base leading-relaxed text-ink-soft;
+  }
+  .text-small {
+    @apply font-body text-sm leading-relaxed text-ink-soft;
+  }
+  .text-label {
+    @apply font-body text-xs font-semibold uppercase tracking-widest text-ink-faint;
+  }
+  .text-caption {
+    @apply font-body text-xs text-ink-faint;
+  }
+}
