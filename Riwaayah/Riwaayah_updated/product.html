@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>(function(){try{var t=localStorage.getItem('theme');if(!t){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <link rel="preconnect" href="https://firestore.googleapis.com">
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <title>Product Details - Riwayat Collections</title>
+  <link rel="stylesheet" href="./CSS/style.css">
+</head>
+<body>
+
+<div class="navbar">
+  <div class="brand">Riwayat Collections</div>
+  <div class="nav-links" id="nav-links">
+    <a href="index.html">Home</a>
+    <a href="admin.html" id="admin-link" style="display: none;">Admin</a>
+    <a href="wishList.html">Wishlist</a>
+    <a href="Orders.html">My Orders</a>
+    <a href="Cart.html" style="position: relative;">
+      Cart
+      <span class="cart-badge" id="cart-badge">0</span>
+    </a>
+    <a href="Login.html" id="login-link">Sign In</a>
+    <a href="#" onclick="logoutUser()" id="logout-link" style="display: none;">Logout</a>
+  </div>
+</div>
+
+<div class="container">
+  <div id="product-detail" style="min-height: 400px;">
+    <div class="skeleton fast-skeleton" style="height: 500px; border-radius: 16px;"></div>
+  </div>
+</div>
+
+<script type="module">
+import { auth } from "./js/firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getUserProfile, logoutUser } from "./js/auth.js";
+
+window.logoutUser = () => { logoutUser().finally(() => window.location.reload()); };
+
+onAuthStateChanged(auth, async (user) => {
+  const loginLink = document.getElementById('login-link');
+  const logoutLink = document.getElementById('logout-link');
+  const adminLink = document.getElementById('admin-link');
+  if (!user) {
+    loginLink.style.display = 'inline';
+    logoutLink.style.display = 'none';
+    adminLink.style.display = 'none';
+    return;
+  }
+  loginLink.style.display = 'none';
+  logoutLink.style.display = 'inline';
+  const profile = await getUserProfile(user.uid);
+  adminLink.style.display = (profile && profile.role === 'admin') ? 'inline' : 'none';
+});
+</script>
+
+<script type="module" src="./js/product.js"></script>
+
+<script type="module" src="./js/chatbot.js"></script>
+<script src="./js/ui.js"></script>
+</body>
+</html>

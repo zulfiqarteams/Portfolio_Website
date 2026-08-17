@@ -1,0 +1,94 @@
+rules_version = '2';
+
+// =====================================================================
+// RECOMMENDED FIRESTORE SECURITY RULES for Riwayat Collections
+//
+// WHY THIS FILE MATTERS:
+// Everything in js/auth.js, admin.js etc. only controls what the
+// *website UI* shows you. It does NOT stop someone from calling the
+// Firebase SDK directly (open devtools -> paste a few lines) to read
+// or write your database. The only real protection is these rules,
+// enforced by Firebase's servers. Paste this into:
+//   Firebase Console -> Firestore Database -> Rules -> publish
+//
+// ONE MANUAL STEP REQUIRED FROM YOU:
+// There is intentionally no way for the app itself to create an
+// admin account (that was the security hole). After you sign up
+// your own account once through Login.html, open:
+//   Firebase Console -> Firestore Database -> users -> <your uid>
+// and manually change the "role" field from "user" to "admin".
+// That is the only supported way to create the first (and any
+// future) admin.
+// =====================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ---------------- users/{userId} ----------------
+    // Each signed-in user has exactly one profile doc, keyed by
+    // their own Firebase Auth uid (this is what js/auth.js writes
+    // on signup, always with role: "user").
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+
+      // A user may create ONLY their own profile, and only as role "user".
+      // This blocks the old "sign up as Admin" hole even if someone
+      // bypasses the UI and calls the SDK directly.
+      allow create: if isOwner(userId)
+                    && request.resource.data.role == 'user';
+
+      // A user may update their own profile but may NEVER change
+      // their own role. Only an existing admin can change roles
+      // (e.g. promoting/demoting another account).
+      allow update: if (isOwner(userId)
+                         && request.resource.data.role == resource.data.role)
+                    || isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+    // ---------------- products/{productId} ----------------
+    // Public storefront read; only admins can add/edit/remove stock.
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------------- orders/{orderId} ----------------
+    // A signed-in customer can place an order and read back their
+    // own orders (matched by their account email). Only admins can
+    // list every order or change status.
+    match /orders/{orderId} {
+      allow create: if isSignedIn()
+                    && request.resource.data.userEmail == request.auth.token.email;
+      allow read: if isAdmin()
+                  || (isSignedIn() && resource.data.userEmail == request.auth.token.email);
+      allow update, delete: if isAdmin();
+    }
+
+    // Deny everything else by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------
+// NOTE on Orders.js: it queries orders `where("userEmail", "==",
+// currentUser.email)`, which matches the rule above. If you ever
+// change that query, keep the rule and the query in sync.
+// ---------------------------------------------------------------------
