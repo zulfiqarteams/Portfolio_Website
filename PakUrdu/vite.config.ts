@@ -4,7 +4,10 @@ import path from "node:path";
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: "/Portfolio_Website/PakUrdu/",
+
   plugins: [react()],
+
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
