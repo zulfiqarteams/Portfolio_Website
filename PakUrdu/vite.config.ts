@@ -4,6 +4,7 @@ import path from "node:path";
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: "/Portfolio_Website/PakUrdu/",   // ← ye line add karein
   plugins: [react()],
   resolve: {
     alias: {
