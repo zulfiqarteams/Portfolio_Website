@@ -12,6 +12,18 @@ interface TypingAreaProps {
   onKeyDown: (key: string, shiftKey: boolean) => void;
   feedbackEnabled?: boolean;
   autoFocus?: boolean;
+  /**
+   * When true, the target text renders inside a fixed-height,
+   * vertically scrolling viewport instead of growing to fit its
+   * content, and the current character is scrolled into view
+   * automatically as the user types. Off by default so callers that
+   * already size their own container (e.g. short practice snippets
+   * that are never taller than the available space) keep today's
+   * auto-height behavior.
+   */
+  scrollable?: boolean;
+  /** Tailwind height class(es) applied to the viewport when `scrollable` is set. */
+  viewportHeightClassName?: string;
 }
 
 const statusClasses: Record<TypingState["characters"][number]["status"], string> = {
@@ -28,12 +40,29 @@ const statusClasses: Record<TypingState["characters"][number]["status"], string>
  * `keydown` listener — means IME/composition, focus, and mobile
  * on-screen-keyboard behavior all work the way users expect.
  */
-export function TypingArea({ typingState, onKeyDown, feedbackEnabled = true, autoFocus = true }: TypingAreaProps) {
+export function TypingArea({
+  typingState,
+  onKeyDown,
+  feedbackEnabled = true,
+  autoFocus = true,
+  scrollable = false,
+  viewportHeightClassName = "h-64 sm:h-72",
+}: TypingAreaProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const currentCharRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
     if (autoFocus) inputRef.current?.focus();
   }, [autoFocus]);
+
+  // Keep the character being typed visible inside the scrolling
+  // viewport (e.g. once it scrolls onto a new line). `block: "nearest"`
+  // only scrolls the nearest scrollable ancestor — the viewport below —
+  // rather than the whole page.
+  useEffect(() => {
+    if (!scrollable) return;
+    currentCharRef.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [scrollable, typingState.currentIndex]);
 
   function handleKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
     // Let real modifier/navigation combinations (Tab, Ctrl/Cmd+*,
@@ -58,24 +87,31 @@ export function TypingArea({ typingState, onKeyDown, feedbackEnabled = true, aut
       className="relative cursor-text"
       onClick={() => inputRef.current?.focus()}
     >
-      <p
-        dir="rtl"
-        lang="ur"
-        className="urdu-text flex flex-wrap justify-end gap-x-0.5 text-3xl leading-loose sm:text-4xl"
-        aria-hidden="true"
+      <div
+        className={cn(scrollable && ["overflow-y-auto scroll-smooth", viewportHeightClassName])}
       >
-        {typingState.characters.map(({ char, status, index }) => (
-          <span
-            key={index}
-            className={cn(
-              "rounded-sm px-0.5 transition-colors duration-100",
-              feedbackEnabled ? statusClasses[status] : statusClasses[status === "current" ? "current" : "pending"],
-            )}
-          >
-            {char === " " ? "\u00A0" : char}
-          </span>
-        ))}
-      </p>
+        <p
+          dir="rtl"
+          lang="ur"
+          className="urdu-text flex flex-wrap justify-end gap-x-0.5 text-3xl leading-loose sm:text-4xl"
+          aria-hidden="true"
+        >
+          {typingState.characters.map(({ char, status, index }) => (
+            <span
+              key={index}
+              ref={(el) => {
+                if (status === "current") currentCharRef.current = el;
+              }}
+              className={cn(
+                "rounded-sm px-0.5 transition-colors duration-100",
+                feedbackEnabled ? statusClasses[status] : statusClasses[status === "current" ? "current" : "pending"],
+              )}
+            >
+              {char === " " ? "\u00A0" : char}
+            </span>
+          ))}
+        </p>
+      </div>
 
       <label className="sr-only" htmlFor="typing-engine-input">
         Type the Urdu text shown above

@@ -72,6 +72,10 @@ function TestSession({ durationSeconds, onFinished, onRestart }: { durationSecon
         <StatCard icon={AlertCircle} label="Errors" value={String(result.statistics.incorrectCharacters)} />
       </div>
 
+      {/* Typing card and (optional) keyboard card form the persistent test
+          layout: their position and size never move as the test progresses.
+          The "test complete" banner is appended after both, below, so it
+          never pushes the keyboard around when it appears. */}
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -81,18 +85,14 @@ function TestSession({ durationSeconds, onFinished, onRestart }: { durationSecon
           {result.isFinished && <Badge tone="gold"><Trophy size={12} className="mr-1 inline" /> Test complete</Badge>}
         </div>
 
-        <div className="mt-5 rounded-md border border-border bg-paper px-4 py-8">
-          <TypingArea typingState={result.typingState} onKeyDown={handleKeyDown} feedbackEnabled={typingFeedback} />
+        <div className="mt-5 rounded-md border border-border bg-paper px-4 py-6">
+          <TypingArea
+            typingState={result.typingState}
+            onKeyDown={handleKeyDown}
+            feedbackEnabled={typingFeedback}
+            scrollable
+          />
         </div>
-
-        {result.isFinished && (
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-success-500 bg-success-50 p-4">
-            <p className="text-sm font-semibold text-ink">{result.finishedByTime ? "Time is up. Your typing has been stopped." : "You completed the passage before the timer ended."}</p>
-            <Button variant="secondary" size="sm" onClick={() => { onRestart(); result.reset(); }}>
-              <RotateCcw size={14} aria-hidden="true" /> Restart Test
-            </Button>
-          </div>
-        )}
       </Card>
 
       {showKeyboard && (
@@ -100,6 +100,15 @@ function TestSession({ durationSeconds, onFinished, onRestart }: { durationSecon
           <p className="mb-4 text-sm font-medium text-ink-soft">On-screen keyboard and finger guide</p>
           <VirtualKeyboard expectedChar={result.isFinished ? null : result.typingState.currentChar} flash={flash} feedbackEnabled={typingFeedback} />
         </Card>
+      )}
+
+      {result.isFinished && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-success-500 bg-success-50 p-4">
+          <p className="text-sm font-semibold text-ink">{result.finishedByTime ? "Time is up. Your typing has been stopped." : "You completed the passage before the timer ended."}</p>
+          <Button variant="secondary" size="sm" onClick={() => { onRestart(); result.reset(); }}>
+            <RotateCcw size={14} aria-hidden="true" /> Restart Test
+          </Button>
+        </div>
       )}
     </div>
   );

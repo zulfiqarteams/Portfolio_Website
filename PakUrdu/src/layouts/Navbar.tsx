@@ -11,6 +11,120 @@ import { useProfiles } from "@/features/profiles/context/ProfileContext";
 import { ProfileAvatar } from "@/features/profiles/components/ProfileAvatar";
 import { ProfileMenu } from "@/features/profiles/components/ProfileMenu";
 import { ProfileFormModal } from "@/features/profiles/components/ProfileFormModal";
+import type { NavItem } from "@/types";
+
+type Labels = Record<string, string>;
+
+/** Primary/secondary nav links, shared between the desktop bar and the mobile panel. */
+function NavLinks({
+  items,
+  labels,
+  variant,
+}: {
+  items: NavItem[];
+  labels: Labels;
+  variant: "desktop" | "mobile";
+}) {
+  return (
+    <>
+      {items.map((item) => (
+        <NavLink
+          key={item.path}
+          to={item.path}
+          end={item.path === "/"}
+          className={({ isActive }) =>
+            cn(
+              "flex items-center gap-1.5 rounded-sm text-ink-soft transition-colors",
+              variant === "desktop"
+                ? "border-b-2 border-transparent px-3 py-2 text-sm font-medium hover:bg-surface hover:text-ink"
+                : "gap-3 px-3 py-2.5 text-base font-medium hover:bg-surface hover:text-ink",
+              isActive &&
+                (variant === "desktop"
+                  ? "border-brand-500 bg-brand-50 font-semibold text-brand-700"
+                  : "bg-brand-50 font-semibold text-brand-700"),
+            )
+          }
+        >
+          {item.icon && (
+            <item.icon
+              size={variant === "desktop" ? 15 : 18}
+              aria-hidden="true"
+              className="shrink-0"
+            />
+          )}
+          {labels[item.label] ?? item.label}
+        </NavLink>
+      ))}
+    </>
+  );
+}
+
+/** Language picker, shared between the desktop bar and the mobile panel. */
+function LanguageSwitcher({
+  language,
+  onChange,
+  compact,
+}: {
+  language: string;
+  onChange: (id: string) => void;
+  compact?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-1 rounded-md border border-border bg-surface p-1",
+        compact && "grid grid-cols-3 gap-1",
+      )}
+      role="group"
+      aria-label="Language"
+    >
+      {languageOptions.map((option) => (
+        <button
+          key={option.id}
+          type="button"
+          onClick={() => onChange(option.id)}
+          aria-pressed={language === option.id}
+          className={cn(
+            "rounded-sm px-2 text-xs font-medium transition-colors",
+            compact ? "min-h-9 py-1" : "py-1.5",
+            language === option.id
+              ? "bg-brand-500 text-white"
+              : "text-ink-soft hover:bg-paper hover:text-ink",
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** Light/dark toggle, shared between the desktop bar and the mobile panel. */
+function ThemeToggle({
+  darkTheme,
+  onToggle,
+  size = "md",
+}: {
+  darkTheme: boolean;
+  onToggle: () => void;
+  size?: "sm" | "md";
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={darkTheme ? "Switch to light mode" : "Switch to dark mode"}
+      aria-pressed={darkTheme}
+      title={size === "md" ? (darkTheme ? "Light mode" : "Dark mode") : undefined}
+      className={cn(
+        "inline-flex items-center justify-center rounded-md border border-border bg-surface text-ink-soft transition-colors hover:bg-paper hover:text-ink",
+        size === "md" ? "h-9 w-9" : "min-h-10 w-10",
+      )}
+    >
+      {darkTheme ? <Sun size={17} aria-hidden="true" /> : <Moon size={17} aria-hidden="true" />}
+    </button>
+  );
+}
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -50,55 +164,28 @@ export function Navbar() {
 
         {/* Desktop navigation */}
         <nav aria-label="Primary" className="hidden items-center gap-4 md:flex">
-          {primaryNav.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.path === "/"}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-1.5 rounded-sm border-b-2 px-3 py-2 text-sm transition-colors",
-                  isActive
-                    ? "border-brand-500 bg-brand-50 font-semibold text-brand-700"
-                    : "border-transparent font-medium text-ink-soft hover:bg-surface hover:text-ink",
-                )
-              }
-            >
-              {item.icon && <item.icon size={15} aria-hidden="true" className="shrink-0" />}
-              {labels[item.label] ?? item.label}
-            </NavLink>
-          ))}
-
+          <NavLinks items={primaryNav} labels={labels} variant="desktop" />
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
-          <div className="flex items-center gap-1 rounded-md border border-border bg-surface p-1" role="group" aria-label="Language">
-            {languageOptions.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                onClick={() => setSetting("language", option.id)}
-                aria-pressed={language === option.id}
-                className={cn("rounded-sm px-2 py-1.5 text-xs font-medium transition-colors", language === option.id ? "bg-brand-500 text-white" : "text-ink-soft hover:bg-paper hover:text-ink")}
-              >
-                {option.label}
-              </button>
-            ))}
+        {/* Desktop controls: language + theme are grouped as "display settings",
+            separated from the identity/action cluster (profile + CTA). */}
+        <div className="hidden items-center gap-3 md:flex">
+          <div className="flex items-center gap-2 border-r border-border pr-3">
+            <LanguageSwitcher
+              language={language}
+              onChange={(id) => setSetting("language", id)}
+            />
+            <ThemeToggle
+              darkTheme={darkTheme}
+              onToggle={() => setSetting("darkTheme", !darkTheme)}
+            />
           </div>
-          <button
-            type="button"
-            onClick={() => setSetting("darkTheme", !darkTheme)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-ink-soft transition-colors hover:bg-paper hover:text-ink"
-            aria-label={darkTheme ? "Switch to light mode" : "Switch to dark mode"}
-            aria-pressed={darkTheme}
-            title={darkTheme ? "Light mode" : "Dark mode"}
-          >
-            {darkTheme ? <Sun size={17} aria-hidden="true" /> : <Moon size={17} aria-hidden="true" />}
-          </button>
-          <ProfileMenu onCreateNew={() => setIsCreateProfileOpen(true)} />
-          <Button to={activeProfile ? "/learn" : "/profile"} size="md" className="ml-1">
-            {labels["Start Learning"]}
-          </Button>
+          <div className="flex items-center gap-2">
+            <ProfileMenu onCreateNew={() => setIsCreateProfileOpen(true)} />
+            <Button to={activeProfile ? "/learn" : "/profile"} size="md">
+              {labels["Start Learning"]}
+            </Button>
+          </div>
         </div>
 
         {/* Mobile menu toggle */}
@@ -126,45 +213,20 @@ export function Navbar() {
           className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border bg-paper md:hidden"
         >
           <PageContainer className="flex flex-col gap-1 py-4">
-            {primaryNav.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                end={item.path === "/"}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 rounded-sm px-3 py-2.5 text-base",
-                    isActive
-                      ? "bg-brand-50 font-semibold text-brand-700"
-                      : "font-medium text-ink-soft hover:bg-surface hover:text-ink",
-                  )
-                }
-              >
-                {item.icon && <item.icon size={18} aria-hidden="true" />}
-                {labels[item.label] ?? item.label}
-              </NavLink>
-            ))}
+            {/* Links group */}
+            <NavLinks items={primaryNav} labels={labels} variant="mobile" />
 
-
-            <Button to={activeProfile ? "/learn" : "/profile"} size="md" className="mt-3 justify-center">
+            <Button
+              to={activeProfile ? "/learn" : "/profile"}
+              size="md"
+              className="mt-3 justify-center"
+            >
               {labels["Start Learning"]}
             </Button>
 
-            <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
-              <div className="grid grid-cols-3 gap-1 rounded-md border border-border bg-surface p-1" role="group" aria-label="Language">
-                {languageOptions.map((option) => (
-                  <button key={option.id} type="button" onClick={() => setSetting("language", option.id)} aria-pressed={language === option.id} className={cn("min-h-9 rounded-sm px-2 py-1 text-xs font-medium", language === option.id ? "bg-brand-500 text-white" : "text-ink-soft hover:bg-paper hover:text-ink")}>
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-              <button type="button" onClick={() => setSetting("darkTheme", !darkTheme)} aria-label={darkTheme ? "Switch to light mode" : "Switch to dark mode"} aria-pressed={darkTheme} className="inline-flex min-h-10 w-10 items-center justify-center rounded-md border border-border bg-surface text-ink-soft">
-                {darkTheme ? <Sun size={17} aria-hidden="true" /> : <Moon size={17} aria-hidden="true" />}
-              </button>
-            </div>
-
             <div className="my-3 border-t border-border" />
 
+            {/* Identity group: whoever's using the device, or a prompt to create a profile */}
             {activeProfile ? (
               <Link
                 to="/profile"
@@ -189,23 +251,24 @@ export function Navbar() {
               </button>
             )}
 
-            {secondaryNav.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 rounded-sm px-3 py-2.5 text-base",
-                    isActive
-                      ? "bg-brand-50 font-semibold text-brand-700"
-                      : "font-medium text-ink-soft hover:bg-surface hover:text-ink",
-                  )
-                }
-              >
-                {item.icon && <item.icon size={18} aria-hidden="true" />}
-                {labels[item.label] ?? item.label}
-              </NavLink>
-            ))}
+            {/* Other destinations (e.g. Settings) */}
+            <NavLinks items={secondaryNav} labels={labels} variant="mobile" />
+
+            <div className="my-3 border-t border-border" />
+
+            {/* Display settings group: language + theme, matching the desktop cluster */}
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+              <LanguageSwitcher
+                language={language}
+                onChange={(id) => setSetting("language", id)}
+                compact
+              />
+              <ThemeToggle
+                darkTheme={darkTheme}
+                onToggle={() => setSetting("darkTheme", !darkTheme)}
+                size="sm"
+              />
+            </div>
           </PageContainer>
         </nav>
       )}

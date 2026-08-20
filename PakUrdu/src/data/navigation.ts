@@ -4,7 +4,6 @@ import {
   Settings,
   Timer,
   Type,
-  UserCircle,
 } from "lucide-react";
 import type { NavItem } from "@/types";
 
@@ -15,7 +14,10 @@ export const primaryNav: NavItem[] = [
   { label: "Progress", path: "/progress", icon: LineChart },
 ];
 
+// "Profile" is intentionally left out here: the mobile menu already surfaces
+// the active profile (or a "Create Profile" action) in its own row, and the
+// desktop bar surfaces it via the ProfileMenu. Keeping it out of
+// secondaryNav avoids showing the same destination twice.
 export const secondaryNav: NavItem[] = [
-  { label: "Profile", path: "/profile", icon: UserCircle },
   { label: "Settings", path: "/settings", icon: Settings },
 ];
