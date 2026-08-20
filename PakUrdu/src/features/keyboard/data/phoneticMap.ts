@@ -122,8 +122,8 @@ export function keyForChar(char: string): KeyLocation | null {
   return URDU_TO_KEY.get(char) ?? null;
 }
 
-export type Hand = "Left" | "Right";
-export type Finger = "Pinky" | "Ring" | "Middle" | "Index";
+export type Hand = "Left" | "Right" | "Both";
+export type Finger = "Pinky" | "Ring" | "Middle" | "Index" | "Thumb";
 
 export interface FingerGuide {
   hand: Hand;
@@ -144,9 +144,27 @@ export const KEY_FINGER_MAP: Record<string, FingerGuide> = {
   l: { hand: "Right", finger: "Ring" },
   n: { hand: "Right", finger: "Index" }, m: { hand: "Right", finger: "Index" },
   ",": { hand: "Right", finger: "Middle" }, ".": { hand: "Right", finger: "Ring" },
-  " ": { hand: "Right", finger: "Pinky" },
+  " ": { hand: "Both", finger: "Thumb" },
 };
 
 export function fingerForKey(key: string): FingerGuide | null {
   return KEY_FINGER_MAP[key] ?? null;
 }
+
+/**
+ * Shared per-finger accent colors used by the keyboard visuals, so the
+ * grid, the legend, and the spacebar all draw from a single palette.
+ */
+export const FINGER_COLORS: Record<Finger, string> = {
+  Pinky: "#D85A30",
+  Ring: "#EF9F27",
+  Middle: "#639922",
+  Index: "#378ADD",
+  Thumb: "#7F77DD",
+};
+
+/** Colors for the brief correct/incorrect flash after a keystroke. */
+export const FEEDBACK_COLORS = {
+  correct: "#3FA34D",
+  incorrect: "#D6455B",
+} as const;

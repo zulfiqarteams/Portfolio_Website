@@ -1,91 +1,156 @@
 import { useEffect, useState } from "react";
+import {
+  BASE_KEY_MAP,
+  FEEDBACK_COLORS,
+  FINGER_COLORS,
+  KEYBOARD_ROWS,
+  PUNCTUATION_KEY_MAP,
+  SHIFT_KEY_MAP,
+  fingerForKey,
+  keyForChar,
+  type Finger,
+} from "@/features/keyboard/data/phoneticMap";
 import { cn } from "@/lib/cn";
 
-type Finger = "Pinky" | "Ring" | "Middle" | "Index" | "Thumb";
-
-interface KeyData {
-  label: string;
-  urdu: string;
-  finger: Exclude<Finger, "Thumb">;
+export interface KeyboardFlash {
+  key: string;
+  shift: boolean;
+  correct: boolean;
+  token: number;
 }
 
 interface InteractiveKeyboardProps {
   expectedChar: string | null;
-  flash: { key: string; correct: boolean; token: number } | null;
+  flash: KeyboardFlash | null;
   feedbackEnabled?: boolean;
   className?: string;
 }
 
-const COLORS: Record<Finger, string> = {
-  Pinky: "#D85A30",
-  Ring: "#EF9F27",
-  Middle: "#639922",
-  Index: "#378ADD",
-  Thumb: "#7F77DD",
-};
-
-const ROWS: KeyData[][] = [
-  [
-    { urdu: "ق", label: "Q", finger: "Pinky" }, { urdu: "و", label: "W", finger: "Ring" }, { urdu: "ی", label: "E", finger: "Middle" }, { urdu: "ر", label: "R", finger: "Index" }, { urdu: "ت", label: "T", finger: "Index" },
-    { urdu: "ے", label: "Y", finger: "Index" }, { urdu: "ع", label: "U", finger: "Index" }, { urdu: "ی", label: "I", finger: "Middle" }, { urdu: "۔", label: "O", finger: "Ring" }, { urdu: "پ", label: "P", finger: "Pinky" },
-  ],
-  [
-    { urdu: "ا", label: "A", finger: "Pinky" }, { urdu: "س", label: "S", finger: "Ring" }, { urdu: "د", label: "D", finger: "Middle" }, { urdu: "ف", label: "F", finger: "Index" }, { urdu: "گ", label: "G", finger: "Index" },
-    { urdu: "ہ", label: "H", finger: "Index" }, { urdu: "ج", label: "J", finger: "Index" }, { urdu: "ک", label: "K", finger: "Middle" }, { urdu: "ل", label: "L", finger: "Ring" }, { urdu: ";", label: ".", finger: "Pinky" },
-  ],
-  [
-    { urdu: "ز", label: "Z", finger: "Pinky" }, { urdu: "ش", label: "X", finger: "Ring" }, { urdu: "چ", label: "C", finger: "Middle" }, { urdu: "و", label: "V", finger: "Index" }, { urdu: "ب", label: "B", finger: "Index" },
-    { urdu: "ن", label: "N", finger: "Index" }, { urdu: "م", label: "M", finger: "Index" }, { urdu: ",", label: ",", finger: "Middle" }, { urdu: "۔", label: ".", finger: "Ring" }, { urdu: "/", label: "/", finger: "Pinky" },
-  ],
-];
-
-const OFFSETS = [0, 20, 30];
+const FLASH_DURATION_MS = 200;
+const ROW_OFFSETS = [0, 26, 0];
 const LEGEND: Finger[] = ["Pinky", "Ring", "Middle", "Index", "Thumb"];
 
 export function InteractiveKeyboard({ expectedChar, flash, feedbackEnabled = true, className }: InteractiveKeyboardProps) {
-  const [visibleFlash, setVisibleFlash] = useState<typeof flash>(null);
+  const [visibleFlash, setVisibleFlash] = useState<KeyboardFlash | null>(null);
+  const [shiftActive, setShiftActive] = useState(false);
 
   useEffect(() => {
-    if (!feedbackEnabled || !flash) return setVisibleFlash(null);
+    if (!feedbackEnabled || !flash) {
+      setVisibleFlash(null);
+      return;
+    }
     setVisibleFlash(flash);
-    const timer = window.setTimeout(() => setVisibleFlash(null), 200);
+    const timer = window.setTimeout(() => setVisibleFlash(null), FLASH_DURATION_MS);
     return () => window.clearTimeout(timer);
   }, [feedbackEnabled, flash]);
+
+  const expectedLocation = feedbackEnabled && expectedChar ? keyForChar(expectedChar) : null;
+
+  // If the target character lives on the Shift layer, flip the preview
+  // to Shift automatically so the learner can see the glyph they need
+  // without having to remember to tap Shift themselves first.
+  useEffect(() => {
+    if (expectedLocation?.shift) setShiftActive(true);
+  }, [expectedLocation?.key, expectedLocation?.shift]);
 
   return (
     <div className={cn("mx-auto w-full max-w-[620px] select-none font-mono", className)} dir="ltr" aria-label="Urdu phonetic keyboard">
       <div className="overflow-x-auto py-1">
-        <div className="min-w-max">
-          {ROWS.map((row, rowIndex) => (
-            <div key={rowIndex} className="mb-1.5 flex gap-1.5" style={{ marginLeft: OFFSETS[rowIndex] }}>
-              {row.map((key) => {
-                const flashing = feedbackEnabled && visibleFlash?.key.toLowerCase() === key.label.toLowerCase();
-                const expected = feedbackEnabled && expectedChar === key.urdu;
-                const color = flashing ? (visibleFlash?.correct ? COLORS.Middle : COLORS.Pinky) : COLORS[key.finger];
+        <div className="min-w-max space-y-1.5">
+          {KEYBOARD_ROWS.map((row, rowIndex) => (
+            <div key={rowIndex} className="flex items-center gap-1.5" style={{ marginLeft: rowIndex === 2 ? 0 : ROW_OFFSETS[rowIndex] }}>
+              {rowIndex === 2 && <ShiftKey active={shiftActive} onToggle={() => setShiftActive((v) => !v)} />}
+              {row.map((keyLabel) => {
+                const baseChar = BASE_KEY_MAP[keyLabel] ?? PUNCTUATION_KEY_MAP[keyLabel];
+                const shiftChar = SHIFT_KEY_MAP[keyLabel];
+                const displayChar = shiftActive && shiftChar ? shiftChar : baseChar;
+                const guide = fingerForKey(keyLabel);
+                const finger: Finger = guide?.finger ?? "Index";
+
+                const isExpectedKey = Boolean(expectedLocation?.key === keyLabel);
+                const isFlashing = Boolean(feedbackEnabled && visibleFlash?.key === keyLabel);
+                const color = isFlashing
+                  ? visibleFlash?.correct
+                    ? FEEDBACK_COLORS.correct
+                    : FEEDBACK_COLORS.incorrect
+                  : FINGER_COLORS[finger];
+
                 return (
                   <div
-                    key={`${key.urdu}-${key.label}`}
-                    style={{ borderColor: color, backgroundColor: `color-mix(in srgb, ${color} ${expected ? 24 : 13}%, transparent)` }}
-                    className={cn("flex h-12 w-11 flex-col items-center justify-center rounded-md border transition-colors duration-100", expected && "ring-2 ring-offset-1 ring-offset-paper")}
+                    key={keyLabel}
+                    title={guide ? `${guide.hand} hand · ${guide.finger} finger` : undefined}
+                    style={{
+                      borderColor: color,
+                      backgroundColor: `color-mix(in srgb, ${color} ${isExpectedKey ? 24 : 13}%, transparent)`,
+                    }}
+                    className={cn(
+                      "flex h-12 w-11 flex-col items-center justify-center rounded-md border transition-colors duration-100",
+                      isExpectedKey && "ring-2 ring-offset-1 ring-offset-paper",
+                    )}
                     aria-hidden="true"
                   >
-                    <span className="urdu-text text-lg leading-none text-ink">{key.urdu}</span>
-                    <span className="mt-1 text-[10px] leading-none text-ink-faint">{key.label}</span>
+                    <span className={cn("urdu-text text-lg leading-none text-ink", shiftActive && shiftChar && "font-bold")}>
+                      {displayChar}
+                    </span>
+                    <span className="mt-1 text-[10px] leading-none text-ink-faint">{keyLabel.toUpperCase()}</span>
                   </div>
                 );
               })}
             </div>
           ))}
-          <div
-            style={{ marginLeft: 45, borderColor: COLORS.Thumb, backgroundColor: `color-mix(in srgb, ${COLORS.Thumb} ${feedbackEnabled && expectedChar === " " ? 24 : 13}%, transparent)` }}
-            className="mt-2 h-12 w-[260px] rounded-md border"
-            aria-label="Spacebar"
+
+          <Spacebar
+            active={feedbackEnabled && expectedChar === " "}
+            flashing={Boolean(feedbackEnabled && visibleFlash?.key === " ")}
+            correct={visibleFlash?.correct ?? false}
           />
         </div>
       </div>
+
       <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-ink-soft">
-        {LEGEND.map((finger) => <span key={finger} className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: COLORS[finger] }} />{finger}</span>)}
+        {LEGEND.map((finger) => (
+          <span key={finger} className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: FINGER_COLORS[finger] }} />
+            {finger}
+          </span>
+        ))}
       </div>
     </div>
+  );
+}
+
+function ShiftKey({ active, onToggle }: { active: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={active}
+      title="Preview the Shift layer"
+      style={{
+        borderColor: FINGER_COLORS.Pinky,
+        backgroundColor: `color-mix(in srgb, ${FINGER_COLORS.Pinky} ${active ? 28 : 10}%, transparent)`,
+      }}
+      className={cn(
+        "mr-1 flex h-12 w-14 flex-shrink-0 items-center justify-center rounded-md border text-[10px] font-semibold uppercase tracking-wide text-ink transition-colors duration-100",
+        active && "ring-2 ring-offset-1 ring-offset-paper",
+      )}
+    >
+      Shift
+    </button>
+  );
+}
+
+function Spacebar({ active, flashing, correct }: { active: boolean; flashing: boolean; correct: boolean }) {
+  const color = flashing ? (correct ? FEEDBACK_COLORS.correct : FEEDBACK_COLORS.incorrect) : FINGER_COLORS.Thumb;
+  return (
+    <div
+      style={{
+        marginLeft: 45,
+        borderColor: color,
+        backgroundColor: `color-mix(in srgb, ${color} ${active ? 24 : 13}%, transparent)`,
+      }}
+      className={cn("mt-2 h-12 w-[260px] rounded-md border transition-colors duration-100", active && "ring-2 ring-offset-1 ring-offset-paper")}
+      aria-label="Spacebar"
+    />
   );
 }
