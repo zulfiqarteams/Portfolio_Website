@@ -8,6 +8,7 @@ import {
   keyForChar,
 } from "@/features/keyboard/data/phoneticMap";
 import { cn } from "@/lib/cn";
+import { InteractiveKeyboard } from "@/features/keyboard/components/InteractiveKeyboard";
 
 export interface KeyboardFlash {
   key: string;
@@ -70,7 +71,7 @@ function KeyCap({
   );
 }
 
-export function VirtualKeyboard({ expectedChar, flash, feedbackEnabled = true, className }: VirtualKeyboardProps) {
+export function LegacyVirtualKeyboard({ expectedChar, flash, feedbackEnabled = true, className }: VirtualKeyboardProps) {
   const [visibleFlash, setVisibleFlash] = useState<KeyboardFlash | null>(null);
 
   useEffect(() => {
@@ -136,4 +137,8 @@ export function VirtualKeyboard({ expectedChar, flash, feedbackEnabled = true, c
       </div>
     </div>
   );
+}
+
+export function VirtualKeyboard(props: VirtualKeyboardProps) {
+  return <InteractiveKeyboard {...props} />;
 }
