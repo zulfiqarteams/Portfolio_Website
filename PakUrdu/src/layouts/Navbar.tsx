@@ -12,6 +12,7 @@ import { ProfileAvatar } from "@/features/profiles/components/ProfileAvatar";
 import { ProfileMenu } from "@/features/profiles/components/ProfileMenu";
 import { ProfileFormModal } from "@/features/profiles/components/ProfileFormModal";
 import type { NavItem } from "@/types";
+import type { AppLanguage } from "@/features/settings";
 
 type Labels = Record<string, string>;
 
@@ -65,8 +66,8 @@ function LanguageSwitcher({
   onChange,
   compact,
 }: {
-  language: string;
-  onChange: (id: string) => void;
+  language: AppLanguage;
+  onChange: (id: AppLanguage) => void;
   compact?: boolean;
 }) {
   return (

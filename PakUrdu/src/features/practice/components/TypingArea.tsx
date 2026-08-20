@@ -88,7 +88,7 @@ export function TypingArea({
       onClick={() => inputRef.current?.focus()}
     >
       <div
-        className={cn(scrollable && ["overflow-y-auto scroll-smooth", viewportHeightClassName])}
+        className={cn(scrollable && "overflow-y-auto scroll-smooth", scrollable && viewportHeightClassName)}
       >
         <p
           dir="rtl"

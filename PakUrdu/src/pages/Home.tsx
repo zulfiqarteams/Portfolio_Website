@@ -1,14 +1,9 @@
-import { BookOpen, Keyboard, LineChart, Timer, Gauge, Target, ListChecks } from "lucide-react";
+import { BookOpen, Keyboard, LineChart, Timer } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
 import { Section } from "@/components/Section";
 import { Card } from "@/components/Card";
-import { Badge } from "@/components/Badge";
-import { Button } from "@/components/Button";
-import { ProgressBar } from "@/components/ProgressBar";
-import { StatCard } from "@/components/StatCard";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { useProfiles } from "@/features/profiles/context/ProfileContext";
-import { useProgress } from "@/features/progress";
+import { TypingTestExperience } from "@/features/tests/components/TypingTestExperience";
 import { useSettings } from "@/features/settings";
 import { homeContent } from "@/data/localization";
 import type { FeaturePreview } from "@/types";
@@ -45,131 +40,46 @@ const featurePreviews: FeaturePreview[] = [
 ];
 
 const philosophySteps = [
-  {
-    label: "Learn",
-    body: "Understand where each sound sits on the phonetic keyboard.",
-  },
-  {
-    label: "Practice",
-    body: "Repeat guided exercises until the keys feel familiar.",
-  },
-  {
-    label: "Improve",
-    body: "Take tests to measure real progress and build speed.",
-  },
+  { label: "Learn", body: "Understand where each sound sits on the phonetic keyboard." },
+  { label: "Practice", body: "Repeat guided exercises until the keys feel familiar." },
+  { label: "Improve", body: "Take tests to measure real progress and build speed." },
 ];
 
 export default function Home() {
   const { language } = useSettings();
   const content = homeContent[language];
-  useDocumentTitle(language === "ur" ? "PAKURDU — اردو ٹائپنگ" : language === "roman" ? "PAKURDU — Urdu Typing" : "PAKURDU — Urdu Typing");
-  const { activeProfile } = useProfiles();
-  const { overallStats } = useProgress();
-  const hasStarted = activeProfile && overallStats.completedLessons > 0;
+
+  useDocumentTitle(
+    language === "ur"
+      ? "PAKURDU — اردو ٹائپنگ"
+      : "PAKURDU — Urdu Typing",
+  );
 
   return (
     <div dir={language === "ur" ? "rtl" : "ltr"}>
-      {/* Hero */}
       <section className="border-b border-border bg-surface">
-        <PageContainer className="grid gap-12 py-16 sm:py-24 lg:grid-cols-[1.1fr,0.9fr] lg:items-center">
-          {activeProfile ? (
-            <div>
-              <Badge tone="brand" className="mb-5">
-                {hasStarted ? content.welcomeBack : content.gettingStarted}
-              </Badge>
-              <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
-                {hasStarted ? content.welcomeName(activeProfile.name) : content.heroTitle}
-              </h1>
-              {hasStarted && overallStats.currentLesson ? (
-                <p className="mt-5 max-w-lg text-lg leading-relaxed text-ink-soft">
-                  {content.continueWith}{" "}
-                  <span className="font-semibold text-ink">{overallStats.currentLesson.title}</span>.
-                </p>
-              ) : (
-                <p className="mt-5 max-w-lg text-lg leading-relaxed text-ink-soft">
-                  {content.heroDescription}
-                </p>
-              )}
-
-              {hasStarted && (
-                <div className="mt-6 max-w-sm">
-                  <ProgressBar
-                    value={overallStats.percentComplete}
-                    label={content.courseProgress}
-                    showLabel
-                  />
-                </div>
-              )}
-
-              <div className="mt-8 flex flex-wrap items-center gap-4">
-                <Button
-                  to={
-                    overallStats.currentLesson
-                      ? `/practice?lesson=${overallStats.currentLesson.id}`
-                      : "/learn"
-                  }
-                  size="lg"
-                >
-                  {hasStarted ? content.continueLearning : content.startLearning}
-                </Button>
-                <Button to="/learn" variant="secondary" size="lg">
-                  {content.learningPath}
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <Badge tone="brand" className="mb-5">{content.badge}</Badge>
-              <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
-                {content.heroTitle}
-              </h1>
-              <p className="mt-5 max-w-lg text-lg leading-relaxed text-ink-soft">
-                {content.heroDescription}
+        <PageContainer className="py-10 sm:py-14 lg:py-16">
+          <div className="mx-auto max-w-5xl">
+            <div className="mb-8 text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">
+                Urdu typing
               </p>
-              <div className="mt-8 flex flex-wrap items-center gap-4">
-                <Button to="/profile" size="lg">
-                  {content.startLearning}
-                </Button>
-                <Button to="/practice" variant="secondary" size="lg">
-                  {content.learningPath}
-                </Button>
-              </div>
+              <h1 className="mt-3 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
+                {language === "ur" ? "اردو ٹائپنگ ٹیسٹ" : "Urdu Typing Test"}
+              </h1>
+              <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-ink-soft sm:text-lg">
+                {language === "ur"
+                  ? "اپنی اردو ٹائپنگ کی رفتار اور درستگی جانچیں۔ 60 سیکنڈ کا ٹیسٹ فوراً شروع کریں۔"
+                  : "Measure your Urdu typing speed and accuracy. Your default 60-second test starts immediately."}
+              </p>
             </div>
-          )}
 
-          {/* Signature element: a large Nastaliq word with a blinking
-              typing caret, evoking the moment of typing itself. */}
-          <div className="flex items-center justify-center rounded-lg border border-border bg-paper py-12">
-            <div className="flex items-center gap-3">
-              <span className="urdu-text text-6xl font-bold text-ink sm:text-7xl">
-                اردو
-              </span>
-              <span
-                aria-hidden="true"
-                className="h-12 w-[3px] animate-caret bg-brand-500 sm:h-14"
-              />
-            </div>
+            <TypingTestExperience />
           </div>
         </PageContainer>
       </section>
 
-      {hasStarted && (
-        <PageContainer className="py-10">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <StatCard
-              icon={ListChecks}
-              label={content.completed}
-              value={`${overallStats.completedLessons}/${overallStats.totalLessons}`}
-            />
-            <StatCard icon={Gauge} label={content.bestWpm} value={String(overallStats.bestWpm)} />
-            <StatCard icon={Target} label={content.bestAccuracy} value={`${overallStats.bestAccuracy}%`} />
-            <StatCard icon={LineChart} label={content.progress} value={`${overallStats.percentComplete}%`} />
-          </div>
-        </PageContainer>
-      )}
-
       <PageContainer>
-        {/* Feature preview */}
         <Section
           align="center"
           eyebrow={content.whatsAhead}
@@ -191,7 +101,6 @@ export default function Home() {
           </div>
         </Section>
 
-        {/* Learning philosophy */}
         <Section
           align="center"
           eyebrow={content.philosophy}
