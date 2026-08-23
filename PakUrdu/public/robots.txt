@@ -1,8 +1,8 @@
 User-agent: *
 Allow: /
-Disallow: /Portfolio_Website/PAKURDU/profile
-Disallow: /Portfolio_Website/PAKURDU/settings
-Disallow: /Portfolio_Website/PAKURDU/progress
-Disallow: /Portfolio_Website/PAKURDU/results
+Disallow: /Z_Tech/PakUrdu/profile
+Disallow: /Z_Tech/PakUrdu/settings
+Disallow: /Z_Tech/PakUrdu/progress
+Disallow: /Z_Tech/PakUrdu/results
 
-Sitemap: https://zulfiqarteams.github.io/Portfolio_Website/PAKURDU/sitemap.xml
+Sitemap: https://zulfiqarteams.github.io/Z_Tech/PakUrdu/sitemap.xml
