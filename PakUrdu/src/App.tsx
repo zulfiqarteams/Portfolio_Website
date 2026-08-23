@@ -1,6 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { RootLayout } from "@/layouts/RootLayout";
-import Home from "@/pages/Home";
 import Learn from "@/pages/Learn";
 import Reading from "@/pages/Reading";
 import LessonDetail from "@/pages/LessonDetail";
@@ -18,7 +17,9 @@ export default function App() {
   return (
     <Routes>
       <Route element={<RootLayout />}>
-        <Route path="/" element={<Home />} />
+        {/* Main home page (/) par ab direct Practice page show hoga */}
+        <Route path="/" element={<Practice />} />
+        
         <Route path="/learn" element={<Learn />} />
         <Route path="/learn/phonetic-keyboard" element={<Reading />} />
         <Route path="/learn/reading" element={<Navigate to="/learn/phonetic-keyboard" replace />} />
