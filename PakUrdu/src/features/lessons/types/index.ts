@@ -23,6 +23,23 @@ export type LessonType =
  * different types (e.g. a "word" lesson can mix `recognition` and
  * `guidedTyping` exercises).
  */
+export type LessonStepKind = "learn" | "observe" | "practice" | "review" | "master";
+
+export interface LessonStep {
+  id: string;
+  kind: LessonStepKind;
+  title: string;
+  instruction: string;
+  /** Text that must be typed to finish this step. Non-typing steps omit it. */
+  target?: string;
+  character?: string;
+  phonetic?: string;
+  expectedKey?: { key: string; shift: boolean; altGr?: boolean };
+  minimumAccuracy?: number;
+  note?: string;
+  examples?: LessonExample[];
+}
+
 export type ExerciseType =
   | "recognition"
   | "guidedTyping"
@@ -95,6 +112,12 @@ export interface Lesson {
   /** "What you will learn" — short, learner-facing statements. */
   objectives: string[];
   type: LessonType;
+  /** Ordered learning experience shown on the lesson page. */
+  steps?: LessonStep[];
+  introducedCharacters?: string[];
+  targetCharacter?: string;
+  phonetic?: string;
+  requiredAccuracy?: number;
   content: LessonContent;
   metadata?: Record<string, string | number | boolean>;
 }

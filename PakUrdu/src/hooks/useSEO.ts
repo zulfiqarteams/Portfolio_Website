@@ -1,0 +1,74 @@
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { buildSEOTags, type SEOInput } from "@/hooks/seoCore";
+
+export type SEOOptions = Omit<SEOInput, "pathname">;
+
+function upsertMeta(attr: "name" | "property", key: string, content: string) {
+  let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"]`);
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute(attr, key);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", content);
+}
+
+function upsertLink(rel: string, href: string) {
+  let el = document.head.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`);
+  if (!el) {
+    el = document.createElement("link");
+    el.setAttribute("rel", rel);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("href", href);
+}
+
+/**
+ * Sets `document.title`, meta description, canonical URL, robots
+ * directive, and Open Graph / Twitter Card tags for the current route.
+ * Every routed page should call this once. Falls back to the site-wide
+ * defaults already present in index.html when a page doesn't override
+ * `description`, so there is always a description and canonical tag.
+ *
+ * All the actual tag *values* come from the pure `buildSEOTags` core in
+ * seoCore.ts (unit tested); this hook only wires them into the DOM.
+ */
+export function useSEO(options: SEOOptions): void {
+  const location = useLocation();
+  const { title, description, noIndex } = options;
+
+  useEffect(() => {
+    const tags = buildSEOTags({ title, description, noIndex, pathname: location.pathname });
+    const previousTitle = document.title;
+    document.title = tags.fullTitle;
+
+    upsertLink("canonical", tags.canonical);
+
+    if (tags.description) {
+      upsertMeta("name", "description", tags.description);
+    }
+
+    upsertMeta("name", "robots", tags.robots);
+
+    upsertMeta("property", "og:title", tags.ogTitle);
+    upsertMeta("property", "og:url", tags.ogUrl);
+    if (tags.ogDescription) {
+      upsertMeta("property", "og:description", tags.ogDescription);
+    }
+    upsertMeta("property", "og:image", tags.ogImage);
+
+    upsertMeta("name", "twitter:title", tags.twitterTitle);
+    if (tags.twitterDescription) {
+      upsertMeta("name", "twitter:description", tags.twitterDescription);
+    }
+
+    return () => {
+      document.title = previousTitle;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, description, noIndex, location.pathname]);
+}
+
+/** @deprecated Use `useSEO` instead — kept so any stray import still compiles. */
+export const useDocumentTitle = (pageTitle: string) => useSEO({ title: pageTitle });

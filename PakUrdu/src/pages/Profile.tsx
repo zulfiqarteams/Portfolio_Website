@@ -6,7 +6,7 @@ import { Card } from "@/components/Card";
 import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useSEO } from "@/hooks/useSEO";
 import { useProfiles } from "@/features/profiles/context/ProfileContext";
 import { ProfileAvatar } from "@/features/profiles/components/ProfileAvatar";
 import { ProfileSelector } from "@/features/profiles/components/ProfileSelector";
@@ -26,7 +26,7 @@ interface FormModalState {
 }
 
 export default function ProfilePage() {
-  useDocumentTitle("Profile");
+  useSEO({ title: "Profile", noIndex: true });
   const { profiles, activeProfile, deleteProfile } = useProfiles();
   const [formModal, setFormModal] = useState<FormModalState>({ open: false, profile: null });
   const [deleteTarget, setDeleteTarget] = useState<Profile | null>(null);

@@ -2,16 +2,20 @@ import { Link } from "react-router-dom";
 import { Keyboard } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
 import { primaryNav } from "@/data/navigation";
-import { useSettings } from "@/features/settings";
-import { navigationLabels } from "@/data/localization";
+import { useLanguage } from "@/i18n/useLanguage";
 
 // Footer surfaces the core learning-flow routes only — no lesson/test
 // detail links, no social links, per the "keep it minimal" brief.
 const footerLinks = primaryNav.filter((item) => item.path !== "/");
 
 export function Footer() {
-  const { language } = useSettings();
-  const labels = navigationLabels[language];
+  const { t } = useLanguage();
+  const labelFor = (path: string) => {
+    if (path === "/learn") return t.nav.learn;
+    if (path === "/practice") return t.nav.practice;
+    if (path === "/test") return t.nav.tests;
+    return t.nav.progress;
+  };
 
   return (
     <footer className="border-t border-border">
@@ -22,10 +26,10 @@ export function Footer() {
               <span className="flex h-7 w-7 items-center justify-center rounded bg-brand-500 text-white">
                 <Keyboard size={15} strokeWidth={2.25} aria-hidden="true" />
               </span>
-              PAKURDU
+              Urdu Typing Tutorial
             </div>
             <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-              Learn Urdu typing step by step — from your first character to confident speed.
+              {t.footer.description}
             </p>
           </div>
 
@@ -37,7 +41,7 @@ export function Footer() {
                     to={item.path}
                     className="text-sm text-ink-soft hover:text-ink hover:underline"
                   >
-                    {labels[item.label] ?? item.label}
+                    {labelFor(item.path)}
                   </Link>
                 </li>
               ))}
@@ -46,9 +50,9 @@ export function Footer() {
         </div>
 
         <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 text-sm text-ink-faint sm:flex-row">
-          <p>© {new Date().getFullYear()} PAKURDU.</p>
+          <p>© {new Date().getFullYear()} Urdu Typing Tutorial.</p>
           <p className="urdu-text text-base text-ink-soft">
-            سیکھیں، مشق کریں، بہتر بنیں
+            {t.footer.slogan}
           </p>
         </div>
       </PageContainer>

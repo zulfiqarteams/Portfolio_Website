@@ -69,14 +69,17 @@ export function LessonCard({
       </div>
 
       <h3
+        dir="ltr"
         className={cn(
-          "mt-3 text-sm font-semibold",
+          "mt-3 text-left text-sm font-semibold [unicode-bidi:isolate]",
           isLocked ? "text-ink-faint" : "text-ink",
         )}
       >
         {title}
       </h3>
-      <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">{description}</p>
+      <p dir="ltr" className="mt-1.5 text-left text-sm leading-relaxed text-ink-soft [unicode-bidi:isolate]">
+        {description}
+      </p>
 
       {(difficulty || isCompleted) && (
         <div className="mt-3 flex flex-wrap items-center gap-1.5">

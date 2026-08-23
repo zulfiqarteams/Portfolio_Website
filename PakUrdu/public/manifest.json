@@ -1,0 +1,26 @@
+{
+  "name": "PAKURDU — Urdu Typing Tutorial",
+  "short_name": "PAKURDU",
+  "description": "Learn Urdu typing online free — phonetic lessons, guided practice, typing tests, and progress tracking.",
+  "start_url": "/Portfolio_Website/PAKURDU/",
+  "scope": "/Portfolio_Website/PAKURDU/",
+  "display": "standalone",
+  "background_color": "#FAF7F1",
+  "theme_color": "#0D6B5F",
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/Portfolio_Website/PAKURDU/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/Portfolio_Website/PAKURDU/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

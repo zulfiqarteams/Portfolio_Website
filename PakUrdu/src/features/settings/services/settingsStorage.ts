@@ -1,23 +1,27 @@
 export const SETTINGS_KEY = "urduTypingTutorial:settings";
 
-export type AppLanguage = "ur" | "en" | "roman";
+export type AppLanguage = "ur" | "roman" | "en";
 
 export interface SettingsState {
-  language: AppLanguage;
   darkTheme: boolean;
   largeInterface: boolean;
   showKeyboard: boolean;
   typingFeedback: boolean;
   saveLearningProgress: boolean;
+  animationsEnabled: boolean;
+  soundEnabled: boolean;
+  language: AppLanguage;
 }
 
 export const DEFAULT_SETTINGS: SettingsState = {
-  language: "ur",
   darkTheme: false,
   largeInterface: false,
   showKeyboard: true,
   typingFeedback: true,
   saveLearningProgress: true,
+  animationsEnabled: true,
+  soundEnabled: true,
+  language: "ur",
 };
 
 function isSettings(value: unknown): value is Partial<SettingsState> {
@@ -33,21 +37,16 @@ export function readSettings(): SettingsState {
     const parsed: unknown = JSON.parse(raw);
     if (!isSettings(parsed)) return DEFAULT_SETTINGS;
 
-    const savedLanguage =
-      parsed &&
-      typeof parsed === "object" &&
-      "language" in parsed &&
-      (parsed as { language?: unknown }).language;
+    const language = parsed.language === "ur" || parsed.language === "roman" || parsed.language === "en"
+      ? parsed.language
+      : DEFAULT_SETTINGS.language;
 
     return {
       ...DEFAULT_SETTINGS,
       ...Object.fromEntries(
         Object.entries(parsed).filter(([, value]) => typeof value === "boolean"),
       ),
-      language:
-        savedLanguage === "ur" || savedLanguage === "en" || savedLanguage === "roman"
-          ? savedLanguage
-          : DEFAULT_SETTINGS.language,
+      language,
     } as SettingsState;
   } catch {
     return DEFAULT_SETTINGS;

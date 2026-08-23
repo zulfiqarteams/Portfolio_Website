@@ -1,109 +1,135 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useProfiles } from "@/features/profiles";
-import { useSettings } from "@/features/settings";
+import { getAllLessonsInOrder } from "@/features/lessons/services/lessonCatalog";
 import type { Lesson } from "@/features/lessons/types";
+import * as progressService from "@/features/progress/services/progressService";
+import { emptyProfileProgress } from "@/features/progress/services/progressStorage";
 import {
-  completeLesson as completeLessonService,
-  createEmptyProgress,
-  deleteProgressForProfile,
-  getLessonProgress,
-  getLessonUiStatus,
+  calculateCourseProgress,
+  getCompletedLessonCount,
+  getLessonDisplayStatus,
   getNextAvailableLesson,
-  getOverallStats,
-  getProfileProgress,
-  recordAttempt as recordAttemptService,
-  type OverallProgressStats,
-} from "@/features/progress/services/progressService";
-import type { LessonProgress, ProfileProgress } from "@/features/progress/types";
-
-interface Attempt {
-  accuracy: number;
-  wpm: number;
-}
+  getOverallBestPerformance,
+} from "@/features/progress/core/progressCalculations";
+import type { CompleteLessonStats } from "@/features/progress/services/progressService";
+import type { LessonProgressStatus, ProfileProgress } from "@/features/progress/types";
 
 interface ProgressContextValue {
-  /** The active profile's progress, or a read-only empty progress
-   *  (profileId "") when no profile is selected — callers never
-   *  need to null-check before asking about lesson status. */
-  progress: ProfileProgress;
-  /** Whether `progress` is really backed by a profile — actions are
-   *  no-ops while this is false. */
-  hasActiveProfile: boolean;
-  getLessonProgress: (lessonId: string) => LessonProgress | undefined;
-  getLessonUiStatus: (lesson: Lesson) => "completed" | "current" | "locked";
-  nextAvailableLesson: Lesson | undefined;
-  overallStats: OverallProgressStats;
-  recordAttempt: (lessonId: string, attempt: Attempt) => void;
-  completeLesson: (lessonId: string, attempt: Attempt) => void;
+  /** The active profile's progress, or `null` when no profile is active. */
+  progress: ProfileProgress | null;
+  /** The active profile's current/next lesson to work on, or `null` (no profile, or the whole catalog is done). */
+  currentLesson: Lesson | null;
+  /** 0–100. `0` when there's no active profile or the catalog is empty. */
+  coursePercentage: number;
+  completedLessonCount: number;
+  totalLessonCount: number;
+  bestWpm: number | null;
+  bestAccuracy: number | null;
+  /** Reads status from the currently-loaded `progress` snapshot — does not hit storage. */
+  getLessonStatus: (lesson: Lesson) => LessonProgressStatus;
+  /** Marks a lesson as started. Safe to call on every render/keystroke transition — it's a no-op once already in-progress or completed. */
+  startLessonAttempt: (lessonId: string) => void;
+  /** Records a completed attempt and refreshes the active profile's progress. */
+  completeLesson: (lessonId: string, stats?: CompleteLessonStats) => void;
 }
 
 const ProgressContext = createContext<ProgressContextValue | null>(null);
 
-const EMPTY_PROFILE_ID = "";
-
 /**
- * Owns progress state for the currently active profile. Reloads
- * whenever the active profile changes (so switching profiles can
- * never leak one learner's progress into another's view), and
- * cleans up a profile's progress the moment that profile disappears
- * from the profiles list — whichever surface deleted it.
+ * Owns progress state for whichever profile is currently active.
+ * Wraps `progressService` (the only module that touches
+ * localStorage) and re-reads whenever the active profile changes —
+ * switching profiles drops the old profile's progress from the UI
+ * immediately and loads the new one's (Part 9 §13).
+ *
+ * Must be mounted inside `ProfileProvider`.
  */
 export function ProgressProvider({ children }: { children: ReactNode }) {
-  const { profiles, activeProfile } = useProfiles();
-  const { saveLearningProgress } = useSettings();
+  const { activeProfile } = useProfiles();
+  const activeProfileId = activeProfile?.id ?? null;
 
-  const [progress, setProgress] = useState<ProfileProgress>(() =>
-    activeProfile ? getProfileProgress(activeProfile.id) : createEmptyProgress(EMPTY_PROFILE_ID),
+  const [progress, setProgress] = useState<ProfileProgress | null>(() =>
+    activeProfileId ? progressService.getProfileProgress(activeProfileId) : null,
   );
 
+  // Active profile changed (switched, or logged out entirely) —
+  // load that profile's own progress, never carry over the last one.
   useEffect(() => {
-    setProgress(
-      activeProfile ? getProfileProgress(activeProfile.id) : createEmptyProgress(EMPTY_PROFILE_ID),
-    );
-  }, [activeProfile]);
+    setProgress(activeProfileId ? progressService.getProfileProgress(activeProfileId) : null);
+  }, [activeProfileId]);
 
-  // Profile deletion cleanup: whenever a profile id that used to be
-  // in the list disappears, its progress goes with it.
-  const previousProfileIds = useRef<Set<string>>(new Set(profiles.map((p) => p.id)));
-  useEffect(() => {
-    const currentIds = new Set(profiles.map((p) => p.id));
-    for (const id of previousProfileIds.current) {
-      if (!currentIds.has(id)) deleteProgressForProfile(id);
-    }
-    previousProfileIds.current = currentIds;
-  }, [profiles]);
-
-  const recordAttempt = useCallback(
-    (lessonId: string, attempt: Attempt) => {
-      if (!activeProfile) return;
-      const nextProgress = recordAttemptService(activeProfile.id, lessonId, attempt, saveLearningProgress);
-      setProgress(nextProgress);
+  const startLessonAttempt = useCallback(
+    (lessonId: string) => {
+      if (!activeProfileId) return;
+      setProgress(progressService.startLessonAttempt(activeProfileId, lessonId));
     },
-    [activeProfile, saveLearningProgress],
+    [activeProfileId],
   );
 
   const completeLesson = useCallback(
-    (lessonId: string, attempt: Attempt) => {
-      if (!activeProfile) return;
-      const nextProgress = completeLessonService(activeProfile.id, lessonId, attempt, saveLearningProgress);
-      setProgress(nextProgress);
+    (lessonId: string, stats?: CompleteLessonStats) => {
+      if (!activeProfileId) return;
+      setProgress(progressService.completeLesson(activeProfileId, lessonId, stats));
     },
-    [activeProfile, saveLearningProgress],
+    [activeProfileId],
   );
+
+  const allLessonsInOrder = useMemo(() => getAllLessonsInOrder(), []);
+
+  const getLessonStatus = useCallback(
+    (lesson: Lesson): LessonProgressStatus => {
+      // Root cause of "every lesson shows locked": this used to return a
+      // hard-coded "locked" whenever `progress` hadn't loaded yet (e.g.
+      // briefly on first render, or for any caller invoked before the
+      // active profile settles). That overrode `isLessonUnlocked`'s own
+      // "the first lesson is always unlocked" rule for every lesson at
+      // once. Falling back to a fresh empty progress record instead lets
+      // the real position-based unlock rule run, exactly as it does once
+      // `progress` has loaded — only lessons that are genuinely locked
+      // (their predecessor isn't completed) report "locked".
+      return getLessonDisplayStatus(lesson, progress ?? emptyProfileProgress(""), allLessonsInOrder);
+    },
+    [progress, allLessonsInOrder],
+  );
+
+  const currentLesson = useMemo(
+    () => (progress ? getNextAvailableLesson(progress, allLessonsInOrder) : null),
+    [progress, allLessonsInOrder],
+  );
+
+  const completedLessonCount = progress ? getCompletedLessonCount(progress) : 0;
+  const totalLessonCount = allLessonsInOrder.length;
+  const coursePercentage = calculateCourseProgress(completedLessonCount, totalLessonCount);
+  const { bestWpm, bestAccuracy } = progress
+    ? getOverallBestPerformance(progress)
+    : { bestWpm: null, bestAccuracy: null };
 
   const value = useMemo<ProgressContextValue>(
     () => ({
       progress,
-      hasActiveProfile: Boolean(activeProfile),
-      getLessonProgress: (lessonId: string) => getLessonProgress(progress, lessonId),
-      getLessonUiStatus: (lesson: Lesson) => getLessonUiStatus(progress, lesson),
-      nextAvailableLesson: getNextAvailableLesson(progress),
-      overallStats: getOverallStats(progress),
-      recordAttempt,
+      currentLesson,
+      coursePercentage,
+      completedLessonCount,
+      totalLessonCount,
+      bestWpm,
+      bestAccuracy,
+      getLessonStatus,
+      startLessonAttempt,
       completeLesson,
     }),
-    [progress, activeProfile, recordAttempt, completeLesson],
+    [
+      progress,
+      currentLesson,
+      coursePercentage,
+      completedLessonCount,
+      totalLessonCount,
+      bestWpm,
+      bestAccuracy,
+      getLessonStatus,
+      startLessonAttempt,
+      completeLesson,
+    ],
   );
 
   return <ProgressContext.Provider value={value}>{children}</ProgressContext.Provider>;

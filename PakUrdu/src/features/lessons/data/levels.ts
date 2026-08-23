@@ -1,74 +1,53 @@
 import type { Level } from "@/features/lessons/types";
 
-/**
- * The curriculum's major stages. This is an initial, sensible
- * ordering — not a claim that it's the scientifically optimal path
- * through the material. It's meant to be refined once real learner
- * data exists.
- *
- * `locked` is static mock data for Part 6: only Level 0 starts
- * unlocked. There is no completion tracking yet, so nothing here
- * reacts to learner progress — a future part will replace this with
- * a real computation.
- */
 export const levels: Level[] = [
   {
     id: "level-0",
     order: 0,
-    title: "Getting Started",
-    description:
-      "What Urdu typing is, how phonetic typing works, and your very first exercise.",
+    title: "Urdu Letters",
+    description: "Learn Alif through Yay one character at a time, with the correct key and finger.",
     locked: false,
   },
   {
     id: "level-1",
     order: 1,
-    title: "Urdu Letters",
-    description: "Meet the Urdu alphabet in small, manageable groups.",
-    locked: true,
+    title: "Letter Combinations",
+    description: "Turn individual letters into connected patterns while keeping your finger habits accurate.",
+    locked: false,
   },
   {
     id: "level-2",
     order: 2,
-    title: "Letter Combinations",
-    description: "Practice combining letters you've already learned.",
-    locked: true,
+    title: "Words",
+    description: "Move from combinations to a large bank of useful Urdu vocabulary.",
+    locked: false,
   },
   {
     id: "level-3",
     order: 3,
-    title: "Words",
-    description: "Simple Urdu words, building toward more complex ones.",
-    locked: true,
+    title: "Sentences",
+    description: "Type complete Urdu sentences with spaces and punctuation.",
+    locked: false,
   },
   {
     id: "level-4",
     order: 4,
-    title: "Sentences",
-    description: "Short sentences, then longer ones.",
-    locked: true,
+    title: "Paragraphs",
+    description: "Build endurance with realistic multi-sentence Urdu passages.",
+    locked: false,
   },
   {
     id: "level-5",
     order: 5,
-    title: "Paragraphs",
-    description: "Realistic Urdu paragraphs at a comfortable pace.",
-    locked: true,
+    title: "Professional Typing",
+    description: "Practice formal Urdu suitable for school, office, and professional communication.",
+    locked: false,
   },
   {
     id: "level-6",
     order: 6,
-    title: "Professional Typing",
-    description:
-      "Formal writing, office text, and general professional Urdu.",
-    locked: true,
-  },
-  {
-    id: "level-7",
-    order: 7,
-    title: "Typing Tests",
-    description:
-      "Timed practice passages that will connect to a dedicated Test Engine.",
-    locked: true,
+    title: "Mastery",
+    description: "Finish the guided course with a mixed passage before moving to independent tests.",
+    locked: false,
   },
 ];

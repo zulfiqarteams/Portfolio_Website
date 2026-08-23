@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /Portfolio_Website/PAKURDU/profile
+Disallow: /Portfolio_Website/PAKURDU/settings
+Disallow: /Portfolio_Website/PAKURDU/progress
+Disallow: /Portfolio_Website/PAKURDU/results
+
+Sitemap: https://zulfiqarteams.github.io/Portfolio_Website/PAKURDU/sitemap.xml

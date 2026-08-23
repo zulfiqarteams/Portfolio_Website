@@ -9,7 +9,7 @@ import { Card } from "@/components/Card";
 import { Toggle } from "@/components/Toggle";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useSEO } from "@/hooks/useSEO";
 import { useProfiles } from "@/features/profiles/context/ProfileContext";
 import { useSettings } from "@/features/settings";
 import type { SettingsState } from "@/features/settings";
@@ -46,6 +46,7 @@ const groups: SettingsGroup[] = [
     rows: [
       { label: "Keyboard preferences", description: "Show or hide the on-screen keyboard during practice." },
       { label: "Typing behavior", description: "Show or hide typing key feedback and error highlighting." },
+      { label: "Typing sounds", description: "Play subtle key, error, and result sounds while typing." },
     ],
   },
   {
@@ -60,7 +61,8 @@ const groups: SettingsGroup[] = [
 
 /**
  * Editable display name + avatar for the active local profile. This
- * is the one settings group that's actually functional right now.
+ * is the one settings group that's actually functional right now —
+ * everything below it stays visual-only per the Part 4 scope.
  */
 function ProfileSettingsCard() {
   const { activeProfile, updateProfile } = useProfiles();
@@ -139,14 +141,15 @@ function ProfileSettingsCard() {
 }
 
 export default function Settings() {
-  useDocumentTitle("Settings");
-  const { darkTheme, largeInterface, showKeyboard, typingFeedback, saveLearningProgress, setSetting } = useSettings();
+  useSEO({ title: "Settings", noIndex: true });
+  const { darkTheme, largeInterface, showKeyboard, typingFeedback, soundEnabled, saveLearningProgress, setSetting } = useSettings();
 
   const values: Record<string, boolean> = {
     Theme: darkTheme,
     "Interface preferences": largeInterface,
     "Keyboard preferences": showKeyboard,
     "Typing behavior": typingFeedback,
+    "Typing sounds": soundEnabled,
     "Learning preferences": saveLearningProgress,
   };
 
@@ -155,6 +158,7 @@ export default function Settings() {
     "Interface preferences": "largeInterface",
     "Keyboard preferences": "showKeyboard",
     "Typing behavior": "typingFeedback",
+    "Typing sounds": "soundEnabled",
     "Learning preferences": "saveLearningProgress",
   };
 

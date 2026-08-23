@@ -84,11 +84,21 @@ export default {
           "0%, 49%": { opacity: "1" },
           "50%, 100%": { opacity: "0" },
         },
+        // Homepage hero widget (`HeroTypingWidget`): a decorative,
+        // continuously-flowing row of Urdu words shown before the
+        // learner starts typing. The track's content is duplicated
+        // once in the markup, so animating exactly -50% loops
+        // seamlessly regardless of how much text it holds.
+        marquee: {
+          "0%": { transform: "translateX(0%)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
       },
       // Note: `animate-spin` / `animate-pulse` (used by Loading.tsx)
       // are Tailwind core utilities and don't need to be redefined here.
       animation: {
         caret: "caret 1s step-end infinite",
+        marquee: "marquee 26s linear infinite",
       },
     },
   },

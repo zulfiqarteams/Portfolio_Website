@@ -1,31 +1,62 @@
+import { BookOpenText, UserCircle } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { PageContainer } from "@/components/PageContainer";
 import { PageHeader } from "@/components/PageHeader";
-import { ContentSidebar } from "@/components/ContentSidebar";
 import { Badge } from "@/components/Badge";
+import { Button } from "@/components/Button";
+import { EmptyState } from "@/components/EmptyState";
 import { LessonCard } from "@/components/LessonCard";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import {
-  getCourse,
-  getLevels,
-  getModulesForLevel,
-  getLessonsForModule,
-} from "@/features/lessons";
+import { ContentSidebar } from "@/components/ContentSidebar";
+import { useSEO } from "@/hooks/useSEO";
+import { getCourse, getLevels, getModulesForLevel, getLessonsForModule, getLessonPosition } from "@/features/lessons";
+import { getTrackById, getTrackForLevel } from "@/features/lessons/data/tracks";
+import { useProfiles } from "@/features/profiles";
 import { useProgress } from "@/features/progress";
+import type { LessonStatus } from "@/types";
+import type { LessonProgressStatus } from "@/features/progress";
+
+/** The progress feature's four-state model maps directly onto `LessonCard`'s visual states — "inProgress" reads as "current" in the UI. */
+function toCardStatus(status: LessonProgressStatus): LessonStatus {
+  return status === "inProgress" ? "current" : status;
+}
 
 export default function Learn() {
-  useDocumentTitle("Learn");
+  useSEO({
+    title: "Learn Urdu Typing — Phonetic Keyboard Lessons",
+    description:
+      "A full Urdu typing curriculum: alphabet, character combinations, words, sentences, and paragraphs, taught with a phonetic keyboard map so you learn the correct finger position from lesson one.",
+  });
+  const { activeProfile } = useProfiles();
+  const { getLessonStatus } = useProgress();
+  const [searchParams] = useSearchParams();
 
   const course = getCourse();
   const allLevels = getLevels();
-  const [searchParams] = useSearchParams();
-  const track = searchParams.get("track");
-  const trackLevels =
-    track === "basic" ? allLevels.filter((level) => level.order <= 2) :
-    track === "intermediate" ? allLevels.filter((level) => level.order >= 3 && level.order <= 5) :
-    track === "advanced" ? allLevels.filter((level) => level.order >= 6) :
-    allLevels;
-  const { getLessonUiStatus } = useProgress();
+
+  // The sidebar's Basic / Intermediate / Expert links pass ?track=,
+  // which narrows the level list below to just that track. No track
+  // (or an unrecognized one) shows the full path, same as before.
+  const selectedTrackId = searchParams.get("track");
+  const selectedTrack = selectedTrackId ? getTrackById(selectedTrackId) : undefined;
+  const levels = selectedTrack
+    ? allLevels.filter((level) => getTrackForLevel(level.order) === selectedTrack.id)
+    : allLevels;
+
+  if (!activeProfile) {
+    return (
+      <PageContainer>
+        <PageHeader title={course.title} description={course.description} />
+        <div className="py-10">
+          <EmptyState
+            icon={UserCircle}
+            title="Choose a profile to start learning"
+            description="Your lesson progress is tracked per local profile, stored only in this browser."
+            action={{ label: "Go to Profile", to: "/profile" }}
+          />
+        </div>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer>
@@ -34,56 +65,76 @@ export default function Learn() {
           <ContentSidebar />
 
           <div className="min-w-0">
-            <PageHeader title={course.title} description={course.description} />
+            <PageHeader
+              title={selectedTrack ? `${course.title} · ${selectedTrack.label}` : course.title}
+              description={course.description}
+            />
 
-            <div className="divide-y divide-border">
-        {trackLevels.map((level) => {
-          const levelModules = getModulesForLevel(level.id);
+            <div className="flex justify-end pb-6">
+              <Button to="/learn/phonetic-keyboard" variant="outline" size="sm">
+                <BookOpenText size={16} aria-hidden="true" />
+                Learn About Phonetic Keyboard
+              </Button>
+            </div>
 
-          return (
-            <section key={level.id} aria-labelledby={`level-${level.id}`} className="py-10">
-              <div className="mb-1 flex flex-wrap items-center gap-3">
-                <h2 id={`level-${level.id}`} className="text-lg font-semibold">
-                  {level.title}
-                </h2>
-                {level.locked && <Badge tone="neutral">Locked</Badge>}
-              </div>
-              <p className="mb-6 max-w-2xl text-sm text-ink-soft">{level.description}</p>
-
-              <div className="space-y-8">
-                {levelModules.map((module) => {
-                  const moduleLessons = getLessonsForModule(module.id);
-                  if (moduleLessons.length === 0) return null;
+            {levels.length === 0 ? (
+              <EmptyState
+                icon={BookOpenText}
+                title="No lessons in this track yet"
+                description="Choose another track from the sidebar."
+              />
+            ) : (
+              <div className="divide-y divide-border">
+                {levels.map((level) => {
+                  const levelModules = getModulesForLevel(level.id);
 
                   return (
-                    <div key={module.id}>
-                      <h3 className="mb-3 text-sm font-semibold text-ink-soft">
-                        {module.title}
-                      </h3>
-                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        {moduleLessons.map((lesson) => {
-                          const status = level.locked ? "locked" : getLessonUiStatus(lesson);
+                    <section key={level.id} aria-labelledby={`level-${level.id}`} className="py-10">
+                      <div className="mb-1 flex flex-wrap items-center gap-3">
+                        <h2 id={`level-${level.id}`} className="text-lg font-semibold">
+                          {level.title}
+                        </h2>
+                        {level.locked && <Badge tone="neutral">Locked</Badge>}
+                      </div>
+                      <p className="mb-6 max-w-2xl text-sm text-ink-soft">{level.description}</p>
+
+                      <div className="space-y-8">
+                        {levelModules.map((module) => {
+                          const moduleLessons = getLessonsForModule(module.id);
+                          if (moduleLessons.length === 0) return null;
+
                           return (
-                            <LessonCard
-                              key={lesson.id}
-                              index={lesson.order}
-                              title={lesson.title}
-                              description={lesson.description}
-                              difficulty={lesson.difficulty}
-                              status={status}
-                              to={status === "locked" ? undefined : `/lesson/${lesson.id}`}
-                            />
+                            <div key={module.id}>
+                              <h3 className="mb-3 text-sm font-semibold text-ink-soft">
+                                {module.title}
+                              </h3>
+                              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                {moduleLessons.map((lesson) => {
+                                  const status: LessonStatus = level.locked
+                                    ? "locked"
+                                    : toCardStatus(getLessonStatus(lesson));
+                                  return (
+                                    <LessonCard
+                                      key={lesson.id}
+                                      index={getLessonPosition(lesson.id) ?? lesson.order}
+                                      title={lesson.title}
+                                      description={lesson.description}
+                                      difficulty={lesson.difficulty}
+                                      status={status}
+                                      to={status === "locked" ? undefined : `/lesson/${lesson.id}`}
+                                    />
+                                  );
+                                })}
+                              </div>
+                            </div>
                           );
                         })}
                       </div>
-                    </div>
+                    </section>
                   );
                 })}
               </div>
-            </section>
-          );
-        })}
-            </div>
+            )}
           </div>
         </div>
       </div>

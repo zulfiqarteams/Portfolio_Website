@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { RootLayout } from "@/layouts/RootLayout";
 import Home from "@/pages/Home";
 import Learn from "@/pages/Learn";
@@ -11,6 +11,8 @@ import Progress from "@/pages/Progress";
 import Profile from "@/pages/Profile";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
+import SahiUrdu from "@/features/sahiUrdu/components/SahiUrdu";
+import Biography from "@/features/biography/components/Biography";
 
 export default function App() {
   return (
@@ -18,7 +20,10 @@ export default function App() {
       <Route element={<RootLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/learn" element={<Learn />} />
-        <Route path="/learn/reading" element={<Reading />} />
+        <Route path="/learn/phonetic-keyboard" element={<Reading />} />
+        <Route path="/learn/reading" element={<Navigate to="/learn/phonetic-keyboard" replace />} />
+        <Route path="/sahi-urdu/*" element={<SahiUrdu />} />
+        <Route path="/biography/*" element={<Biography />} />
         <Route path="/lesson/:id" element={<LessonDetail />} />
         <Route path="/practice" element={<Practice />} />
         <Route path="/test" element={<Test />} />

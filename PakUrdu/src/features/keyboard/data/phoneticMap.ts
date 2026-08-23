@@ -1,170 +1,244 @@
 /**
- * This tutorial's phonetic key → Urdu character convention.
+ * A Latin-key → Urdu-character phonetic mapping matching the real,
+ * widely-used Urdu Phonetic keyboard standard — CRULP Urdu Phonetic
+ * Keyboard Layout v1.1 (Center for Research in Urdu Language
+ * Processing, National University of Computer and Emerging
+ * Sciences), the same layout underlying Windows' built-in Urdu
+ * Phonetic keyboard, InPage, and open implementations like Navees
+ * (https://saadatm.github.io/navees/, itself CRULP v1.1-based).
+ * Source consulted: CRULP's own v1.1 spec (cle.org.pk) and Navees'
+ * published mapping tables.
  *
- * Every lowercase letter key maps to a base Urdu letter; the
- * Shift-variant of a key maps to that letter's closest phonetic
- * relative wherever one exists (e.g. `h` → ہ / `H` → ھ, `s` → س /
- * `S` → ش, `k` → ک / `K` → خ). This mirrors the "same sound, same
- * finger, Shift for the related sound" idea taught in the Level 0
- * lessons — it is a simplified convention for this app, not a claim
- * to reproduce any particular external keyboard standard byte-for-byte.
- *
- * Space and the two punctuation marks used in the course content
- * (، and ۔) map directly from their familiar QWERTY keys (`,` and
- * `.`) so punctuation "just works" without a separate mode.
+ * `phoneticMap` is CRULP's Base face; `shiftPhoneticMap` is its Shift
+ * face. CRULP also defines a third, AltGr face (diacritics, honorifics,
+ * a handful of rare letter variants) — this app only models two
+ * levels, so AltGr is out of scope, with one deliberate exception:
+ * `ؤ` (wao hamza), which lesson content actually uses, sits at
+ * AltGr+W in the real standard. Since this app has no AltGr and
+ * Shift+W is otherwise unclaimed here, `ؤ` is placed there instead —
+ * the one pragmatic deviation from the standard, chosen because it's
+ * the same physical key (`w`) the standard itself uses for it.
+ * Every other key below matches the standard exactly; nothing here
+ * is an invented or mnemonic-only mapping.
  */
+export const phoneticMap: Record<string, string> = {
+  // Number row — CRULP v1.1 Base face
+  "1": "۱", "2": "۲", "3": "۳", "4": "۴", "5": "۵",
+  "6": "۶", "7": "۷", "8": "۸", "9": "۹", "0": "۰",
+  "-": "-", "=": "=",
 
-/** Lowercase-key → Urdu letter. */
-export const BASE_KEY_MAP: Record<string, string> = {
+  // Letters — CRULP v1.1 Base face
+  q: "ق",
+  w: "و",
+  e: "ع",
+  r: "ر",
+  t: "ت",
+  y: "ے",
+  u: "ء",
+  i: "ی",
+  o: "ہ",
+  p: "پ",
   a: "ا",
-  b: "ب",
-  c: "چ",
+  s: "س",
   d: "د",
-  e: "ی",
   f: "ف",
   g: "گ",
-  h: "ہ",
-  i: "ظ",
+  h: "ح",
   j: "ج",
   k: "ک",
   l: "ل",
-  m: "م",
-  n: "ن",
-  o: "و",
-  p: "پ",
-  q: "ق",
-  r: "ر",
-  s: "س",
-  t: "ت",
-  u: "ع",
-  v: "ٹ",
-  w: "ں",
-  x: "ڈ",
-  y: "ے",
   z: "ز",
-};
+  x: "ش",
+  c: "چ",
+  v: "ط",
+  b: "ب",
+  n: "ن",
+  m: "م",
 
-/** Shift+key → Urdu letter, for keys that have a related-sound variant. */
-export const SHIFT_KEY_MAP: Record<string, string> = {
-  a: "آ",
-  c: "ح",
-  g: "غ",
-  h: "ھ",
-  k: "خ",
-  s: "ش",
-  t: "ط",
-  y: "ئ",
-  z: "ص",
-  x: "ض",
-};
-
-/** Non-letter keys that map directly to a character. */
-export const PUNCTUATION_KEY_MAP: Record<string, string> = {
+  // Punctuation/symbols — CRULP v1.1 Base face
+  "[": "[",
+  "]": "]",
+  "\\": "\\",
+  ";": "؛",
+  "'": "'",
   ",": "،",
   ".": "۔",
+  "/": "/",
 };
 
 /**
- * Every key on the visible on-screen keyboard, row by row, in
- * physical QWERTY order. Used only for layout — the actual
- * key → character behavior comes from the maps above.
+ * CRULP v1.1 Shift face. Common diacritics and Urdu-specific letters
+ * live here, including the characters that were previously missing from
+ * the on-screen keyboard.
  */
-export const KEYBOARD_ROWS: string[][] = [
-  ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
-  ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
-  ["z", "x", "c", "v", "b", "n", "m", ",", "."],
-];
+export const shiftPhoneticMap: Record<string, string> = {
+  // Number row
+  "1": "1", "2": "2", "3": "3", "4": "4", "5": "5",
+  "6": "6", "7": "7", "8": "8", "9": "9", "0": "0",
+  "-": "_", "=": "+",
+
+  // QWERTY letter row — CRULP v1.1 Shift face
+  q: "ْ", w: "ّ", e: "ٰ", r: "َ", t: "ٹ", y: "ڑ",
+  u: "ُ", i: "ۃ", o: "ِ", p: "ئ",
+
+  // Home row
+  a: "آ", s: "ص", d: "ڈ",
+  g: "غ", h: "ھ", j: "ض", k: "خ",
+  ";": ":", "'": '"',
+
+  // Bottom row
+  z: "ذ", x: "ژ", c: "ث", v: "ظ",
+  n: "ں", m: "٘", ",": "؟", ".": "٫" ,
+
+  "[": "{", "]": "}", "\\": "|",
+};
 
 /**
- * Reverse lookup: Urdu character → the physical key (and whether
- * Shift is needed) that produces it. Built once from the forward
- * maps so the VirtualKeyboard can highlight "the key you need right
- * now" for any character in a target string.
+ * Extended AltGr (Right Alt / Ctrl+Alt) layer. CRULP v1.1 defines a
+ * third AltGr face for less-common diacritics, honorifics and signs.
+ * The web app exposes the useful Urdu/Islamic subset here so learners
+ * can practice the same kinds of characters without needing a native
+ * OS Urdu keyboard. The diacritic aliases follow the published Navees
+ * phonetic mapping where it makes the web keyboard easier to use.
  */
-export interface KeyLocation {
-  key: string;
-  shift: boolean;
+export const altGrPhoneticMap: Record<string, string> = {
+  // Diacritics
+  e: "ٰ",
+  i: "ِ",
+  p: "ُ",
+  y: "َ",
+  q: "ْ",
+  w: "ّ",
+  u: "ٔ",
+  m: "٘",
+  // Honorifics / Islamic signs
+  j: "ﷻ",
+  d: "ﷺ",
+  r: "ؓ",
+  h: "ؒ",
+  s: "ؐ",
+  l: "ؑ",
+  b: "﷽",
+  // Common Urdu/Islamic phrase shortcuts (multi-grapheme output).
+  // Holding Shift while using AltGr selects the uppercase alias.
+  R: "رضی اللہ عنہ",
+  H: "رحمۃ اللہ علیہ",
+  L: "علیہ السلام",
+  S: "صلی اللہ علیہ وسلم",
+  // Common written variants requested for religious Urdu practice.
+  T: "رضی اللہ تعالیٰ عنہ",
+  A: "رحمۃ اللہ علیہا",
+};
+
+/**
+ * Returns the Urdu character/phrase produced by an AltGr shortcut.
+ * Keys are case-sensitive because uppercase aliases are reserved for
+ * the phrase shortcuts above.
+ */
+export function getUrduForAltGrKey(key: string): string | undefined {
+  return altGrPhoneticMap[key] ?? altGrPhoneticMap[key.toLowerCase()];
 }
 
-function buildReverseMap(): Map<string, KeyLocation> {
-  const reverse = new Map<string, KeyLocation>();
-  for (const [key, char] of Object.entries(BASE_KEY_MAP)) {
-    reverse.set(char, { key, shift: false });
-  }
-  for (const [key, char] of Object.entries(SHIFT_KEY_MAP)) {
-    reverse.set(char, { key, shift: true });
-  }
-  for (const [key, char] of Object.entries(PUNCTUATION_KEY_MAP)) {
-    reverse.set(char, { key, shift: false });
-  }
-  reverse.set(" ", { key: " ", shift: false });
-  return reverse;
+// Every Urdu character on the Shift face is distinct from every
+// character on the Base face (this holds in the real CRULP layout
+// itself, not just as a convenience for us) — so a reverse lookup
+// never has to choose between "typed with Shift" and "typed without".
+const reversePhoneticMap: Record<string, string> = Object.fromEntries(
+  Object.entries(phoneticMap).map(([key, urdu]) => [urdu, key]),
+);
+
+const reverseShiftPhoneticMap: Record<string, string> = Object.fromEntries(
+  Object.entries(shiftPhoneticMap).map(([key, urdu]) => [urdu, key]),
+);
+
+const reverseAltGrPhoneticMap: Record<string, string> = Object.fromEntries(
+  Object.entries(altGrPhoneticMap)
+    .filter(([, value]) => Array.from(value).length === 1)
+    .map(([key, urdu]) => [urdu, key]),
+);
+
+/**
+ * The Urdu character a given Latin key produces, if mapped.
+ *
+ * Case carries meaning here (unlike the rest of this module, which
+ * otherwise deals in lowercase keys): an uppercase single letter
+ * (e.g. the `"T"` a browser's `beforeinput` event reports for
+ * `Shift+T`) is looked up in `shiftPhoneticMap` first, falling back
+ * to the plain layer for any key with no dedicated Shift letter —
+ * so `Shift+<key>` never simply produces nothing for a key that only
+ * has a plain-layer letter. A lowercase key always uses the plain
+ * layer only.
+ */
+const physicalCodeToKey: Record<string, string> = {
+  Digit1: "1", Digit2: "2", Digit3: "3", Digit4: "4", Digit5: "5",
+  Digit6: "6", Digit7: "7", Digit8: "8", Digit9: "9", Digit0: "0",
+  Minus: "-", Equal: "=",
+  KeyQ: "q", KeyW: "w", KeyE: "e", KeyR: "r", KeyT: "t",
+  KeyY: "y", KeyU: "u", KeyI: "i", KeyO: "o", KeyP: "p",
+  BracketLeft: "[", BracketRight: "]", Backslash: "\\",
+  KeyA: "a", KeyS: "s", KeyD: "d", KeyF: "f", KeyG: "g",
+  KeyH: "h", KeyJ: "j", KeyK: "k", KeyL: "l",
+  Semicolon: ";", Quote: "'",
+  KeyZ: "z", KeyX: "x", KeyC: "c", KeyV: "v", KeyB: "b",
+  KeyN: "n", KeyM: "m", Comma: ",", Period: ".", Slash: "/",
+};
+
+export function getUrduForPhysicalKey(code: string, shift = false): string | undefined {
+  const key = physicalCodeToKey[code];
+  if (!key) return undefined;
+  return shift ? (shiftPhoneticMap[key] ?? phoneticMap[key]) : phoneticMap[key];
 }
 
-export const URDU_TO_KEY: Map<string, KeyLocation> = buildReverseMap();
-
-/** Resolves what character (if any) a raw physical key event produces. */
-export function resolveKeyToChar(key: string, shiftKey: boolean): string | null {
-  if (key === " ") return " ";
-  if (key.length !== 1) return null;
-
+export function getUrduForKey(key: string): string | undefined {
   const lower = key.toLowerCase();
-  if (shiftKey && lower in SHIFT_KEY_MAP) return SHIFT_KEY_MAP[lower];
-  if (!shiftKey && lower in BASE_KEY_MAP) return BASE_KEY_MAP[lower];
-  if (lower in PUNCTUATION_KEY_MAP) return PUNCTUATION_KEY_MAP[lower];
-  // A key with no mapped Urdu output (e.g. "x", "i") is simply not
-  // typeable — the caller ignores it rather than inserting nothing.
-  return null;
+  const isShifted = key !== lower && key.length === 1;
+  if (isShifted) {
+    return shiftPhoneticMap[lower] ?? phoneticMap[lower];
+  }
+  return phoneticMap[lower];
 }
 
-/** The key/shift combination that would produce a given Urdu character. */
-export function keyForChar(char: string): KeyLocation | null {
-  return URDU_TO_KEY.get(char) ?? null;
-}
-
-export type Hand = "Left" | "Right" | "Both";
-export type Finger = "Pinky" | "Ring" | "Middle" | "Index" | "Thumb";
-
-export interface FingerGuide {
-  hand: Hand;
-  finger: Finger;
-}
-
-/** Standard touch-typing finger assignment for the physical QWERTY key. */
-export const KEY_FINGER_MAP: Record<string, FingerGuide> = {
-  q: { hand: "Left", finger: "Pinky" }, w: { hand: "Left", finger: "Ring" }, e: { hand: "Left", finger: "Middle" },
-  r: { hand: "Left", finger: "Index" }, t: { hand: "Left", finger: "Index" },
-  a: { hand: "Left", finger: "Pinky" }, s: { hand: "Left", finger: "Ring" }, d: { hand: "Left", finger: "Middle" },
-  f: { hand: "Left", finger: "Index" }, g: { hand: "Left", finger: "Index" },
-  z: { hand: "Left", finger: "Pinky" }, x: { hand: "Left", finger: "Ring" }, c: { hand: "Left", finger: "Middle" },
-  v: { hand: "Left", finger: "Index" }, b: { hand: "Left", finger: "Index" },
-  y: { hand: "Right", finger: "Index" }, u: { hand: "Right", finger: "Index" }, i: { hand: "Right", finger: "Middle" },
-  o: { hand: "Right", finger: "Ring" }, p: { hand: "Right", finger: "Pinky" },
-  h: { hand: "Right", finger: "Index" }, j: { hand: "Right", finger: "Index" }, k: { hand: "Right", finger: "Middle" },
-  l: { hand: "Right", finger: "Ring" },
-  n: { hand: "Right", finger: "Index" }, m: { hand: "Right", finger: "Index" },
-  ",": { hand: "Right", finger: "Middle" }, ".": { hand: "Right", finger: "Ring" },
-  " ": { hand: "Both", finger: "Thumb" },
-};
-
-export function fingerForKey(key: string): FingerGuide | null {
-  return KEY_FINGER_MAP[key] ?? null;
+/** The key (plus whether Shift is needed) that types a given Urdu grapheme, if this mapping covers it. */
+export interface ExpectedKey {
+  key: string;
+  /** True if this character requires holding Shift (i.e. it lives on the Shift face). */
+  shift: boolean;
+  /** True if this character lives on the extended AltGr layer. */
+  altGr?: boolean;
 }
 
 /**
- * Shared per-finger accent colors used by the keyboard visuals, so the
- * grid, the legend, and the spacebar all draw from a single palette.
+ * The physical key (and Shift state) that would type the given Urdu
+ * grapheme, if this mapping covers it. Space maps to itself;
+ * unmapped graphemes (AltGr-only diacritics/honorifics, anything
+ * outside CRULP's Base/Shift faces) return `undefined` so the caller
+ * can simply not highlight anything.
  */
-export const FINGER_COLORS: Record<Finger, string> = {
-  Pinky: "#D85A30",
-  Ring: "#EF9F27",
-  Middle: "#639922",
-  Index: "#378ADD",
-  Thumb: "#7F77DD",
-};
+export function getExpectedKey(char: string | undefined): ExpectedKey | undefined {
+  if (!char) return undefined;
+  if (char === " ") return { key: "space", shift: false };
 
-/** Colors for the brief correct/incorrect flash after a keystroke. */
-export const FEEDBACK_COLORS = {
-  correct: "#3FA34D",
-  incorrect: "#D6455B",
-} as const;
+  const plainKey = reversePhoneticMap[char];
+  if (plainKey) return { key: plainKey, shift: false };
+
+  const shiftKey = reverseShiftPhoneticMap[char];
+  if (shiftKey) return { key: shiftKey, shift: true };
+
+  const altGrKey = reverseAltGrPhoneticMap[char];
+  if (altGrKey) return { key: altGrKey, shift: false, altGr: true };
+
+  return undefined;
+}
+
+/**
+ * Full US-QWERTY physical layout used to lay out
+ * `VirtualKeyboard`, with the common bottom-row punctuation keys
+ * (`,` `.` `/`) included since Urdu punctuation is a normal part of
+ * lesson/exercise target text (see Part 7 requirement 14).
+ */
+export const keyboardRows: string[][] = [
+  ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "="],
+  ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[", "]", "\\"],
+  ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";", "'"],
+  ["z", "x", "c", "v", "b", "n", "m", ",", ".", "/"],
+];

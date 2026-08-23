@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useState } from "react
 import type { ReactNode } from "react";
 import type { CreateProfileInput, Profile, UpdateProfileInput } from "@/features/profiles/types";
 import * as profileStorage from "@/features/profiles/services/profileStorage";
+import { deleteProfileProgress } from "@/features/progress/services/progressStorage";
 
 interface ProfileContextValue {
   /** Every local profile on this browser. */
@@ -47,6 +48,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   const deleteProfile = useCallback((id: string) => {
     profileStorage.deleteProfile(id);
+    // A deleted profile's learning progress (Part 9) must not be left
+    // behind as orphaned data — this is the one place profiles code
+    // reaches into the progress feature, and only for cleanup.
+    deleteProfileProgress(id);
     setProfiles(profileStorage.getProfiles());
     // Re-resolve rather than assume: deleting the active profile
     // clears it, deleting any other profile leaves it untouched.

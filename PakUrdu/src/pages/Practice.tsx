@@ -1,199 +1,243 @@
-import { useMemo, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Keyboard, PartyPopper } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, BarChart3, CheckCircle2, RotateCcw } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
 import { PageHeader } from "@/components/PageHeader";
-import { Badge } from "@/components/Badge";
-import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
-import { EmptyState } from "@/components/EmptyState";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import {
-  getAllLessonsInOrder,
-  getLessonById,
-  getNextLesson,
-} from "@/features/lessons/services/lessonCatalog";
-import { ExercisePlayer, getPracticeTargets } from "@/features/practice";
-import { useProgress } from "@/features/progress";
-import { getMistakes } from "@/features/results";
-import type { ExerciseResultPayload } from "@/features/results";
-import type { SessionStatistics } from "@/features/typing-engine";
-import type { TypingState } from "@/features/typing-engine/types";
-import type { Lesson } from "@/features/lessons/types";
+import { Button } from "@/components/Button";
+import { useSEO } from "@/hooks/useSEO";
+import { cn } from "@/lib/cn";
+import { useTypingEngine, TypingText, TypingStats, TypingCaptureArea, useKeyboardTapInput } from "@/features/typing";
+import { VirtualKeyboard, HandFingerGuide, usePressedKey, getExpectedKey, fingerForKey } from "@/features/keyboard";
+import { useTypingTimer, calculateWPM } from "@/features/statistics";
+import { buildSessionResult, useSessionResult } from "@/features/results";
+import { useSettings } from "@/features/settings";
 
 /**
- * Resolves which lesson/exercise this page should practice from the
- * URL: `?lesson=<id>&exercise=<id>`. Falls back to the active
- * profile's current lesson (the sequential-unlocking frontier), and
- * only falls back further to the course's first lesson if there's no
- * profile at all — so `/practice` always has something to show.
+ * A small, local sample set — deliberately NOT wired to the lesson
+ * catalog from Part 6. The typing engine (Part 7's objective) must
+ * stay independent of lesson data; how a specific lesson's exercise
+ * reaches this page is future integration work (see the Part 7
+ * report's "Important Future Integration" note).
  */
-function useResolvedLesson(lessonParam: string | null, fallback: Lesson | undefined) {
-  return useMemo(() => {
-    const lesson = lessonParam ? getLessonById(lessonParam) : undefined;
-    if (lesson) return lesson;
-    return fallback ?? getAllLessonsInOrder()[0];
-  }, [lessonParam, fallback]);
-}
+const sampleExercises = [
+  { id: "word", label: "Word", target: "پاکستان" },
+  { id: "sentence", label: "Sentence", target: "پاکستان ایک خوبصورت ملک ہے۔" },
+  { id: "greeting", label: "Punctuation", target: "سلام، آپ کیسے ہیں؟" },
+  { id: "paragraph", label: "Paragraph", target: "اردو ایک خوبصورت زبان ہے۔ روزانہ تھوڑی مشق سے ٹائپنگ کی رفتار اور درستگی بہتر ہوتی ہے۔" },
+  { id: "practice-2", label: "Practice 2", target: "آج ہم اردو کے الفاظ اور جملے ٹائپ کرنے کی مشق کریں گے۔" },
+  { id: "practice-3", label: "Practice 3", target: "اچھی ٹائپنگ کے لیے درستگی، رفتار اور مسلسل مشق ضروری ہے۔" },
+  { id: "practice-4", label: "Practice 4", target: "ہر نیا سبق آپ کو پہلے سے بہتر ٹائپ کرنے میں مدد دیتا ہے۔" },
+  { id: "practice-5", label: "Practice 5", target: "غلطی سے گھبرانے کے بجائے اسے سمجھیں اور دوبارہ درست ٹائپ کریں۔" },
+]
 
 export default function Practice() {
-  useDocumentTitle("Practice");
-  const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { nextAvailableLesson, getLessonProgress, recordAttempt, completeLesson } = useProgress();
+  useSEO({
+    title: "Urdu Typing Practice — Free Online Practice Tool",
+    description:
+      "Practice Urdu typing online with a virtual phonetic keyboard, live finger guidance, and instant accuracy and speed feedback on words and sentences.",
+  });
 
-  const lesson = useResolvedLesson(searchParams.get("lesson"), nextAvailableLesson);
-  const targets = useMemo(() => (lesson ? getPracticeTargets(lesson) : []), [lesson]);
+  const [exerciseIndex, setExerciseIndex] = useState(0);
+  const exercise = sampleExercises[exerciseIndex];
 
-  const exerciseParam = searchParams.get("exercise");
-  const activeIndex = Math.max(
-    0,
-    targets.findIndex((t) => t.id === exerciseParam),
-  );
-  const active = targets[activeIndex === -1 ? 0 : activeIndex] ?? targets[0];
-  const isLastExercise = (activeIndex === -1 ? 0 : activeIndex) >= targets.length - 1;
+  const typing = useTypingEngine({ targetText: exercise.target });
+  const [isCaptureActive, setIsCaptureActive] = useState(false);
+  const { recordSessionResult } = useSessionResult();
+  const { showKeyboard, typingFeedback, soundEnabled } = useSettings();
+  const keyboardTapInput = useKeyboardTapInput(typing, soundEnabled);
 
-  // Set once the lesson's last exercise is completed. Holding the
-  // payload here (rather than navigating to /results immediately)
-  // keeps the "go see your results" step a deliberate click — see
-  // Part 10's "do not force automatic navigation".
-  const [lessonComplete, setLessonComplete] = useState<ExerciseResultPayload | null>(null);
-  const [attemptToken, setAttemptToken] = useState(0);
+  // A manual Reset should start a brand-new timed session even though
+  // `exercise.target` hasn't changed — bumping this alongside
+  // `typing.reset()` is what tells `useTypingTimer` to drop back to
+  // idle (see `resetKey` below).
+  const [resetCount, setResetCount] = useState(0);
+  const hasRecordedCompletionRef = useRef(false);
 
-  function goToIndex(index: number) {
-    if (!lesson || index < 0 || index >= targets.length) return;
-    setLessonComplete(null);
-    setSearchParams({ lesson: lesson.id, exercise: targets[index].id });
-  }
+  useEffect(() => {
+    hasRecordedCompletionRef.current = false;
+  }, [exercise.id, resetCount]);
 
-  function handleExerciseComplete(typingState: TypingState, statistics: SessionStatistics) {
-    if (!lesson) return;
-    const attempt = { accuracy: statistics.accuracy, wpm: statistics.wpm };
+  const timer = useTypingTimer({
+    hasStarted: typing.currentIndex > 0,
+    isComplete: typing.isComplete,
+    resetKey: `${exercise.id}-${resetCount}`,
+  });
+  const wpm = calculateWPM(typing.currentIndex, timer.elapsedMs);
 
-    if (!isLastExercise) {
-      recordAttempt(lesson.id, attempt);
-      return;
+  // A standalone Practice session has no lesson and no Progress
+  // Service record to compare against — `lessonId`/`lessonName` and
+  // both "previous best" fields are `null`, same as the graceful
+  // fallback `buildSessionResult` already handles for any session
+  // with nothing to compare against.
+  useEffect(() => {
+    if (typing.isComplete && !hasRecordedCompletionRef.current) {
+      hasRecordedCompletionRef.current = true;
+      recordSessionResult(
+        buildSessionResult({
+          lessonId: null,
+          lessonName: null,
+          targetText: exercise.target,
+          accuracy: typing.accuracy,
+          sessionAccuracy: typing.sessionAccuracy,
+          wpm,
+          elapsedMs: timer.elapsedMs,
+          correctCharacters: typing.correctCharacters,
+          incorrectCharacters: typing.incorrectCharacters,
+          totalCharacters: typing.totalCharacters,
+          mistakes: typing.mistakes,
+          previousBestAccuracy: null,
+          previousBestWpm: null,
+          // A standalone Practice session has no Progress Service
+          // record to compare against, so it's never eligible to
+          // register a "personal best" — see buildSessionResult's
+          // `trackPersonalBest` doc.
+          trackPersonalBest: false,
+        }),
+      );
     }
+  }, [
+    typing.isComplete,
+    typing.accuracy,
+    typing.sessionAccuracy,
+    typing.correctCharacters,
+    typing.incorrectCharacters,
+    typing.totalCharacters,
+    typing.mistakes,
+    wpm,
+    timer.elapsedMs,
+    exercise.target,
+    recordSessionResult,
+  ]);
 
-    const previousBest = getLessonProgress(lesson.id);
-    const isNewBestWpm = attempt.wpm > (previousBest?.bestWpm ?? 0);
-    const isNewBestAccuracy = attempt.accuracy > (previousBest?.bestAccuracy ?? 0);
-    completeLesson(lesson.id, attempt);
+  useEffect(() => {
+    if (!typing.isComplete) return;
+    const timerId = window.setTimeout(() => {
+      setExerciseIndex((current) => (current + 1) % sampleExercises.length);
+    }, 650);
+    return () => window.clearTimeout(timerId);
+  }, [typing.isComplete]);
 
-    setLessonComplete({
-      lessonId: lesson.id,
-      lessonTitle: lesson.title,
-      target: active.target,
-      statistics,
-      mistakes: getMistakes(typingState),
-      isNewBestWpm,
-      isNewBestAccuracy,
-      nextLessonId: getNextLesson(lesson.id)?.id ?? null,
-    });
+  function handleNextPractice() {
+    setExerciseIndex((current) => (current + 1) % sampleExercises.length);
   }
 
-  function handleTryAgain() {
-    setLessonComplete(null);
-    setAttemptToken((token) => token + 1);
+  function handleReset() {
+    typing.reset();
+    setResetCount((count) => count + 1);
   }
 
-  function handleViewResults() {
-    if (!lessonComplete) return;
-    navigate("/results", { state: lessonComplete });
-  }
+  // Physical-key highlighting only listens while the capture input
+  // is actually focused — see usePressedKey for why.
+  const pressedKey = usePressedKey(isCaptureActive);
+  const currentChar = typing.characters.find((character) => character.status === "current")?.char;
+  const expectedKey = getExpectedKey(currentChar);
 
-  if (!lesson || targets.length === 0) {
-    return (
-      <PageContainer>
-        <PageHeader title="Practice" description="Guided typing practice, one exercise at a time." />
-        <div className="py-10">
-          <EmptyState
-            icon={Keyboard}
-            title="No practice content available"
-            description="This lesson doesn't have any typeable exercises yet."
-            action={{ label: "Back to Learning Path", to: "/learn" }}
-          />
-        </div>
-      </PageContainer>
-    );
-  }
+  const statusSummary = useMemo(() => {
+    if (typing.isComplete) return "Exercise complete.";
+    if (typing.currentIndex === 0) {
+      return `Ready. ${typing.totalCharacters} characters to type.`;
+    }
+    return `${typing.correctCharacters} correct, ${typing.incorrectCharacters} incorrect, out of ${typing.currentIndex} typed so far.`;
+  }, [
+    typing.isComplete,
+    typing.currentIndex,
+    typing.correctCharacters,
+    typing.incorrectCharacters,
+    typing.totalCharacters,
+  ]);
 
   return (
     <PageContainer>
       <PageHeader
         title="Practice"
-        description={lesson.title}
-        breadcrumb={[
-          { label: "Learn", to: "/learn" },
-          { label: lesson.title, to: `/lesson/${lesson.id}` },
-          { label: "Practice" },
-        ]}
+        description="Type the Urdu text below using your keyboard. Correct characters turn green as you go."
         action={
-          targets.length > 1 ? (
-            <Badge tone="neutral">
-              Exercise {activeIndex === -1 ? 1 : activeIndex + 1} of {targets.length}
-            </Badge>
-          ) : undefined
+          <Button variant="secondary" size="sm" onClick={handleReset}>
+            <RotateCcw size={14} aria-hidden="true" />
+            Reset
+          </Button>
         }
       />
 
-      <div className="py-10">
-        {active && (
-          <ExercisePlayer
-            key={`${active.id}-${attemptToken}`}
-            target={active.target}
-            instruction={active.instruction}
-            onComplete={handleExerciseComplete}
-          />
-        )}
+      <div className="flex flex-wrap gap-2 pb-6" role="group" aria-label="Sample exercise">
+        {sampleExercises.map((item, index) => (
+          <button
+            key={item.id}
+            type="button"
+            aria-pressed={index === exerciseIndex}
+            onClick={() => setExerciseIndex(index)}
+            className={cn(
+              "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+              index === exerciseIndex
+                ? "border-brand-500 bg-brand-50 text-brand-700"
+                : "border-border text-ink-soft hover:border-border-strong hover:bg-surface",
+            )}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
 
-        {lessonComplete && (
-          <Card className="mt-6 border-success-500 bg-success-50">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <PartyPopper size={20} className="text-success-600" aria-hidden="true" />
-                <div>
-                  <p className="text-sm font-semibold text-ink">Lesson complete!</p>
-                  <p className="text-sm text-ink-soft">
-                    {lessonComplete.statistics.wpm} WPM &middot; {lessonComplete.statistics.accuracy}% accuracy
-                  </p>
+      <div className="typing-workspace grid gap-6 pb-10 lg:grid-cols-[minmax(0,1fr)_220px]">
+        <div className="min-w-0 space-y-6">
+          <Card
+            className={cn(
+              "typing-display flex min-h-[190px] w-full min-w-0 flex-col items-center justify-center gap-1 overflow-hidden",
+              typing.isComplete && "border-success-500",
+            )}
+          >
+            <TypingCaptureArea
+              typing={typing}
+              onActiveChange={setIsCaptureActive}
+              suppressNativeKeyboardOnTouch={showKeyboard}
+            >
+              <div className="w-full min-w-0 overflow-hidden px-2 sm:px-4"><TypingText characters={typing.characters} statusSummary={statusSummary} showFeedback={typingFeedback} layout="scroll" resetKey={`${exercise.id}-${resetCount}`} /></div>
+            </TypingCaptureArea>
+
+            {typing.isComplete && (
+              <div className="mt-4 flex flex-col items-center gap-3">
+                <p className="flex items-center gap-1.5 text-sm font-medium text-success-600">
+                  <CheckCircle2 size={16} aria-hidden="true" />
+                  Exercise complete
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Button size="sm" onClick={handleNextPractice}>
+                    Next Practice <ArrowRight size={13} aria-hidden="true" />
+                  </Button>
+                  <Button variant="secondary" size="sm" to="/results">
+                    <BarChart3 size={13} aria-hidden="true" />
+                    View Results
+                  </Button>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <Button variant="secondary" size="sm" onClick={handleTryAgain}>
-                  Try Again
-                </Button>
-                <Button variant="primary" size="sm" onClick={handleViewResults}>
-                  View Results
-                </Button>
-              </div>
-            </div>
+            )}
           </Card>
-        )}
 
-        <div className="mt-6 flex items-center justify-between gap-3">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => goToIndex((activeIndex === -1 ? 0 : activeIndex) - 1)}
-            disabled={(activeIndex === -1 ? 0 : activeIndex) === 0}
-          >
-            <ChevronLeft size={14} aria-hidden="true" />
-            Previous
-          </Button>
-          <Link to={`/lesson/${lesson.id}`} className="text-sm text-ink-faint hover:text-ink hover:underline">
-            Back to lesson
-          </Link>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => goToIndex((activeIndex === -1 ? 0 : activeIndex) + 1)}
-            disabled={(activeIndex === -1 ? 0 : activeIndex) >= targets.length - 1}
-          >
-            Next
-            <ChevronRight size={14} aria-hidden="true" />
-          </Button>
+          {showKeyboard && (
+            <>
+              <Card>
+                <p className="mb-4 text-sm font-medium text-ink-soft">On-screen keyboard</p>
+                <VirtualKeyboard
+                  pressedKey={pressedKey}
+                  expectedKey={expectedKey}
+                  onKeyPress={keyboardTapInput.onKeyPress}
+                  onBackspace={keyboardTapInput.onBackspace}
+                />
+              </Card>
+
+              <HandFingerGuide activeGuide={expectedKey ? fingerForKey(expectedKey.key) : null} />
+            </>
+          )}
         </div>
+
+        <TypingStats
+          accuracy={typing.accuracy}
+          currentIndex={typing.currentIndex}
+          totalCharacters={typing.totalCharacters}
+          incorrectCharacters={typing.incorrectCharacters}
+          wpm={wpm}
+          elapsedMs={timer.elapsedMs}
+        />
       </div>
     </PageContainer>
   );

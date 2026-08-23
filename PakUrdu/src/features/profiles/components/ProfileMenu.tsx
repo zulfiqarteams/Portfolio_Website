@@ -6,6 +6,7 @@ import { useProfiles } from "@/features/profiles/context/ProfileContext";
 import { ProfileAvatar } from "@/features/profiles/components/ProfileAvatar";
 import { ProfileSelector } from "@/features/profiles/components/ProfileSelector";
 import { cn } from "@/lib/cn";
+import { useLanguage } from "@/i18n/useLanguage";
 
 interface ProfileMenuProps {
   onCreateNew: () => void;
@@ -20,6 +21,7 @@ interface ProfileMenuProps {
  */
 export function ProfileMenu({ onCreateNew }: ProfileMenuProps) {
   const { activeProfile, profiles } = useProfiles();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -46,7 +48,7 @@ export function ProfileMenu({ onCreateNew }: ProfileMenuProps) {
     return (
       <Button size="md" variant="secondary" onClick={onCreateNew}>
         <Plus size={15} aria-hidden="true" />
-        Create Profile
+        {t.nav.createProfile}
       </Button>
     );
   }
@@ -88,7 +90,7 @@ export function ProfileMenu({ onCreateNew }: ProfileMenuProps) {
             className="flex items-center gap-2.5 rounded-sm px-3 py-2 text-sm font-medium text-ink hover:bg-surface"
           >
             <UserCircle size={16} aria-hidden="true" />
-            Profile
+            {t.nav.profile}
           </Link>
           <Link
             role="menuitem"
@@ -97,14 +99,14 @@ export function ProfileMenu({ onCreateNew }: ProfileMenuProps) {
             className="flex items-center gap-2.5 rounded-sm px-3 py-2 text-sm font-medium text-ink hover:bg-surface"
           >
             <Settings size={16} aria-hidden="true" />
-            Settings
+            {t.nav.settings}
           </Link>
 
           {profiles.length > 1 && (
             <>
               <div className="my-2 border-t border-border" />
               <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-widest text-ink-faint">
-                Switch profile
+                {t.nav.switchProfile}
               </p>
               <ProfileSelector onSelect={() => setOpen(false)} />
             </>
@@ -121,7 +123,7 @@ export function ProfileMenu({ onCreateNew }: ProfileMenuProps) {
             className="flex w-full items-center gap-2.5 rounded-sm px-3 py-2 text-left text-sm font-medium text-brand-600 hover:bg-brand-50"
           >
             <Plus size={15} aria-hidden="true" />
-            Create new profile
+            {t.nav.createNewProfile}
           </button>
         </div>
       )}

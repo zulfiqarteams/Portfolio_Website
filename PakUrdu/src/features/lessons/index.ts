@@ -6,6 +6,8 @@ export type {
   Lesson,
   LessonContent,
   LessonExample,
+  LessonStep,
+  LessonStepKind,
   LessonType,
   Exercise,
   ExerciseType,
@@ -28,9 +30,6 @@ export {
   getLessonContext,
 } from "@/features/lessons/services/lessonCatalog";
 export type { LessonContext, LessonContextResult } from "@/features/lessons/services/lessonCatalog";
-
-// Mock status (static only — no persistence yet)
-export { getMockLessonStatus } from "@/features/lessons/services/lessonStatus";
 
 // Hooks
 export { useLesson } from "@/features/lessons/hooks/useLesson";

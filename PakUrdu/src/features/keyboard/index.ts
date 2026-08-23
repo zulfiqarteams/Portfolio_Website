@@ -1,6 +1,8 @@
+export { phoneticMap, shiftPhoneticMap, altGrPhoneticMap, keyboardRows, getUrduForKey, getUrduForPhysicalKey, getUrduForAltGrKey, getExpectedKey } from "@/features/keyboard/data/phoneticMap";
+export type { ExpectedKey } from "@/features/keyboard/data/phoneticMap";
+export { fingerForKey } from "@/features/keyboard/data/fingerGuide";
+export type { Hand, Finger, FingerGuide } from "@/features/keyboard/data/fingerGuide";
+export { usePressedKey } from "@/features/keyboard/hooks/usePressedKey";
+export type { PressedKey } from "@/features/keyboard/hooks/usePressedKey";
 export { VirtualKeyboard } from "@/features/keyboard/components/VirtualKeyboard";
-export type { KeyboardFlash } from "@/features/keyboard/components/VirtualKeyboard";
-export { keyForChar, resolveKeyToChar } from "@/features/keyboard/data/phoneticMap";
-
-export { fingerForKey, KEY_FINGER_MAP } from "@/features/keyboard/data/phoneticMap";
-export type { FingerGuide, Hand, Finger } from "@/features/keyboard/data/phoneticMap";
+export { HandFingerGuide } from "@/features/keyboard/components/HandFingerGuide";

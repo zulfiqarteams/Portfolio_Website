@@ -21,7 +21,7 @@ export function Card({ hover = false, elevated = false, className, ...props }: C
   return (
     <div
       className={cn(
-        "rounded-lg border border-border p-6",
+        "rounded-lg border border-border p-4 sm:p-6",
         elevated ? "bg-surface-elevated shadow-raised" : "bg-surface shadow-card",
         hover &&
           "transition-shadow duration-150 hover:shadow-raised hover:border-border-strong",

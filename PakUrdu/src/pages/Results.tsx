@@ -1,124 +1,202 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import { AlertCircle, Clock, Gauge, Target, Type, Trophy, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Clock, Gauge, RotateCcw, Sparkles, Target, Type } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
 import { PageHeader } from "@/components/PageHeader";
 import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { StatCard } from "@/components/StatCard";
-import { EmptyState } from "@/components/EmptyState";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { formatTime } from "@/features/typing-engine";
-import { getPerformanceFeedback } from "@/features/results";
-import type { ExerciseResultPayload } from "@/features/results";
+import { useSEO } from "@/hooks/useSEO";
+import { formatTime } from "@/features/statistics";
+import {
+  useSessionResult,
+  getResultNavigationTargets,
+  getMistakeSummaryMessage,
+  formatAccuracy,
+  formatWpm,
+  formatPreviousBest,
+} from "@/features/results";
+
+const feedbackToneBorder: Record<string, string> = {
+  success: "border-l-success-500",
+  warning: "border-l-warning-500",
+  neutral: "border-l-border-strong",
+};
 
 export default function Results() {
-  useDocumentTitle("Results");
-  const location = useLocation();
-  const navigate = useNavigate();
-  const result = location.state as ExerciseResultPayload | null;
+  useSEO({ title: "Your Typing Results", noIndex: true });
+  const { sessionResult } = useSessionResult();
 
-  if (!result) {
+  if (!sessionResult) {
     return (
       <PageContainer>
         <PageHeader
           title="Results"
-          description="A summary of your practice session will appear here."
+          description="Your previous typing session is no longer available."
         />
+
         <div className="py-10">
-          <EmptyState
-            icon={Type}
-            title="No recent results"
-            description="Complete a lesson's practice exercises and your results will show up here."
-            action={{ label: "Go to Practice", to: "/practice" }}
-          />
+          <p className="text-sm text-ink-faint">
+            Session results live only for the current visit, so a page refresh clears them.
+            Complete a lesson or a Practice exercise to see a fresh summary here.
+          </p>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button variant="primary" size="md" to="/learn">
+              Back to Learning
+            </Button>
+            <Button variant="secondary" size="md" to="/practice">
+              Start Practicing
+            </Button>
+          </div>
         </div>
       </PageContainer>
     );
   }
 
-  const { statistics, mistakes, isNewBestWpm, isNewBestAccuracy } = result;
-  const hasBest = isNewBestWpm || isNewBestAccuracy;
+  const {
+    lessonId,
+    lessonName,
+    accuracy,
+    sessionAccuracy,
+    wpm,
+    elapsedMs,
+    totalCharacters,
+    correctCharacters,
+    incorrectCharacters,
+    mistakes,
+    isPersonalBest,
+    previousBestAccuracy,
+    previousBestWpm,
+    feedback,
+    status,
+  } = sessionResult;
+
+  const { retryTo: defaultRetryTo, continueTo, continueLabel } = getResultNavigationTargets(lessonId);
+  const retryTo = sessionResult.retryPath ?? defaultRetryTo;
+  const mistakeSummary = getMistakeSummaryMessage(mistakes);
+  const previousBestLine = formatPreviousBest({ previousBestWpm, previousBestAccuracy });
 
   return (
     <PageContainer>
       <PageHeader
         title="Results"
-        description={result.lessonTitle}
-        action={
-          hasBest ? (
-            <Badge tone="gold">
-              <Trophy size={12} className="mr-1 inline" aria-hidden="true" />
-              New Personal Best
-            </Badge>
-          ) : undefined
-        }
+        description={lessonName ?? "Practice session"}
+        action={isPersonalBest ? <Badge tone="gold">New Personal Best</Badge> : undefined}
       />
 
-      <div className="py-10 space-y-8">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          <StatCard icon={Target} label="Accuracy" value={`${statistics.accuracy}%`} />
-          <StatCard icon={Gauge} label="WPM" value={String(statistics.wpm)} />
-          <StatCard icon={Type} label="Characters" value={String(statistics.typedCharacters)} />
-          <StatCard icon={AlertCircle} label="Errors" value={String(statistics.incorrectCharacters)} />
-          <StatCard icon={Clock} label="Time" value={formatTime(statistics.elapsedMs)} />
-        </div>
-
-        <Card>
-          <p className="text-sm font-medium text-ink">
-            {getPerformanceFeedback(statistics.accuracy, statistics.wpm)}
-          </p>
+      <div className="py-10">
+        <Card className={`mb-6 border-l-4 ${feedbackToneBorder[feedback.tone]}`}>
+          <div className="flex items-center gap-2">
+            <Sparkles size={15} className="text-ink-faint" aria-hidden="true" />
+            <p className="text-sm text-ink">{feedback.message}</p>
+          </div>
         </Card>
 
-        <Card>
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-ink-faint">
-            Mistake review
-          </h2>
-          {mistakes.length === 0 ? (
-            <p className="flex items-center gap-2 text-sm text-success-600">
-              <CheckCircle2 size={16} aria-hidden="true" />
-              Perfect — no typing mistakes.
-            </p>
-          ) : (
-            <ul className="divide-y divide-border">
-              {mistakes.map((mistake) => (
-                <li
-                  key={mistake.position}
-                  className="flex items-center justify-between gap-3 py-2 text-sm"
-                >
-                  <span className="text-ink-faint">Position {mistake.position + 1}</span>
-                  <span className="urdu-text flex items-center gap-2 text-base">
-                    <span className="text-ink-faint">Expected</span>
-                    <span className="text-success-600">{mistake.expected}</span>
-                    <span className="text-ink-faint">&rarr;</span>
-                    <span className="text-ink-faint">Typed</span>
-                    <span className="text-error-600">{mistake.typed}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-
-        <div className="flex flex-wrap gap-3">
-          <Button
-            variant="secondary"
-            size="md"
-            onClick={() => navigate(result.resultType === "test" ? "/test" : `/practice?lesson=${result.lessonId}`)}
+        <section aria-labelledby="performance-summary-heading">
+          <h2
+            id="performance-summary-heading"
+            className="text-sm font-semibold uppercase tracking-wide text-ink-faint"
           >
-            {result.resultType === "test" ? "Restart Test" : "Try Again"}
+            Performance Summary
+          </h2>
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <StatCard
+              icon={Gauge}
+              label="WPM"
+              value={formatWpm(wpm)}
+              hint={previousBestWpm !== null ? `Best: ${Math.round(previousBestWpm)}` : undefined}
+            />
+            <StatCard
+              icon={Target}
+              label="Accuracy"
+              value={formatAccuracy(accuracy)}
+              hint={`${formatAccuracy(sessionAccuracy)} incl. corrections`}
+            />
+            <StatCard icon={Clock} label="Time" value={formatTime(elapsedMs)} />
+          </div>
+        </section>
+
+        <section aria-labelledby="detailed-statistics-heading" className="mt-6">
+          <h2
+            id="detailed-statistics-heading"
+            className="text-sm font-semibold uppercase tracking-wide text-ink-faint"
+          >
+            Detailed Statistics
+          </h2>
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <StatCard icon={Type} label="Characters" value={String(totalCharacters)} />
+            <StatCard icon={CheckCircle2} label="Correct Characters" value={String(correctCharacters)} />
+            <StatCard icon={AlertCircle} label="Errors" value={String(incorrectCharacters)} />
+          </div>
+        </section>
+
+        <section aria-labelledby="lesson-heading" className="mt-6">
+          <h2
+            id="lesson-heading"
+            className="text-sm font-semibold uppercase tracking-wide text-ink-faint"
+          >
+            Lesson
+          </h2>
+          <Card className="mt-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-ink">{lessonName ?? "Practice session"}</p>
+                <p className="mt-1 text-xs text-ink-faint">
+                  {status === "completed" ? "Completed" : status}
+                  {previousBestLine ? ` · Previous best: ${previousBestLine}` : ""}
+                </p>
+              </div>
+              {isPersonalBest && <Badge tone="gold">New Personal Best</Badge>}
+            </div>
+          </Card>
+        </section>
+
+        <section aria-labelledby="mistake-review-heading" className="mt-6">
+          <h2
+            id="mistake-review-heading"
+            className="text-sm font-semibold uppercase tracking-wide text-ink-faint"
+          >
+            Mistake Review
+          </h2>
+          <Card className="mt-3">
+            <p className="flex items-center gap-1.5 text-sm text-ink-soft">
+              {mistakes.length === 0 && (
+                <CheckCircle2 size={14} className="text-success-600" aria-hidden="true" />
+              )}
+              {mistakeSummary}
+            </p>
+
+            {mistakes.length > 0 && (
+              <ul className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                {mistakes.map((mistake) => (
+                  <li
+                    key={`${mistake.index}-${mistake.typed}`}
+                    className="rounded-md border border-border px-2.5 py-1.5 text-xs text-ink-soft"
+                  >
+                    <span className="text-ink-faint">Expected</span>{" "}
+                    <span className="numeric font-semibold text-ink">{mistake.expected}</span>
+                    <span className="text-ink-faint">, typed</span>{" "}
+                    <span className="numeric font-semibold text-ink">{mistake.typed}</span>
+                    {mistake.count > 1 ? ` (×${mistake.count})` : ""}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        </section>
+
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Button variant="secondary" size="md" to={retryTo}>
+            <RotateCcw size={14} aria-hidden="true" />
+            Try Again
           </Button>
-          {result.nextLessonId && (
-            <Button
-              variant="primary"
-              size="md"
-              onClick={() => navigate(`/practice?lesson=${result.nextLessonId}`)}
-            >
-              Continue to Next Lesson
+          {continueTo && continueLabel && (
+            <Button variant="primary" size="md" to={continueTo}>
+              {continueLabel}
             </Button>
           )}
-          <Button variant="outline" size="md" to={result.resultType === "test" ? "/learn/reading" : "/learn"}>
-            {result.resultType === "test" ? "Back to Learning" : "Back to Learning Path"}
+          <Button variant="ghost" size="md" to="/learn">
+            Back to Learning
           </Button>
         </div>
       </div>

@@ -11,8 +11,10 @@
    * border, success, warning, error, info) at these variables instead
    * of hard-coded hex values.
    *
-   * The existing SettingsProvider applies the `.dark` class to <html>, so
-   * these semantic tokens repaint the complete application consistently.
+   * This is architecture for a future dark theme, not a theme switcher:
+   * a `.dark` class on <html> would override the block below, and every
+   * component would repaint automatically since none of them hard-code
+   * color values. No toggle exists yet.
    */
   :root {
     --color-paper: #FAF7F1;
@@ -53,11 +55,14 @@
     --color-info-50: #EAF1F8;
     --color-info-500: #2E6CA4;
     --color-info-600: #235684;
+
+    /* Used only by the HandFingerGuide's active-finger highlight. */
+    --keyboard-key-active: #0F766E;
   }
 
   /*
-   * Dark theme tokens. The shared SettingsProvider toggles `.dark` on <html>
-   * so the navbar control and Settings page use the same theme state.
+   * Dark theme tokens. Wired to the Settings page's Theme toggle,
+   * which adds/removes `class="dark"` on <html> via SettingsProvider.
    */
   .dark {
     --color-paper: #10161D;
@@ -98,6 +103,8 @@
     --color-info-50: #182A3A;
     --color-info-500: #6FA8D8;
     --color-info-600: #8FBEE3;
+
+    --keyboard-key-active: #5EEAD4;
   }
 
   * {
@@ -112,7 +119,6 @@
   html.settings-large-text {
     font-size: 112.5%;
   }
-
 
   body {
     @apply bg-paper text-ink;
@@ -210,5 +216,166 @@
   }
   .text-caption {
     @apply font-body text-xs text-ink-faint;
+  }
+
+  /* HandFingerGuide — adapted from PakUrdu; only the finger/hand
+     highlight styling is used, since the colored key-type legend
+     (.keyboard-key-active etc.) belongs to PakUrdu's own keyboard,
+     not Part 12's. */
+  .hand-guide {
+    width: min(100%, 360px);
+    margin: 0 auto;
+    padding: 0.65rem 0.65rem 0.2rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    background: var(--color-surface);
+  }
+
+  .hand-guide-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.25rem;
+    color: var(--color-ink-soft);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .hand-guide-heading strong {
+    color: var(--keyboard-key-active);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .hand-guide svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .hand-palm,
+  .hand-finger {
+    fill: var(--color-brand-100);
+    stroke: var(--color-brand-500);
+    stroke-width: 1.8;
+    transition: fill 150ms ease, filter 150ms ease, stroke 150ms ease, transform 180ms ease-out;
+    transform-box: fill-box;
+    transform-origin: bottom center;
+  }
+
+  .hand-finger {
+    fill: var(--color-info-50);
+    stroke: var(--color-info-500);
+  }
+
+  /*
+   * The finger for the current target key doesn't just change color —
+   * it visually "reaches" upward/inward toward the key it needs to
+   * press, then relaxes back once a different finger becomes active.
+   * Kept to a small translation (not a full reposition to the exact
+   * key coordinates) so it stays educational rather than distracting;
+   * `transition-duration` above is zeroed under `prefers-reduced-motion`.
+   */
+  .hand-finger-active {
+    fill: var(--keyboard-key-active);
+    stroke: var(--keyboard-key-active);
+    filter: drop-shadow(0 0 5px var(--keyboard-key-active));
+    transform: translateY(-6px) scaleY(1.045);
+    animation: hand-finger-reach 900ms ease-in-out infinite;
+  }
+
+  /*
+   * Gentle repeating "reach" so the active finger keeps nudging toward
+   * the key instead of holding one static lifted pose the whole time —
+   * this is what was missing before (a single, instant, never-repeating
+   * transform reads as "did it move at all?" rather than a motion).
+   */
+  @keyframes hand-finger-reach {
+    0%, 100% { transform: translateY(-6px) scaleY(1.045); }
+    50% { transform: translateY(-11px) scaleY(1.07); }
+  }
+
+  /*
+   * The pointer under a target key on the on-screen keyboard
+   * (`VirtualKeyboard`'s `.keyboard-key-pointer`) — a small triangle
+   * that bounces up toward the key it's under, giving motion directly
+   * on the keyboard itself rather than only in the separate hand-guide
+   * panel.
+   */
+  .keyboard-key-pointer {
+    width: 0;
+    height: 0;
+    margin-top: 2px;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 6px solid var(--keyboard-key-active);
+    animation: keyboard-key-pointer-bounce 750ms ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes keyboard-key-pointer-bounce {
+    0%, 100% { transform: translate(-50%, 0); opacity: 0.55; }
+    50% { transform: translate(-50%, -4px); opacity: 1; }
+  }
+
+  .hand-finger-label,
+  .hand-title {
+    fill: var(--color-ink-soft);
+    font-family: theme("fontFamily.body");
+    font-size: 9px;
+    font-weight: 700;
+    pointer-events: none;
+  }
+
+  .hand-finger-active .hand-finger-label {
+    fill: var(--color-ink);
+  }
+
+  .hand-title {
+    fill: var(--color-ink-faint);
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+
+  /*
+   * Homepage hero typing widget (`HeroTypingWidget`). Fills exactly
+   * the viewport height below the sticky Navbar (`4rem` = Navbar's
+   * `h-16`) so the word display and the on-screen keyboard are always
+   * visible together without scrolling (Requirement 1).
+   *
+   * Two `height` declarations, oldest-first, is a deliberate
+   * progressive-enhancement fallback: `100vh` (static viewport
+   * height) is supported everywhere; a browser that also understands
+   * `100dvh` (dynamic viewport height — accounts for mobile browser
+   * chrome showing/hiding) overrides it with the more accurate value.
+   * A browser that doesn't recognize `dvh` simply ignores that line
+   * and keeps the `vh` fallback, rather than the whole rule failing.
+   */
+  .hero-typing-height {
+    min-height: 0;
+    height: auto;
+  }
+
+  /* A single, predictable viewport for live typing text. Keeping the
+     marquee itself as the overflow boundary prevents long Urdu runs or
+     transform calculations from ever becoming page-level overlays. */
+  .typing-marquee {
+    contain: layout paint;
+    isolation: isolate;
+  }
+
+  .typing-marquee > .urdu-text {
+    unicode-bidi: plaintext;
+    max-width: none;
+  }
+
+  /* Typing screens should never reserve a mysterious right-hand gutter.
+     These rules only apply to the typing content, not the global shell. */
+  .typing-workspace {
+    width: 100%;
+    min-width: 0;
   }
 }

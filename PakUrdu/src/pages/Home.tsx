@@ -1,131 +1,176 @@
-import { BookOpen, Keyboard, LineChart, Timer } from "lucide-react";
+import { BookOpen, Gauge, Keyboard, LineChart, Target, Timer } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
 import { Section } from "@/components/Section";
 import { Card } from "@/components/Card";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { TypingTestExperience } from "@/features/tests/components/TypingTestExperience";
-import { useSettings } from "@/features/settings";
-import { homeContent } from "@/data/localization";
-import type { FeaturePreview } from "@/types";
+import { Badge } from "@/components/Badge";
+import { Button } from "@/components/Button";
+import { StatCard } from "@/components/StatCard";
+import { HeroTypingWidget } from "@/components/home/HeroTypingWidget";
+import { useSEO } from "@/hooks/useSEO";
+import { useProfiles } from "@/features/profiles/context/ProfileContext";
+import { useProgress, getContinueLearningCta } from "@/features/progress";
+import type { Profile } from "@/features/profiles";
+import { useLanguage } from "@/i18n/useLanguage";
 
-const featurePreviews: FeaturePreview[] = [
-  {
-    id: "learn",
-    icon: BookOpen,
-    title: "Learn Urdu Typing",
-    description:
-      "Structured lessons that introduce the phonetic keyboard one sound at a time, from single letters to full words.",
-  },
-  {
-    id: "practice",
-    icon: Keyboard,
-    title: "Practice",
-    description:
-      "Guided practice sessions that build muscle memory at a pace that matches your current level.",
-  },
-  {
-    id: "progress",
-    icon: LineChart,
-    title: "Track Progress",
-    description:
-      "See how your speed and accuracy improve over time, lesson by lesson.",
-  },
-  {
-    id: "tests",
-    icon: Timer,
-    title: "Take Typing Tests",
-    description:
-      "Timed tests that measure your real-world typing speed and accuracy in Urdu.",
-  },
-];
+const featureIcons = [BookOpen, Keyboard, LineChart, Timer];
 
-const philosophySteps = [
-  { label: "Learn", body: "Understand where each sound sits on the phonetic keyboard." },
-  { label: "Practice", body: "Repeat guided exercises until the keys feel familiar." },
-  { label: "Improve", body: "Take tests to measure real progress and build speed." },
-];
-
-export default function Home() {
-  const { language } = useSettings();
-  const content = homeContent[language];
-
-  useDocumentTitle(
-    language === "ur"
-      ? "PAKURDU — اردو ٹائپنگ"
-      : "PAKURDU — Urdu Typing",
-  );
+function MarketingHero() {
+  const { t, isUrdu, direction } = useLanguage();
+  const copy = t.home;
 
   return (
-    <div dir={language === "ur" ? "rtl" : "ltr"}>
-      <section className="border-b border-border bg-surface">
-        <PageContainer className="py-10 sm:py-14 lg:py-16">
-          <div className="mx-auto max-w-5xl">
-            <div className="mb-8 text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">
-                Urdu typing
-              </p>
-              <h1 className="mt-3 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">
-                {language === "ur" ? "اردو ٹائپنگ ٹیسٹ" : "Urdu Typing Test"}
-              </h1>
-              <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-ink-soft sm:text-lg">
-                {language === "ur"
-                  ? "اپنی اردو ٹائپنگ کی رفتار اور درستگی جانچیں۔ 60 سیکنڈ کا ٹیسٹ فوراً شروع کریں۔"
-                  : "Measure your Urdu typing speed and accuracy. Your default 60-second test starts immediately."}
-              </p>
-            </div>
+    <PageContainer
+      dir={direction}
+      className="grid gap-10 py-14 sm:py-20 lg:grid-cols-[1.08fr,0.92fr] lg:items-center"
+    >
+      <div className={isUrdu ? "urdu-body" : ""}>
+        <Badge tone="brand" className="mb-5">
+          {copy.badge}
+        </Badge>
+        <h1 className="max-w-3xl text-4xl font-extrabold leading-[1.15] tracking-tight sm:text-5xl lg:text-6xl">
+          {copy.title}
+        </h1>
+        <p className="mt-6 max-w-2xl text-base leading-8 text-ink-soft sm:text-lg">
+          {copy.description}
+        </p>
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <Button to="/profile" size="lg">
+            {copy.primary}
+          </Button>
+          <Button to="/learn" variant="secondary" size="lg">
+            {copy.secondary}
+          </Button>
+        </div>
+      </div>
 
-            <TypingTestExperience />
+      <div className="relative flex min-h-64 items-center justify-center overflow-hidden rounded-2xl border border-border bg-paper px-6 py-12 shadow-card sm:min-h-80">
+        <div aria-hidden="true" className="absolute inset-0 opacity-50 [background-image:radial-gradient(circle_at_center,var(--color-brand-100)_1px,transparent_1px)] [background-size:22px_22px]" />
+        <div className="relative text-center">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-ink-faint">اردو</p>
+          <div className="flex items-center justify-center gap-3">
+            <span className="urdu-text text-7xl font-bold text-ink sm:text-8xl">سیکھیں</span>
+            <span aria-hidden="true" className="h-14 w-[3px] animate-caret rounded-full bg-brand-500 sm:h-16" />
           </div>
-        </PageContainer>
+          <p className="mx-auto mt-4 max-w-xs text-sm leading-6 text-ink-soft">
+            {isUrdu
+              ? "ہر حرف کو سمجھیں، ہاتھ کو عادت ڈالیں، اور پھر رفتار کو خود آنے دیں۔"
+              : direction === "ltr" && t.home.badge === "Urdu typing, samajh ke saath"
+                ? "Har harf ko samjhein, haath ko aadat dalayein, aur phir speed ko khud aane dein."
+                : "Understand each character, build the habit, and let speed follow."}
+          </p>
+        </div>
+      </div>
+    </PageContainer>
+  );
+}
+
+function DashboardHero({ profile }: { profile: Profile }) {
+  const { currentLesson, coursePercentage, completedLessonCount, totalLessonCount, bestWpm, bestAccuracy } = useProgress();
+  const { t, isUrdu, direction } = useLanguage();
+  const copy = t.home;
+  const cta = getContinueLearningCta({ currentLesson, completedLessonCount });
+  const isNewProfile = completedLessonCount === 0;
+
+  const heading = isNewProfile
+    ? copy.newProfileHeading
+    : copy.returningHeading.replace("{name}", profile.name);
+
+  const subheading = cta.isCourseComplete
+    ? copy.completeDescription
+    : isNewProfile
+      ? copy.newProfileDescription
+      : copy.returningDescription.replace("{lesson}", currentLesson?.title ?? (isUrdu ? "اگلا سبق" : "your next lesson"));
+
+  return (
+    <PageContainer dir={direction} className="grid gap-10 py-14 sm:py-20 lg:grid-cols-[1.08fr,0.92fr] lg:items-center">
+      <div className={isUrdu ? "urdu-body" : ""}>
+        <Badge tone="brand" className="mb-5">
+          {isNewProfile ? copy.newProfileBadge : copy.returningBadge}
+        </Badge>
+        <h1 className="max-w-3xl text-4xl font-extrabold leading-[1.15] tracking-tight sm:text-5xl">
+          {heading}
+        </h1>
+        <p className="mt-6 max-w-2xl text-base leading-8 text-ink-soft sm:text-lg">{subheading}</p>
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <Button to={cta.to} size="lg">{cta.label}</Button>
+          <Button to="/progress" variant="secondary" size="lg">{copy.viewProgress}</Button>
+        </div>
+      </div>
+
+      <div aria-labelledby="home-progress-heading" dir="ltr">
+        <h2 id="home-progress-heading" className="text-sm font-semibold uppercase tracking-wide text-ink-faint">
+          {copy.progressTitle}
+        </h2>
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <StatCard icon={LineChart} label={copy.courseProgress} value={`${coursePercentage}%`} />
+          <StatCard icon={BookOpen} label={copy.completedLessons} value={`${completedLessonCount} / ${totalLessonCount}`} />
+          {bestWpm !== null && <StatCard icon={Gauge} label={copy.bestWpm} value={String(bestWpm)} />}
+          {bestAccuracy !== null && <StatCard icon={Target} label={copy.bestAccuracy} value={`${bestAccuracy}%`} />}
+        </div>
+      </div>
+    </PageContainer>
+  );
+}
+
+export default function Home() {
+  useSEO({
+    title: "Urdu Typing Tutorial — Learn Urdu Typing Online Free",
+    description:
+      "Learn Urdu typing online free with PAKURDU. Phonetic Urdu keyboard lessons, guided practice, typing tests, and progress tracking for beginners to professionals.",
+  });
+  const { activeProfile } = useProfiles();
+  const { t, direction, isUrdu } = useLanguage();
+  const copy = t.home;
+
+  return (
+    <>
+      <HeroTypingWidget />
+
+      <section className="border-b border-border bg-surface">
+        {activeProfile ? <DashboardHero profile={activeProfile} /> : <MarketingHero />}
       </section>
 
-      <PageContainer>
+      <PageContainer dir={direction}>
         <Section
           align="center"
-          eyebrow={content.whatsAhead}
-          title={content.sectionTitle}
-          description={content.sectionDescription}
+          eyebrow={copy.aheadEyebrow}
+          title={copy.aheadTitle}
+          description={copy.aheadDescription}
         >
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {featurePreviews.map((feature, index) => (
-              <Card key={feature.id} hover className="text-left">
-                <span className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-sm bg-brand-50 text-brand-600">
-                  <feature.icon size={20} aria-hidden="true" />
-                </span>
-                <h3 className="text-base font-semibold">{content.features[index][0]}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-                  {content.features[index][1]}
-                </p>
-              </Card>
-            ))}
+            {copy.features.map(([title, description], index) => {
+              const Icon = featureIcons[index];
+              return (
+                <Card key={title} hover className={`text-left ${isUrdu ? "urdu-body" : ""}`}>
+                  <span className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-sm bg-brand-50 text-brand-600">
+                    <Icon size={20} aria-hidden="true" />
+                  </span>
+                  <h3 className="text-base font-semibold">{title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-ink-soft">{description}</p>
+                </Card>
+              );
+            })}
           </div>
         </Section>
 
         <Section
           align="center"
-          eyebrow={content.philosophy}
-          title={content.philosophy}
-          description={content.sectionDescription}
+          eyebrow={copy.philosophyEyebrow}
+          title={copy.philosophyTitle}
+          description={copy.philosophyDescription}
           className="border-t border-border"
         >
           <div className="grid gap-5 sm:grid-cols-3">
-            {philosophySteps.map((step, index) => (
-              <div
-                key={step.label}
-                className="rounded-lg border border-border bg-surface p-6 text-left"
-              >
-                <span className="numeric text-sm font-semibold text-brand-500">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <h3 className="mt-3 text-base font-semibold">{content.steps[index][0]}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-                  {content.steps[index][1]}
-                </p>
+            {copy.philosophy.map(([label, body], index) => (
+              <div key={label} className={`rounded-lg border border-border bg-surface p-6 text-left ${isUrdu ? "urdu-body" : ""}`}>
+                <span className="numeric text-sm font-semibold text-brand-500">{String(index + 1).padStart(2, "0")}</span>
+                <h3 className="mt-3 text-base font-semibold">{label}</h3>
+                <p className="mt-2 text-sm leading-7 text-ink-soft">{body}</p>
               </div>
             ))}
           </div>
         </Section>
       </PageContainer>
-    </div>
+    </>
   );
 }

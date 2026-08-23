@@ -1,9 +1,50 @@
-# Urdu Typing Tutorial — Part 1: Project Foundation
+# PAKURDU — Urdu Typing Tutorial
 
-A modern, professional platform for learning Urdu phonetic typing.
-This is **Part 1**: foundation only — routing, design system, layout,
-and a polished home page. No typing engine, keyboard mapping,
-lessons, progress tracking, or backend yet.
+**PAKURDU** is a free, client-side Urdu typing tutorial: learn Urdu typing
+online with phonetic keyboard lessons, guided practice, timed typing tests,
+and progress tracking. Built with React, TypeScript, Vite, Tailwind CSS, and
+React Router — no backend, no signup, no cost.
+
+🔗 **Live app:** https://zulfiqarteams.github.io/Portfolio_Website/PAKURDU/
+
+Keywords: Urdu typing tutorial, learn Urdu typing, Urdu keyboard, online Urdu
+typing practice, free Urdu typing test, Urdu phonetic keyboard, type Urdu
+online.
+
+## Features
+
+- **95-lesson, data-driven curriculum** — Alif → Yay and mapped Urdu
+  character variants, with keyboard position and correct-finger guidance
+- Single-key, combination, word, sentence, paragraph, professional, and
+  mastery-level practice
+- 141-word Urdu practice bank with common vocabulary plus naturally mixed
+  Islamic vocabulary
+- Progressive difficulty with review lessons
+- A dedicated **Urdu typing test** (1/3/5-minute timed tests with WPM and
+  accuracy scoring)
+- Persisted lesson completion through a local profile/progress system
+- Typing sounds, dark mode, English/Roman Urdu/Urdu language switcher, and
+  responsive design for mobile and desktop
+
+## SEO
+
+Every route sets its own `<title>`, meta description, canonical URL, and
+Open Graph/Twitter tags via `src/hooks/useSEO.ts` (see `src/pages/*.tsx` for
+usage). Personal/account pages (`/profile`, `/settings`, `/progress`,
+`/results`) are marked `noindex` since they hold no unique searchable
+content per visitor. `public/robots.txt` and `public/sitemap.xml` are
+included; `public/404.html` implements the standard
+[SPA-on-GitHub-Pages redirect trick](https://github.com/rafgraph/spa-github-pages)
+since GitHub Pages has no server-side routing.
+
+**Optional next step — a fully generated sitemap:** the 95 `/lesson/:id`
+pages aren't individually listed in `sitemap.xml` because their slugs are
+generated at runtime from lesson data; Google reaches all of them through
+the ordinary links on `/learn`. If you want every lesson URL in the sitemap
+too, add a small Node script that imports `getCourse()` from
+`src/features/lessons`, loops over every lesson's `id`, and writes
+`public/sitemap.xml` as a `prebuild` step — that avoids hand-maintaining 95
+URLs that could drift out of sync with the curriculum.
 
 ## Setup
 
@@ -17,38 +58,30 @@ npm install
 npm run dev
 ```
 
-Opens the app locally (Vite will print the local URL, typically
-`http://localhost:5173`).
-
 ## Production build
 
 ```bash
 npm run build
-npm run preview   # optional: serve the production build locally
+```
+
+The build output in `dist/` is ready to deploy as-is to GitHub Pages. If you
+ever move the app to a different repo, folder, or a custom domain, update
+these three places together (they all encode the same base path):
+
+- `vite.config.ts` → `base`
+- `src/main.tsx` → `<BrowserRouter basename>`
+- `src/config/site.ts` → `BASE_PATH` and `SITE_URL`
+
+...and update the absolute URLs in `index.html`, `public/robots.txt`, and
+`public/sitemap.xml` to match.
+
+## Type check / lint
+
+```bash
+npm run lint
 ```
 
 ## Tech stack
 
 React 18 · TypeScript · Vite · Tailwind CSS · React Router · lucide-react.
-No backend, no database, no auth — fully client-side.
-
-## Folder structure
-
-```
-src/
-  components/   Reusable UI primitives (Button, Card, Badge, Section, PageContainer, PlaceholderPage)
-  layouts/      App chrome shared across routes (RootLayout, Navbar, Footer)
-  pages/        One file per route
-  features/     Empty homes for future modules (typing-engine, keyboard, lessons,
-                practice, tests, progress, profiles, settings) — each has a README
-                explaining its intended purpose
-  hooks/        Shared hooks (useDocumentTitle)
-  lib/          Small framework-agnostic utilities (cn)
-  data/         Static data (nav config)
-  types/        Shared TypeScript types
-  styles/       Reserved for future design-system CSS beyond index.css
-  utils/        Reserved for future RTL/formatting helpers
-```
-
-See the full Part 1 report in the chat for the reasoning behind this
-structure, what was verified, and what's intentionally out of scope.
+No backend, database, or auth — the app remains fully client-side.

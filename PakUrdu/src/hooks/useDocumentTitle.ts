@@ -1,19 +1,3 @@
-import { useEffect } from "react";
-
-const SITE_NAME = "Urdu Typing Tutorial";
-
-/**
- * Sets `document.title` for the current page, restoring the previous
- * title on unmount. Every route uses this so the browser tab always
- * reflects where the user is, which also makes manual route
- * verification straightforward.
- */
-export function useDocumentTitle(pageTitle: string): void {
-  useEffect(() => {
-    const previousTitle = document.title;
-    document.title = `${pageTitle} · ${SITE_NAME}`;
-    return () => {
-      document.title = previousTitle;
-    };
-  }, [pageTitle]);
-}
+// Superseded by useSEO.ts (title + meta description + canonical + OG/Twitter
+// + robots in one hook). Re-exported here only so nothing else breaks.
+export { useDocumentTitle } from "@/hooks/useSEO";

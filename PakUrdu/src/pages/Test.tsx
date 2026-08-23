@@ -1,167 +1,374 @@
-import { useCallback, useMemo, useState } from "react";
-import { Input } from "@/components/Input";
-import { Badge } from "@/components/Badge";
-import { Button } from "@/components/Button";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { BarChart3, CheckCircle2, RotateCcw, Timer as TimerIcon } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
-import { getMistakes } from "@/features/results";
-import {
-  DEFAULT_TEST_DURATION_SECONDS,
-} from "@/features/tests/useTimedTypingTest";
-import { TypingTestExperience } from "@/features/tests/components/TypingTestExperience";
-import { TYPING_TEST_TEXT } from "@/features/tests/testText";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { useNavigate } from "react-router-dom";
-import type { SessionStatistics } from "@/features/typing-engine";
-import type { TypingState } from "@/features/typing-engine/types";
+import { Button } from "@/components/Button";
+import { useSEO } from "@/hooks/useSEO";
+import { cn } from "@/lib/cn";
+import { useTypingEngine, TypingText, TypingStats, TypingCaptureArea, getVisibleWordWindow, useKeyboardTapInput } from "@/features/typing";
+import { buildWordPassage } from "@/features/typing/data/commonUrduWords";
+import { buildIslamicTypingPassage } from "@/features/typing/data/islamicTypingWords";
+import { VirtualKeyboard, HandFingerGuide, usePressedKey, getExpectedKey, fingerForKey } from "@/features/keyboard";
+import { useTypingTimer, calculateWPM, formatTime } from "@/features/statistics";
+import { buildSessionResult, useSessionResult } from "@/features/results";
+import { useSettings } from "@/features/settings";
+import { playResultNeutral, playResultSuccess } from "@/features/keyboard/utils/keyboardSounds";
+
+/** How many words are ever visible on screen at once, matching the homepage widget — the full passage (sized for the whole test duration) is still one fixed `targetText` underneath, so accuracy/WPM stay correct across the whole test; only the display is windowed. */
+const VISIBLE_WORDS = 10;
 
 const durationOptions = [
-  { id: "1", seconds: 60, label: "1 minute" },
-  { id: "3", seconds: 180, label: "3 minutes" },
-  { id: "5", seconds: 300, label: "5 minutes" },
-  { id: "custom", seconds: 0, label: "Custom" },
+  { id: "60", label: "1 minute", seconds: 60 },
+  { id: "180", label: "3 minutes", seconds: 180 },
+  { id: "300", label: "5 minutes", seconds: 300 },
+  { id: "custom", label: "Custom", seconds: null },
 ] as const;
 
+type Phase = "setup" | "running" | "complete";
+type TestCorpus = "general" | "islamic";
+
 export default function Test() {
-  useDocumentTitle("Typing Test");
-  const navigate = useNavigate();
-  const [selectedDuration, setSelectedDuration] = useState("1");
-  const [customMinutes, setCustomMinutes] = useState("2");
-  const [isStarted, setIsStarted] = useState(true);
-  const [result, setResult] = useState<{
-    typingState: TypingState;
-    statistics: SessionStatistics;
-  } | null>(null);
+  useSEO({
+    title: "Urdu Typing Test — Check Your Speed & Accuracy",
+    description:
+      "Take a free online Urdu typing test. Choose 1, 3, or 5-minute timed tests, measure your words-per-minute and accuracy, and track your typing speed over time.",
+  });
 
-  const durationSeconds = useMemo(() => {
-    const option = durationOptions.find((item) => item.id === selectedDuration);
-    if (option?.id !== "custom") {
-      return option?.seconds ?? DEFAULT_TEST_DURATION_SECONDS;
+  const [phase, setPhase] = useState<Phase>("setup");
+  const [selectedDuration, setSelectedDuration] = useState<string>("60");
+  const [testCorpus, setTestCorpus] = useState<TestCorpus>("general");
+  const [customMinutes, setCustomMinutes] = useState(2);
+  const [testKey, setTestKey] = useState(0);
+  const [timedOut, setTimedOut] = useState(false);
+
+  const { recordSessionResult } = useSessionResult();
+  const { showKeyboard, typingFeedback, soundEnabled } = useSettings();
+
+  const durationSeconds =
+    selectedDuration === "custom"
+      ? Math.min(Math.max(customMinutes, 1), 30) * 60
+      : Number(selectedDuration);
+  const durationMs = durationSeconds * 1000;
+
+  // Only rebuilt when a test actually starts (testKey changes), so the
+  // passage doesn't shuffle under the learner mid-test.
+  const targetText = useMemo(
+    () =>
+      testCorpus === "islamic"
+        ? buildIslamicTypingPassage(durationSeconds)
+        : buildWordPassage(durationSeconds),
+    [testKey],
+  ); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const typing = useTypingEngine({ targetText });
+  const [isCaptureActive, setIsCaptureActive] = useState(false);
+  const hasRecordedCompletionRef = useRef(false);
+  const keyboardTapInput = useKeyboardTapInput(typing, soundEnabled);
+
+  const testHasEnded = typing.isComplete || timedOut;
+
+  const timer = useTypingTimer({
+    hasStarted: typing.currentIndex > 0,
+    isComplete: testHasEnded,
+    resetKey: testKey,
+  });
+
+  // Detect time-up independently of the timer hook's own completion
+  // state (which we're feeding testHasEnded into) — this just watches
+  // the clock and flips `timedOut` once, the render after elapsed time
+  // reaches the chosen duration.
+  useEffect(() => {
+    if (phase !== "running" || testHasEnded) return;
+    if (timer.elapsedMs >= durationMs) setTimedOut(true);
+  }, [phase, testHasEnded, timer.elapsedMs, durationMs]);
+
+  const wpm = calculateWPM(typing.currentIndex, Math.min(timer.elapsedMs, durationMs));
+  const remainingMs = Math.max(durationMs - timer.elapsedMs, 0);
+
+  useEffect(() => {
+    hasRecordedCompletionRef.current = false;
+  }, [testKey]);
+
+  // Record the session and move to the "complete" screen exactly once,
+  // whichever condition (full passage typed, or time ran out) got
+  // there first. A timed test that runs out of time is still a
+  // normally-completed session — see SessionResultStatus's doc note.
+  useEffect(() => {
+    if (phase === "running" && testHasEnded && !hasRecordedCompletionRef.current) {
+      hasRecordedCompletionRef.current = true;
+      recordSessionResult(
+        buildSessionResult({
+          lessonId: null,
+          lessonName: testCorpus === "islamic" ? "Islamic Names & Honorifics" : "Typing Test",
+          targetText,
+          accuracy: typing.accuracy,
+          sessionAccuracy: typing.sessionAccuracy,
+          wpm,
+          elapsedMs: Math.min(timer.elapsedMs, durationMs),
+          correctCharacters: typing.correctCharacters,
+          incorrectCharacters: typing.incorrectCharacters,
+          // The attempted amount, not the full (possibly longer than
+          // needed) generated passage — matches correct+incorrect so
+          // the Results screen's "Characters" stat reflects what was
+          // actually typed during the test, not what was generated.
+          totalCharacters: typing.currentIndex,
+          mistakes: typing.mistakes,
+          previousBestAccuracy: null,
+          previousBestWpm: null,
+          trackPersonalBest: false,
+          retryPath: "/test",
+        }),
+      );
+      if (soundEnabled) {
+        if (typing.accuracy >= 90 || typing.sessionAccuracy >= 90) playResultSuccess();
+        else playResultNeutral();
+      }
+      setPhase("complete");
     }
+  }, [
+    phase,
+    testHasEnded,
+    targetText,
+    typing.accuracy,
+    typing.sessionAccuracy,
+    typing.correctCharacters,
+    typing.incorrectCharacters,
+    typing.currentIndex,
+    typing.mistakes,
+    wpm,
+    timer.elapsedMs,
+    durationMs,
+    recordSessionResult,
+    testCorpus,
+    soundEnabled,
+  ]);
 
-    const minutes = Math.min(30, Math.max(1, Number(customMinutes) || 1));
-    return minutes * 60;
-  }, [customMinutes, selectedDuration]);
+  function handleStart() {
+    setTimedOut(false);
+    typing.reset();
+    setTestKey((key) => key + 1);
+    setPhase("running");
+  }
 
-  const handleFinished = useCallback(
-    (typingState: TypingState, statistics: SessionStatistics) => {
-      setResult({ typingState, statistics });
-    },
-    [],
+  function handleNewTest() {
+    setPhase("setup");
+  }
+
+  const pressedKey = usePressedKey(isCaptureActive);
+  const currentChar = typing.characters.find((character) => character.status === "current")?.char;
+  const expectedKey = getExpectedKey(currentChar);
+
+  // Only the current 10-word batch is ever rendered (see VISIBLE_WORDS)
+  // — `typing.characters`/accuracy/WPM still span the whole passage,
+  // this is a display slice only, so a long test never grows into one
+  // giant scrolling block of text.
+  const visibleCharacters = useMemo(
+    () => getVisibleWordWindow(typing.characters, targetText, typing.currentIndex, VISIBLE_WORDS),
+    [typing.characters, targetText, typing.currentIndex],
   );
 
+  const statusSummary = useMemo(() => {
+    if (testHasEnded) return "Test complete.";
+    if (typing.currentIndex === 0) return "Ready. Start typing to begin the test.";
+    return `${typing.correctCharacters} correct, ${typing.incorrectCharacters} incorrect, out of ${typing.currentIndex} typed so far.`;
+  }, [testHasEnded, typing.currentIndex, typing.correctCharacters, typing.incorrectCharacters]);
 
-  function viewResults() {
-    if (!result) return;
+  if (phase === "setup") {
+    return (
+      <PageContainer>
+        <PageHeader
+          title="Typing Test"
+          description="Measure your Urdu typing speed and accuracy under a timed test."
+        />
 
-    navigate("/results", {
-      state: {
-        resultType: "test",
-        lessonId: "typing-test",
-        lessonTitle: `${durationSeconds / 60}-minute Urdu Typing Test`,
-        target: TYPING_TEST_TEXT,
-        statistics: result.statistics,
-        mistakes: getMistakes(result.typingState),
-        isNewBestWpm: false,
-        isNewBestAccuracy: false,
-        nextLessonId: null,
-      },
-    });
+        <div className="mx-auto max-w-xl py-10">
+          <Card>
+            <h2 className="text-base font-semibold">Choose your practice</h2>
+            <p className="mt-1 text-sm text-ink-soft">
+              General Urdu for everyday fluency, or a focused Islamic-name practice set for real-world religious writing.
+            </p>
+
+            <div
+              role="radiogroup"
+              aria-label="Typing test content"
+              className="mt-5 grid gap-3 sm:grid-cols-2"
+            >
+              {[
+                { id: "general" as const, title: "General Urdu", description: "Common words and everyday Urdu." },
+                { id: "islamic" as const, title: "Islamic Names & Honorifics", description: "Prophets, Sahaba, Ahl al-Bayt, Awliya, scriptures and respectful forms." },
+              ].map((option) => {
+                const isSelected = testCorpus === option.id;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    onClick={() => setTestCorpus(option.id)}
+                    className={cn(
+                      "rounded-sm border px-4 py-3 text-left transition-colors",
+                      isSelected
+                        ? "border-brand-500 bg-brand-50"
+                        : "border-border hover:border-border-strong",
+                    )}
+                  >
+                    <span className="block text-sm font-semibold text-ink">{option.title}</span>
+                    <span className="mt-1 block text-xs text-ink-soft">{option.description}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <h2 className="mt-7 text-base font-semibold">Choose a duration</h2>
+            <p className="mt-1 text-sm text-ink-soft">
+              Select how long you'd like your test to run.
+            </p>
+
+            <div
+              role="radiogroup"
+              aria-label="Test duration"
+              className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4"
+            >
+              {durationOptions.map((option) => {
+                const isSelected = selectedDuration === option.id;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={isSelected}
+                    onClick={() => setSelectedDuration(option.id)}
+                    className={cn(
+                      "rounded-sm border px-3 py-2.5 text-sm font-medium transition-colors",
+                      isSelected
+                        ? "border-brand-500 bg-brand-50 font-semibold text-brand-700"
+                        : "border-border text-ink-soft hover:border-border-strong hover:text-ink",
+                    )}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {selectedDuration === "custom" && (
+              <label className="mt-4 flex items-center gap-3 text-sm text-ink-soft">
+                Minutes
+                <input
+                  type="number"
+                  min={1}
+                  max={30}
+                  value={customMinutes}
+                  onChange={(event) => setCustomMinutes(Number(event.target.value) || 1)}
+                  className="w-20 rounded-sm border border-border px-2 py-1.5 text-sm text-ink"
+                />
+              </label>
+            )}
+
+            <div className="mt-6 flex items-center gap-3">
+              <Button variant="primary" size="md" onClick={handleStart}>
+                Start Test
+              </Button>
+              <span className="text-xs text-ink-faint">
+                {durationSeconds / 60} minute{durationSeconds !== 60 ? "s" : ""}, unlimited text.
+              </span>
+            </div>
+          </Card>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  if (phase === "complete") {
+    return (
+      <PageContainer>
+        <PageHeader
+          title="Typing Test"
+          description="Your test is complete."
+        />
+
+        <div className="mx-auto max-w-xl py-10">
+          <Card className="flex flex-col items-center gap-4 text-center">
+            <CheckCircle2 size={28} className="text-success-600" aria-hidden="true" />
+            <div>
+              <p className="text-lg font-semibold text-ink">Test complete</p>
+              <p className="mt-1 text-sm text-ink-soft">
+                {Math.round(wpm)} WPM · {typing.accuracy}% accuracy
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button variant="primary" size="md" to="/results">
+                <BarChart3 size={14} aria-hidden="true" />
+                View Full Results
+              </Button>
+              <Button variant="secondary" size="md" onClick={handleNewTest}>
+                <RotateCcw size={14} aria-hidden="true" />
+                New Test
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </PageContainer>
+    );
   }
 
   return (
     <PageContainer>
       <PageHeader
         title="Typing Test"
-        description="A focused Urdu typing test with live speed, accuracy, timer, and a scrollable prompt."
+        description="Type the passage below until the timer runs out."
         action={
-          isStarted ? (
-            <Badge tone="neutral">{durationSeconds / 60}-minute test</Badge>
-          ) : undefined
+          <div className="flex items-center gap-2 rounded-sm border border-border px-3 py-1.5 text-sm font-semibold text-ink">
+            <TimerIcon size={14} aria-hidden="true" className="text-brand-500" />
+            {formatTime(remainingMs)}
+          </div>
         }
       />
 
-      <div className="py-8 sm:py-10">
-        {isStarted ? (
-          <div className="mx-auto max-w-5xl">
-            <TypingTestExperience
-              durationSeconds={durationSeconds}
-              onFinished={handleFinished}
-            />
+      <div className="grid gap-6 py-10 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <Card className="flex min-h-[180px] flex-col items-center justify-center gap-1 overflow-hidden">
+            <TypingCaptureArea
+              typing={typing}
+              onActiveChange={setIsCaptureActive}
+              suppressNativeKeyboardOnTouch={showKeyboard}
+            >
+              <TypingText
+                characters={visibleCharacters}
+                statusSummary={statusSummary}
+                showFeedback={typingFeedback}
+                layout="scroll"
+                resetKey={testKey}
+              />
+            </TypingCaptureArea>
+          </Card>
 
-            {result && (
-              <Card className="mt-5 border-success-500 bg-success-50">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold text-ink">Test results are ready</p>
-                    <p className="mt-1 text-sm text-ink-soft">
-                      {result.statistics.wpm} WPM · {result.statistics.accuracy}% accuracy ·{" "}
-                      {result.statistics.incorrectCharacters} errors
-                    </p>
-                  </div>
-                  <Button variant="primary" size="sm" onClick={viewResults}>
-                    View Full Results
-                  </Button>
-                </div>
+          {showKeyboard && (
+            <>
+              <Card>
+                <p className="mb-4 text-sm font-medium text-ink-soft">On-screen keyboard</p>
+                <VirtualKeyboard
+                  pressedKey={pressedKey}
+                  expectedKey={expectedKey}
+                  onKeyPress={keyboardTapInput.onKeyPress}
+                  onBackspace={keyboardTapInput.onBackspace}
+                />
               </Card>
-            )}
-          </div>
-        ) : (
-          <div className="mx-auto max-w-2xl">
-            <Card>
-              <h2 className="text-base font-semibold">Choose a duration</h2>
-              <p className="mt-1 text-sm text-ink-soft">
-                The default is a 60-second test. Once started, the timer runs continuously.
-              </p>
 
-              <div
-                role="radiogroup"
-                aria-label="Test duration"
-                className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4"
-              >
-                {durationOptions.map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={selectedDuration === option.id}
-                    onClick={() => setSelectedDuration(option.id)}
-                    className={`rounded-sm border px-3 py-2.5 text-sm font-medium transition-colors ${
-                      selectedDuration === option.id
-                        ? "border-brand-500 bg-brand-50 font-semibold text-brand-700"
-                        : "border-border text-ink-soft hover:border-border-strong hover:text-ink"
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+              <HandFingerGuide activeGuide={expectedKey ? fingerForKey(expectedKey.key) : null} />
+            </>
+          )}
+        </div>
 
-              {selectedDuration === "custom" && (
-                <div className="mt-4 max-w-xs">
-                  <Input
-                    label="Custom duration (1–30 minutes)"
-                    type="number"
-                    min={1}
-                    max={30}
-                    value={customMinutes}
-                    onChange={(event) => setCustomMinutes(event.target.value)}
-                  />
-                </div>
-              )}
-
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                <Button variant="primary" size="md" onClick={() => setIsStarted(true)}>
-                  Start Test
-                </Button>
-                <span className="text-xs text-ink-faint">
-                  Physical keyboard input is captured automatically.
-                </span>
-              </div>
-            </Card>
-          </div>
-        )}
+        <TypingStats
+          accuracy={typing.accuracy}
+          currentIndex={typing.currentIndex}
+          totalCharacters={typing.totalCharacters}
+          incorrectCharacters={typing.incorrectCharacters}
+          wpm={wpm}
+          elapsedMs={timer.elapsedMs}
+        />
       </div>
     </PageContainer>
   );

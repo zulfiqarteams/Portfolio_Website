@@ -2,34 +2,28 @@ import { Link, useParams } from "react-router-dom";
 import { PageContainer } from "@/components/PageContainer";
 import { PageHeader } from "@/components/PageHeader";
 import { ContentSidebar } from "@/components/ContentSidebar";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import {
-  useLesson,
-  LessonPageHeader,
-  LessonObjectives,
-  LessonExplanation,
-  LessonExamples,
-  LessonPractice,
-  LessonNavigation,
-  LessonNotFound,
-} from "@/features/lessons";
+import { Card } from "@/components/Card";
+import { LessonNavigation } from "@/features/lessons/components/LessonNavigation";
+import { LessonPractice } from "@/features/lessons/components/LessonPractice";
+import { LessonObjectives } from "@/features/lessons/components/LessonObjectives";
+import { useLesson } from "@/features/lessons";
+import { useSEO } from "@/hooks/useSEO";
 
 export default function LessonDetail() {
   const { id } = useParams<{ id: string }>();
   const result = useLesson(id);
-
-  const title =
-    result.status === "ok" ? result.context.lesson.title : "Lesson not found";
-  useDocumentTitle(title);
+  const title = result.status === "ok" ? result.context.lesson.title : "Lesson not found";
+  const description =
+    result.status === "ok"
+      ? `${result.context.lesson.description} Free Urdu typing lesson ${result.context.position} of ${result.context.total} on PAKURDU.`
+      : undefined;
+  useSEO({ title, description, noIndex: result.status !== "ok" });
 
   if (result.status !== "ok") {
     return (
       <PageContainer>
-        <PageHeader
-          title="Lesson"
-          breadcrumb={[{ label: "Learn", to: "/learn" }, { label: id ?? "Lesson" }]}
-        />
-        <LessonNotFound malformed={result.status === "malformed"} />
+        <PageHeader title="Lesson" breadcrumb={[{ label: "Learn", to: "/learn" }, { label: id ?? "Lesson" }]} />
+        <div className="py-10 text-sm text-ink-soft">We could not find this lesson.</div>
       </PageContainer>
     );
   }
@@ -38,34 +32,51 @@ export default function LessonDetail() {
 
   return (
     <PageContainer>
-      <div className="grid gap-8 py-8 sm:py-10 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
-        <ContentSidebar activeLessonId={lesson.id} />
+      <div className="py-8 sm:py-10">
+        <div className="grid gap-8 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
+          <ContentSidebar activeLessonId={lesson.id} />
 
-        <div className="min-w-0">
-          <div className="border-b border-border pb-8 pt-2 sm:pt-4">
-        <nav aria-label="Breadcrumb" className="mb-3">
-          <ol className="flex flex-wrap items-center gap-1.5 text-sm text-ink-faint">
-            <li>
-              <Link to="/learn" className="hover:text-ink hover:underline">
-                Learn
-              </Link>
-            </li>
-            <li aria-hidden="true">/</li>
-            <li aria-current="page" className="text-ink-soft">
-              {level.title}
-            </li>
-          </ol>
-        </nav>
-            <LessonPageHeader lesson={lesson} level={level} position={position} total={total} />
-          </div>
+          <main className="min-w-0">
+            <div className="border-b border-border pb-7">
+              <nav aria-label="Breadcrumb" className="mb-3">
+                <ol className="flex flex-wrap items-center gap-1.5 text-sm text-ink-faint">
+                  <li><Link to="/learn" className="hover:text-ink hover:underline">Learn</Link></li>
+                  <li aria-hidden="true">/</li>
+                  <li aria-current="page" className="text-ink-soft">{level.title}</li>
+                </ol>
+              </nav>
+              <div className="flex flex-wrap items-end justify-between gap-5">
+                <div>
+                  <div className="text-sm text-ink-faint">Lesson {position} of {total}</div>
+                  <h1 className="mt-1 text-2xl font-bold sm:text-3xl">{lesson.title}</h1>
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">{lesson.description}</p>
+                </div>
+                {lesson.targetCharacter && (
+                  <div className="rounded-xl border border-brand-100 bg-brand-50 px-5 py-3 text-center">
+                    <p className="urdu-text text-4xl text-brand-700">{lesson.targetCharacter}</p>
+                    <p className="mt-1 text-xs font-semibold text-brand-700">{lesson.phonetic}</p>
+                  </div>
+                )}
+              </div>
+            </div>
 
-          <div className="mx-auto max-w-2xl space-y-10 py-10">
-        <LessonObjectives objectives={lesson.objectives} />
-        <LessonExplanation explanation={lesson.content.explanation} />
-        {lesson.content.examples && <LessonExamples examples={lesson.content.examples} />}
-        <LessonPractice lesson={lesson} />
-            <LessonNavigation previous={previous} next={next} />
-          </div>
+            <div className="space-y-6 py-7">
+              <Card>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-faint">What you will learn</h2>
+                    <p className="mt-1 text-xs text-ink-faint">This lesson is designed to build a usable typing habit, not just recognition.</p>
+                  </div>
+                  <span className="numeric text-xs font-semibold text-ink-faint">{lesson.requiredAccuracy ?? 80}% target accuracy</span>
+                </div>
+                <LessonObjectives objectives={lesson.objectives} />
+              </Card>
+
+              <LessonPractice lesson={lesson} nextLessonId={next?.id} />
+
+              <LessonNavigation previous={previous} next={next} />
+            </div>
+          </main>
         </div>
       </div>
     </PageContainer>

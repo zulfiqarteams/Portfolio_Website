@@ -1,88 +1,17 @@
 import type { Module } from "@/features/lessons/types";
 
-/**
- * Modules group lessons thematically within a level. A level can
- * eventually hold many modules — Part 6 seeds one or two per level
- * so the hierarchy is real and navigable, without pretending the
- * curriculum is finished.
- */
 export const modules: Module[] = [
-  // Level 0 — Getting Started
-  {
-    id: "module-orientation",
-    levelId: "level-0",
-    order: 1,
-    title: "Orientation",
-    description: "The basics you need before typing a single letter.",
-  },
-
-  // Level 1 — Urdu Letters
-  {
-    id: "module-letters-group-1",
-    levelId: "level-1",
-    order: 1,
-    title: "First Letters",
-    description: "A first small group of Urdu letters.",
-  },
-  {
-    id: "module-letters-group-2",
-    levelId: "level-1",
-    order: 2,
-    title: "More Letters",
-    description: "A second group, building on the first.",
-  },
-
-  // Level 2 — Letter Combinations
-  {
-    id: "module-combinations-basic",
-    levelId: "level-2",
-    order: 1,
-    title: "Basic Combinations",
-    description: "Joining letters you already know.",
-  },
-
-  // Level 3 — Words
-  {
-    id: "module-words-simple",
-    levelId: "level-3",
-    order: 1,
-    title: "Simple Words",
-    description: "Short, everyday Urdu words.",
-  },
-
-  // Level 4 — Sentences
-  {
-    id: "module-sentences-short",
-    levelId: "level-4",
-    order: 1,
-    title: "Short Sentences",
-    description: "Complete thoughts in a few words.",
-  },
-
-  // Level 5 — Paragraphs
-  {
-    id: "module-paragraphs-intro",
-    levelId: "level-5",
-    order: 1,
-    title: "Introductory Paragraphs",
-    description: "Multi-sentence passages at a gentle pace.",
-  },
-
-  // Level 6 — Professional Typing
-  {
-    id: "module-professional-writing",
-    levelId: "level-6",
-    order: 1,
-    title: "Formal Writing",
-    description: "Office, educational, and general professional Urdu.",
-  },
-
-  // Level 7 — Typing Tests
-  {
-    id: "module-typing-tests",
-    levelId: "level-7",
-    order: 1,
-    title: "Practice Tests",
-    description: "Timed passages, in preparation for a future Test Engine.",
-  },
+  { id: "module-letters-1", levelId: "level-0", order: 1, title: "Alif to Daal", description: "The first ten Urdu characters and their physical keys." },
+  { id: "module-letters-2", levelId: "level-0", order: 2, title: "Daal to Sheen", description: "The next group of characters, including shifted keys." },
+  { id: "module-letters-3", levelId: "level-0", order: 3, title: "Suaad to Gaaf", description: "Build confidence with the middle of the Urdu alphabet." },
+  { id: "module-letters-4", levelId: "level-0", order: 4, title: "Laam to Yay", description: "Finish the alphabet and master the remaining keys." },
+  { id: "module-combinations-1", levelId: "level-1", order: 1, title: "Build the Shape", description: "Combine recently learned letters into short patterns." },
+  { id: "module-combinations-2", levelId: "level-1", order: 2, title: "Review the Pattern", description: "Mix combinations until the key sequence feels automatic." },
+  { id: "module-words-foundations", levelId: "level-2", order: 1, title: "Word Foundations", description: "Short, highly familiar words built from early letters." },
+  { id: "module-words-common", levelId: "level-2", order: 2, title: "Common Vocabulary", description: "Everyday, family, school, and routine vocabulary." },
+  { id: "module-words-fluency", levelId: "level-2", order: 3, title: "Word Fluency", description: "Longer words, names, values, and mixed review." },
+  { id: "module-sentences", levelId: "level-3", order: 1, title: "Complete Sentences", description: "Put useful Urdu words together with punctuation." },
+  { id: "module-paragraphs", levelId: "level-4", order: 1, title: "Fluency Passages", description: "Sustain accurate typing over several sentences." },
+  { id: "module-professional", levelId: "level-5", order: 1, title: "Formal Writing", description: "Office, educational, and professional Urdu." },
+  { id: "module-mastery", levelId: "level-6", order: 1, title: "Final Mastery", description: "Final mixed lessons before independent tests." },
 ];

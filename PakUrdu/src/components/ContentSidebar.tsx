@@ -1,24 +1,22 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { ChevronDown, ChevronRight, Menu, X } from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
+import { CheckCircle2, ChevronDown, ChevronRight, Menu, X } from "lucide-react";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/cn";
+import { useLanguage } from "@/i18n/useLanguage";
 import { getLevels, getLessonById } from "@/features/lessons";
+import { tutorialTracks, getTrackForLevel } from "@/features/lessons/data/tracks";
 import { readingSections } from "@/features/reading/data/content";
+import { biographyCategories, biographies } from "@/features/biography";
+import { useReadingProgress } from "@/features/reading/hooks/useReadingProgress";
 
 interface ContentSidebarProps {
   activeLessonId?: string;
   activeReadingId?: string;
 }
 
-const tutorialTracks = [
-  { id: "basic", label: "Basic", min: 0, max: 2 },
-  { id: "intermediate", label: "Intermediate", min: 3, max: 5 },
-  { id: "advanced", label: "Advanced", min: 6, max: Number.POSITIVE_INFINITY },
-] as const;
-
-function getTrackForLevel(order: number) {
-  return tutorialTracks.find((track) => order >= track.min && order <= track.max)?.id;
+function biographiesForSidebar(category: string) {
+  return biographies.filter((item) => item.category === category).slice(0, 8);
 }
 
 function SectionToggle({
@@ -49,6 +47,8 @@ function SectionToggle({
 
 function SidebarContent({ activeLessonId, activeReadingId, onNavigate }: ContentSidebarProps & { onNavigate?: () => void }) {
   const location = useLocation();
+  const { visited } = useReadingProgress();
+  const { language } = useLanguage();
   const activeLesson = activeLessonId ? getLessonById(activeLessonId) : undefined;
   const activeTrack = activeLesson
     ? getTrackForLevel(getLevels().find((level) => level.id === activeLesson.levelId)?.order ?? -1)
@@ -59,8 +59,11 @@ function SidebarContent({ activeLessonId, activeReadingId, onNavigate }: Content
     activeTrack !== undefined || selectedTrack !== null || location.pathname === "/learn",
   );
   const [readingOpen, setReadingOpen] = useState(
-    activeReadingId !== undefined || location.pathname === "/learn/reading",
+    activeReadingId !== undefined || location.pathname === "/learn/phonetic-keyboard",
   );
+  const [sahiUrduOpen, setSahiUrduOpen] = useState(location.pathname.startsWith("/sahi-urdu"));
+  const [biographyOpen, setBiographyOpen] = useState(location.pathname.startsWith("/biography"));
+  const [openBiographyCategory, setOpenBiographyCategory] = useState<string | null>(null);
 
   useEffect(() => {
     if (activeTrack || selectedTrack !== null || location.pathname === "/learn") {
@@ -69,10 +72,15 @@ function SidebarContent({ activeLessonId, activeReadingId, onNavigate }: Content
   }, [activeTrack, location.pathname, selectedTrack]);
 
   useEffect(() => {
-    if (activeReadingId || location.pathname === "/learn/reading") {
+    if (activeReadingId || location.pathname === "/learn/phonetic-keyboard") {
       setReadingOpen(true);
     }
   }, [activeReadingId, location.pathname]);
+
+  useEffect(() => {
+    if (location.pathname.startsWith("/sahi-urdu")) setSahiUrduOpen(true);
+    if (location.pathname.startsWith("/biography")) setBiographyOpen(true);
+  }, [location.pathname]);
 
 
   return (
@@ -83,7 +91,7 @@ function SidebarContent({ activeLessonId, activeReadingId, onNavigate }: Content
       <div className="max-h-[calc(100vh-7rem)] overflow-y-auto rounded-md border border-border bg-paper p-2 shadow-card overscroll-contain">
         <div>
           <SectionToggle expanded={tutorialOpen} onClick={() => setTutorialOpen((open) => !open)}>
-            Typing Tutorial
+            {language === "ur" ? "ٹائپنگ ٹیوٹوریل" : language === "roman" ? "Typing Tutorial" : "Typing Tutorial"}
           </SectionToggle>
           <div
             className={cn(
@@ -110,10 +118,10 @@ function SidebarContent({ activeLessonId, activeReadingId, onNavigate }: Content
                         : "text-ink-soft hover:bg-surface hover:text-ink",
                     )}
                   >
-                    <span>{track.label}</span>
+                    <span>{language === "ur" ? ({ basic: "بنیادی", intermediate: "درمیانی", expert: "ماہر" } as const)[track.id] : language === "roman" ? ({ basic: "Basic", intermediate: "Darmiyani", expert: "Mahir" } as const)[track.id] : track.label}</span>
                     {activeTrack === track.id && activeLesson && (
                       <span className="mt-0.5 block truncate text-[11px] font-normal text-brand-600">
-                        Current: {activeLesson.title}
+                        {language === "ur" ? "موجودہ: " : "Current: "}{activeLesson.title}
                       </span>
                     )}
                   </NavLink>
@@ -125,7 +133,7 @@ function SidebarContent({ activeLessonId, activeReadingId, onNavigate }: Content
 
         <div className="mt-1 border-t border-border pt-1">
           <SectionToggle expanded={readingOpen} onClick={() => setReadingOpen((open) => !open)}>
-            Learn by Reading
+            {language === "ur" ? "فونیٹک کی بورڈ سیکھیں" : language === "roman" ? "Learn About Phonetic Keyboard" : "Learn About Phonetic Keyboard"}
           </SectionToggle>
           <div
             className={cn(
@@ -133,25 +141,104 @@ function SidebarContent({ activeLessonId, activeReadingId, onNavigate }: Content
               readingOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
             )}
           >
-            <nav className="min-h-0 overflow-hidden pb-1 pl-2" aria-label="Reading topics">
+            <nav className="min-h-0 overflow-hidden pb-1 pl-2" aria-label="Phonetic keyboard learning topics">
               {readingSections.map((section, index) => {
                 const isActive = activeReadingId === section.id;
+                const isVisited = visited.has(section.id);
                 return (
-                  <a
+                  <Link
                     key={section.id}
-                    href={`/learn/reading#${section.id}`}
+                    to={`/learn/phonetic-keyboard#${section.id}`}
                     onClick={onNavigate}
                     className={cn(
-                      "block rounded-sm px-3 py-2 text-sm transition-colors",
+                      "flex items-center justify-between gap-2 rounded-sm px-3 py-2 text-sm transition-colors",
                       isActive
                         ? "bg-brand-50 font-semibold text-brand-700"
                         : "text-ink-soft hover:bg-surface hover:text-ink",
                     )}
                   >
-                    {index + 1}. {section.title.en}
-                  </a>
+                    <span className="truncate">
+                      {index + 1}. {section.title[language]}
+                    </span>
+                    {isVisited && (
+                      <CheckCircle2
+                        size={14}
+                        className={cn("shrink-0", isActive ? "text-brand-600" : "text-success-600")}
+                        aria-hidden="true"
+                      />
+                    )}
+                  </Link>
                 );
               })}
+            </nav>
+          </div>
+        </div>
+
+        <div className="mt-1 border-t border-border pt-1">
+          <SectionToggle expanded={biographyOpen} onClick={() => setBiographyOpen((open) => !open)}>
+            Biography & Islamic History
+          </SectionToggle>
+          <div className={cn(
+            "grid overflow-hidden transition-[grid-template-rows,opacity] duration-200 ease-out",
+            biographyOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+          )}>
+            <nav className="min-h-0 overflow-hidden pb-1 pl-2" aria-label="Biography and Islamic History topics">
+              <Link to="/biography" onClick={onNavigate} className={cn("block rounded-sm px-3 py-2 text-sm", location.pathname === "/biography" ? "bg-brand-50 font-semibold text-brand-700" : "text-ink-soft hover:bg-surface hover:text-ink")}>
+                Overview
+              </Link>
+              <Link to="/biography/muhammad" onClick={onNavigate} className={cn("block rounded-sm px-3 py-2 text-sm font-semibold", location.pathname === "/biography/muhammad" ? "bg-brand-50 text-brand-700" : "text-ink-soft hover:bg-surface hover:text-ink")}>
+                حضرت محمد ﷺ — The Greatest Man in History
+              </Link>
+              {biographyCategories.map((category) => {
+                const open = openBiographyCategory === category.id;
+                const entries = biographiesForSidebar(category.id);
+                return (
+                  <div key={category.id} className="mt-0.5">
+                    <button type="button" aria-expanded={open} onClick={() => setOpenBiographyCategory(open ? null : category.id)} className="flex w-full items-center justify-between rounded-sm px-3 py-2 text-left text-sm text-ink-soft hover:bg-surface hover:text-ink">
+                      <span>{category.label}</span>{open ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
+                    </button>
+                    {open && <div className="border-l border-border ml-3 pl-2">{entries.map((entry) => <Link key={entry.id} to={`/biography/${entry.id}`} onClick={onNavigate} className="block rounded-sm px-3 py-1.5 text-xs text-ink-soft hover:bg-surface hover:text-ink">{entry.respectfulName}</Link>)}<Link to={`/biography/library?category=${category.id}`} onClick={onNavigate} className="block rounded-sm px-3 py-1.5 text-xs font-semibold text-brand-600 hover:bg-brand-50">تمام {category.label}</Link></div>}
+                  </div>
+                );
+              })}
+              <Link to="/biography/library" onClick={onNavigate} className="mt-1 block rounded-sm px-3 py-2 text-sm font-semibold text-brand-600 hover:bg-brand-50">تمام سوانح / تلاش</Link>
+            </nav>
+          </div>
+        </div>
+
+        <div className="mt-1 border-t border-border pt-1">
+          <SectionToggle expanded={sahiUrduOpen} onClick={() => setSahiUrduOpen((open) => !open)}>
+            صحیح اردو
+          </SectionToggle>
+          <div
+            className={cn(
+              "grid overflow-hidden transition-[grid-template-rows,opacity] duration-200 ease-out",
+              sahiUrduOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+            )}
+          >
+            <nav className="min-h-0 overflow-hidden pb-1 pl-2" aria-label="صحیح اردو learning topics">
+              {[
+                ["/sahi-urdu", "صحیح الفاظ"],
+                ["/sahi-urdu/words?category=غلط العام", "غلط العام"],
+                ["/sahi-urdu/words?category=تلفظ", "تلفظ"],
+                ["/sahi-urdu/words?category=املا", "املا"],
+                ["/sahi-urdu/diacritics", "اعراب"],
+                ["/sahi-urdu/practice", "الفاظ کی مشق"],
+                ["/sahi-urdu/quiz", "کوئز"],
+                ["/sahi-urdu/progress", "میری پیش رفت"],
+              ].map(([path, label]) => (
+                <NavLink
+                  key={path}
+                  to={path}
+                  onClick={onNavigate}
+                  className={({ isActive }) => cn(
+                    "block rounded-sm px-3 py-2 text-sm transition-colors",
+                    isActive ? "bg-brand-50 font-semibold text-brand-700" : "text-ink-soft hover:bg-surface hover:text-ink",
+                  )}
+                >
+                  {label}
+                </NavLink>
+              ))}
             </nav>
           </div>
         </div>
@@ -162,6 +249,7 @@ function SidebarContent({ activeLessonId, activeReadingId, onNavigate }: Content
 
 export function ContentSidebar({ activeLessonId, activeReadingId }: ContentSidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { language } = useLanguage();
 
   return (
     <>
@@ -174,7 +262,7 @@ export function ContentSidebar({ activeLessonId, activeReadingId }: ContentSideb
           className="inline-flex min-h-10 items-center gap-2 rounded-md border border-border bg-paper px-3 py-2 text-sm font-semibold text-ink shadow-card transition-colors hover:bg-surface"
         >
           {mobileOpen ? <X size={17} aria-hidden="true" /> : <Menu size={17} aria-hidden="true" />}
-          Course navigation
+          {language === "ur" ? "کورس کی رہنمائی" : language === "roman" ? "Course navigation" : "Course navigation"}
         </button>
       </div>
 

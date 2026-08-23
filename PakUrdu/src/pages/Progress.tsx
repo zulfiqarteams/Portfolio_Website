@@ -1,20 +1,20 @@
-import { LineChart, Trophy, Gauge, Target, ListChecks } from "lucide-react";
+import { LineChart, Trophy, UserCircle } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
-import { StatCard } from "@/components/StatCard";
 import { Card } from "@/components/Card";
 import { ProgressBar } from "@/components/ProgressBar";
-import { Badge } from "@/components/Badge";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { StatCard } from "@/components/StatCard";
+import { Button } from "@/components/Button";
+import { useSEO } from "@/hooks/useSEO";
 import { useProfiles } from "@/features/profiles";
 import { useProgress } from "@/features/progress";
-import { getAllLessonsInOrder } from "@/features/lessons/services/lessonCatalog";
 
-export default function ProgressPage() {
-  useDocumentTitle("Progress");
+export default function Progress() {
+  useSEO({ title: "Your Learning Progress", noIndex: true });
   const { activeProfile } = useProfiles();
-  const { progress, overallStats } = useProgress();
+  const { completedLessonCount, totalLessonCount, coursePercentage, currentLesson, bestWpm, bestAccuracy } =
+    useProgress();
 
   if (!activeProfile) {
     return (
@@ -25,106 +25,90 @@ export default function ProgressPage() {
         />
         <div className="py-10">
           <EmptyState
-            icon={LineChart}
-            title="Select a profile to see progress"
-            description="Progress is tracked per profile, stored locally in your browser — no account required."
-            action={{ label: "Go to Practice", to: "/practice" }}
+            icon={UserCircle}
+            title="Choose a profile to see your progress"
+            description="Progress is tracked per local profile, stored only in this browser."
+            action={{ label: "Go to Profile", to: "/profile" }}
           />
         </div>
       </PageContainer>
     );
   }
 
-  if (overallStats.completedLessons === 0) {
-    return (
-      <PageContainer>
-        <PageHeader
-          title="Progress"
-          description={`${activeProfile.name}'s speed and accuracy over time.`}
-        />
-        <div className="py-10">
-          <EmptyState
-            icon={LineChart}
-            title="Your progress will appear here"
-            description="Complete your first lesson and your typing statistics will show up here automatically."
-            action={{ label: "Start practicing", to: "/practice" }}
-          />
-        </div>
-      </PageContainer>
-    );
-  }
-
-  const completedLessons = getAllLessonsInOrder().filter((lesson) =>
-    progress.completedLessonIds.includes(lesson.id),
-  );
+  const hasStarted = completedLessonCount > 0;
 
   return (
     <PageContainer>
       <PageHeader
         title="Progress"
-        description={`${activeProfile.name}'s speed and accuracy over time.`}
+        description="Your progress is stored only in this browser."
       />
 
-      <div className="py-10 space-y-8">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard
-            icon={ListChecks}
-            label="Course Progress"
-            value={`${overallStats.percentComplete}%`}
-            hint={`${overallStats.completedLessons} of ${overallStats.totalLessons} lessons`}
+      <div className="space-y-10 py-10">
+        {!hasStarted && (
+          <EmptyState
+            icon={LineChart}
+            title="Your progress will appear here"
+            description="Complete your first lesson to start tracking speed and accuracy."
+            action={{ label: "Start Learning", to: currentLesson ? `/lesson/${currentLesson.id}` : "/learn" }}
           />
-          <StatCard icon={Trophy} label="Completed Lessons" value={String(overallStats.completedLessons)} />
-          <StatCard icon={Gauge} label="Best WPM" value={String(overallStats.bestWpm)} />
-          <StatCard icon={Target} label="Best Accuracy" value={`${overallStats.bestAccuracy}%`} />
-        </div>
+        )}
 
-        <Card>
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-faint">
-              Course completion
-            </h2>
-            <span className="numeric text-sm font-medium text-ink-soft">
-              {overallStats.completedLessons} / {overallStats.totalLessons}
-            </span>
-          </div>
-          <ProgressBar
-            value={overallStats.percentComplete}
-            className="mt-3"
-            label="Course completion"
-          />
-          {overallStats.currentLesson && (
-            <p className="mt-3 text-sm text-ink-soft">
-              Current lesson:{" "}
-              <span className="font-medium text-ink">{overallStats.currentLesson.title}</span>
-            </p>
-          )}
-        </Card>
-
-        <Card>
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-ink-faint">
-            Completed lessons
+        <section aria-labelledby="overall-progress-heading">
+          <h2 id="overall-progress-heading" className="mb-4 text-sm font-semibold uppercase tracking-wide text-ink-faint">
+            Overall Course Progress
           </h2>
-          <ul className="divide-y divide-border">
-            {completedLessons.map((lesson) => {
-              const lessonProgress = progress.lessonProgress[lesson.id];
-              return (
-                <li key={lesson.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                  <div>
-                    <p className="text-sm font-medium text-ink">{lesson.title}</p>
-                    <p className="text-xs text-ink-faint">
-                      {lessonProgress?.attempts ?? 0} attempt
-                      {lessonProgress?.attempts === 1 ? "" : "s"}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge tone="success">{lessonProgress?.bestAccuracy ?? 0}% accuracy</Badge>
-                    <Badge tone="neutral">{lessonProgress?.bestWpm ?? 0} WPM</Badge>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </Card>
+          <Card>
+            <div className="flex items-end justify-between gap-4">
+              <span className="numeric text-4xl font-bold text-ink">{coursePercentage}%</span>
+              <span className="text-sm text-ink-soft">
+                {completedLessonCount} / {totalLessonCount} lessons completed
+              </span>
+            </div>
+            <ProgressBar value={coursePercentage} label="Course progress" className="mt-4" />
+          </Card>
+        </section>
+
+        <section aria-labelledby="current-lesson-heading">
+          <h2 id="current-lesson-heading" className="mb-4 text-sm font-semibold uppercase tracking-wide text-ink-faint">
+            Current Lesson
+          </h2>
+          <Card>
+            {currentLesson ? (
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-ink">{currentLesson.title}</p>
+                  <p className="mt-1 text-sm text-ink-soft">{currentLesson.description}</p>
+                </div>
+                <Button to={`/lesson/${currentLesson.id}`} size="md">
+                  Continue
+                </Button>
+              </div>
+            ) : (
+              <p className="text-sm text-ink-soft">
+                You've completed every lesson in the course. Nicely done.
+              </p>
+            )}
+          </Card>
+        </section>
+
+        <section aria-labelledby="best-performance-heading">
+          <h2 id="best-performance-heading" className="mb-4 text-sm font-semibold uppercase tracking-wide text-ink-faint">
+            Performance
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <StatCard
+              icon={Trophy}
+              label="Best WPM"
+              value={bestWpm !== null ? String(bestWpm) : "--"}
+            />
+            <StatCard
+              icon={Trophy}
+              label="Best Accuracy"
+              value={bestAccuracy !== null ? `${bestAccuracy}%` : "--"}
+            />
+          </div>
+        </section>
       </div>
     </PageContainer>
   );

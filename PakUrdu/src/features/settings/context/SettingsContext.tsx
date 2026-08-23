@@ -13,6 +13,8 @@ function applySettingsToDocument(settings: SettingsState) {
   const root = document.documentElement;
   root.classList.toggle("dark", settings.darkTheme);
   root.classList.toggle("settings-large-text", settings.largeInterface);
+  root.lang = settings.language === "ur" ? "ur" : "en";
+  root.dir = settings.language === "ur" ? "rtl" : "ltr";
 }
 
 export function SettingsProvider({ children }: { children: ReactNode }) {

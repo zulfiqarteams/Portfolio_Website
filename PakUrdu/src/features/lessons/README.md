@@ -1,37 +1,42 @@
-# lessons
+# Lessons
 
-The lesson engine and learning-path architecture (Part 6).
+The structured Urdu phonetic typing curriculum.
 
-## Shape
+## Curriculum shape
 
-```
+```text
 Course
- └─ Level        (Getting Started, Urdu Letters, Words, ...)
-     └─ Module   (a themed group of lessons within a level)
+ └─ Level
+     └─ Module
          └─ Lesson
-             └─ content: explanation, examples, targetText, exercises
+             ├─ ordered steps (learn → observe → practice → review)
+             ├─ curriculum metadata
+             └─ reusable typing targets
 ```
 
-## Layout
+The curriculum is generated from `data/curriculum.ts` and uses the existing
+keyboard mapping, grapheme-aware typing engine, progress service, sound
+settings, virtual keyboard, and finger guide. There are 95 sequential lessons:
 
-- `types/` — `Lesson`, `Module`, `Level`, `Course`, `Exercise`, and their content shapes.
-- `data/` — the curriculum itself, as plain data. `data/lessons/` holds one file
-  per level (`level0.ts` … `level7.ts`) so the curriculum stays editable as it
-  grows without one giant file. Nothing here imports React.
-- `services/lessonCatalog.ts` — every lookup a page needs (by id, by module,
-  by level, next/previous, full context + error reporting). Pages never read
-  `data/` directly.
-- `services/lessonStatus.ts` — **mock only**. Resolves the `locked` /
-  `available` / `current` / `completed` status shown on `LessonCard`. Not
-  backed by real progress or persistence yet — see "Out of scope" below.
-- `hooks/useLesson.ts` — thin memoized wrapper over `getLessonContext`.
-- `components/` — presentational pieces used by `/lesson/:id` and `/learn`.
+- 42 character/key lessons, including Alif through Yay and mapped variants
+- 14 combination/review lessons
+- 21 word lessons using a 141-word Urdu practice bank
+- 6 sentence lessons
+- 3 paragraph lessons
+- 2 professional-writing lessons
+- 7 final mastery lessons
 
-## Out of scope for Part 6
+Every lesson is data-driven; React components do not contain individual lesson
+content or keyboard mappings.
 
-Typing comparison, accuracy/WPM, timers, progress persistence,
-completion tracking, and the Test Engine are **not** implemented here.
-`LessonPractice` renders each exercise's `instruction`/`target` as a
-prepared interface — the future Typing Engine will consume that same
-`target` string without needing to know anything else about the lesson
-it came from.
+## Important integration points
+
+- `services/lessonCatalog.ts` is the single catalog API used by pages.
+- `components/LessonPractice.tsx` provides the step-by-step experience and
+  delegates typing to the existing Typing Engine.
+- `features/keyboard/data/phoneticMap.ts` remains the source of truth for
+  physical-key → Urdu mapping.
+- `features/keyboard/data/fingerGuide.ts` remains the source of truth for
+  physical-key → finger assignment.
+- `features/progress` remains the source of truth for persistence and lesson
+  completion.

@@ -1,188 +1,185 @@
-import { getAllLessonsInOrder } from "@/features/lessons/services/lessonCatalog";
+import { getAllLessonsInOrder, getLessonById } from "@/features/lessons/services/lessonCatalog";
 import type { Lesson } from "@/features/lessons/types";
 import {
   deleteProfileProgress,
-  readProfileProgress,
-  writeProfileProgress,
+  getProfileProgress as readProfileProgress,
+  MAX_RECENT_ATTEMPTS,
+  saveProfileProgress,
 } from "@/features/progress/services/progressStorage";
 import {
-  MAX_RECENT_ATTEMPTS,
-  type LessonProgress,
-  type ProfileProgress,
-} from "@/features/progress/types";
+  calculateCourseProgress,
+  calculateLevelProgress,
+  getCompletedLessonCount,
+  getLessonDisplayStatus,
+  getNextAvailableLesson as calculateNextAvailableLesson,
+  getOverallBestPerformance as calculateOverallBestPerformance,
+} from "@/features/progress/core/progressCalculations";
+import type { AttemptRecord, LessonProgress, LessonProgressStatus, ProfileProgress } from "@/features/progress/types";
 
-/** A brand-new profile's progress — nothing completed, nothing in
- *  progress, current lesson is whatever the course's first lesson
- *  is. Not persisted until the learner actually does something.
- *  Also used as a read-only fallback when there's no active profile
- *  at all (e.g. `/learn` before any profile is selected), so lesson
- *  status logic never has to special-case "no profile". */
-export function createEmptyProgress(profileId: string): ProfileProgress {
-  const firstLesson = getAllLessonsInOrder()[0];
-  return {
-    profileId,
-    completedLessonIds: [],
-    lessonProgress: {},
-    currentLessonId: firstLesson?.id ?? null,
-    lastActivityAt: null,
-  };
+/**
+ * The Progress Service — the only module that talks to
+ * `progressStorage` directly. Everything else (the `useProgress`
+ * hook, and through it every page/component) goes through the
+ * functions here, matching the same shape Part 4's `profileStorage`
+ * established. This is also where lesson-catalog lookups and the
+ * pure calculators (`core/progressCalculations`) get combined with
+ * stored data — neither of those layers knows about the other.
+ */
+
+export { getProfileProgress } from "@/features/progress/services/progressStorage";
+export { deleteProfileProgress };
+
+/** This profile's status for one lesson — locked / available / inProgress / completed. */
+export function getLessonStatus(profileId: string, lesson: Lesson): LessonProgressStatus {
+  const progress = readProfileProgress(profileId);
+  return getLessonDisplayStatus(lesson, progress, getAllLessonsInOrder());
 }
 
-/** Reads a profile's progress, or a fresh empty one if it has none
- *  yet. Reading never creates a stored entry — only recording an
- *  attempt does — so simply viewing `/learn` with a brand-new
- *  profile doesn't write anything. */
-export function getProfileProgress(profileId: string): ProfileProgress {
-  return readProfileProgress(profileId) ?? createEmptyProgress(profileId);
-}
-
-export function saveProfileProgress(progress: ProfileProgress): void {
-  writeProfileProgress(progress);
-}
-
-export function getLessonProgress(
-  progress: ProfileProgress,
-  lessonId: string,
-): LessonProgress | undefined {
-  return progress.lessonProgress[lessonId];
+/** This profile's stored progress for one lesson, or `undefined` if never started. */
+export function getLessonProgressEntry(profileId: string, lessonId: string): LessonProgress | undefined {
+  return readProfileProgress(profileId).lessonProgress[lessonId];
 }
 
 /**
- * The single lesson currently unlocked-but-not-completed, in course
- * order — the strict sequential unlocking model: a lesson is
- * available once every lesson before it is completed, and only one
- * lesson is ever at that frontier at a time. Returns undefined once
- * every lesson in the course is completed.
+ * Marks a lesson as started (idle/available → inProgress) the first
+ * time a learner produces input in it. A no-op if the lesson is
+ * already completed (completion never regresses to in-progress) or
+ * already marked in-progress, so this is safe to call once per
+ * session start without spamming localStorage writes.
  */
-export function getNextAvailableLesson(progress: ProfileProgress): Lesson | undefined {
-  const lessons = getAllLessonsInOrder();
-  return lessons.find((lesson) => !progress.completedLessonIds.includes(lesson.id));
-}
-
-/** UI-facing status for a lesson card: completed, the current
- *  frontier lesson, or locked. Kept out of JSX — callers (Learn,
- *  the dashboard) just render whatever this returns. */
-export function getLessonUiStatus(
-  progress: ProfileProgress,
-  lesson: Lesson,
-): "completed" | "current" | "locked" {
-  if (progress.completedLessonIds.includes(lesson.id)) return "completed";
-  const next = getNextAvailableLesson(progress);
-  if (next && next.id === lesson.id) return "current";
-  return "locked";
-}
-
-export interface OverallProgressStats {
-  totalLessons: number;
-  completedLessons: number;
-  percentComplete: number;
-  bestWpm: number;
-  bestAccuracy: number;
-  currentLesson: Lesson | undefined;
-}
-
-/** Course-wide summary derived from a profile's progress — the
- *  numbers the Progress page and the Part 11 dashboard both need.
- *  `bestWpm`/`bestAccuracy` are the best across every lesson
- *  attempted, not per-lesson. */
-export function getOverallStats(progress: ProfileProgress): OverallProgressStats {
-  const totalLessons = getAllLessonsInOrder().length;
-  const completedLessons = progress.completedLessonIds.length;
-  const lessonRecords = Object.values(progress.lessonProgress);
-
-  return {
-    totalLessons,
-    completedLessons,
-    percentComplete: totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0,
-    bestWpm: lessonRecords.reduce((max, record) => Math.max(max, record.bestWpm), 0),
-    bestAccuracy: lessonRecords.reduce((max, record) => Math.max(max, record.bestAccuracy), 0),
-    currentLesson: getNextAvailableLesson(progress),
-  };
-}
-
-function upsertLessonProgress(
-  progress: ProfileProgress,
-  lessonId: string,
-  attempt: { accuracy: number; wpm: number },
-  status: "inProgress" | "completed",
-): LessonProgress {
+export function startLessonAttempt(profileId: string, lessonId: string): ProfileProgress {
+  const progress = readProfileProgress(profileId);
   const existing = progress.lessonProgress[lessonId];
+  if (existing?.status === "completed" || existing?.status === "inProgress") {
+    return progress;
+  }
+
   const now = new Date().toISOString();
-  const recentAttempts = [
-    ...(existing?.recentAttempts ?? []),
-    { accuracy: attempt.accuracy, wpm: attempt.wpm, completedAt: now },
-  ].slice(-MAX_RECENT_ATTEMPTS);
-
-  return {
+  const entry: LessonProgress = existing ?? {
     lessonId,
-    status: existing?.status === "completed" ? "completed" : status,
-    attempts: (existing?.attempts ?? 0) + 1,
-    bestAccuracy: Math.max(existing?.bestAccuracy ?? 0, attempt.accuracy),
-    bestWpm: Math.max(existing?.bestWpm ?? 0, attempt.wpm),
-    lastAccuracy: attempt.accuracy,
-    lastWpm: attempt.wpm,
-    completedAt: existing?.completedAt ?? (status === "completed" ? now : undefined),
+    status: "inProgress",
+    attempts: 0,
+    bestAccuracy: null,
+    bestWpm: null,
+    lastAccuracy: null,
+    lastWpm: null,
+    completedAt: null,
     updatedAt: now,
-    recentAttempts,
   };
-}
 
-/**
- * Logs an attempt at a lesson without marking it complete — used
- * for practice runs that don't finish the whole lesson. A worse
- * result never overwrites `bestAccuracy`/`bestWpm` (both are running
- * maxima), only `lastAccuracy`/`lastWpm` always reflect the most
- * recent attempt.
- */
-export function recordAttempt(
-  profileId: string,
-  lessonId: string,
-  attempt: { accuracy: number; wpm: number },
-  persist = true,
-): ProfileProgress {
-  const progress = getProfileProgress(profileId);
-  const lessonProgress = upsertLessonProgress(progress, lessonId, attempt, "inProgress");
   const next: ProfileProgress = {
     ...progress,
-    lessonProgress: { ...progress.lessonProgress, [lessonId]: lessonProgress },
-    lastActivityAt: new Date().toISOString(),
+    lessonProgress: { ...progress.lessonProgress, [lessonId]: { ...entry, status: "inProgress", updatedAt: now } },
+    lastActivityAt: now,
   };
-  if (persist) saveProfileProgress(next);
+  saveProfileProgress(profileId, next);
   return next;
 }
 
+export interface CompleteLessonStats {
+  /** Omit for a lesson with no typing metric (e.g. a reading-only introduction lesson) — the lesson still completes, but no fake accuracy/WPM is recorded. */
+  accuracy?: number;
+  wpm?: number;
+}
+
 /**
- * Marks a lesson completed: logs the attempt, adds it to
- * `completedLessonIds` (idempotent — completing an already-completed
- * lesson again just logs another attempt), and advances
- * `currentLessonId` to whatever the new frontier lesson is.
+ * Records a successful completion: increments attempts, updates
+ * last/best accuracy and WPM (a worse attempt never overwrites a
+ * better personal best — Part 9 §7), appends a capped attempt
+ * record, marks the lesson completed, and advances
+ * `currentLessonId` to the next available lesson. This is the only
+ * function that should be called when the Typing Engine reports
+ * `isComplete`.
  */
 export function completeLesson(
   profileId: string,
   lessonId: string,
-  attempt: { accuracy: number; wpm: number },
-  persist = true,
+  stats: CompleteLessonStats = {},
 ): ProfileProgress {
-  const progress = getProfileProgress(profileId);
-  const lessonProgress = upsertLessonProgress(progress, lessonId, attempt, "completed");
+  const progress = readProfileProgress(profileId);
+  const existing = progress.lessonProgress[lessonId];
+  const now = new Date().toISOString();
+
+  const hasStats = typeof stats.accuracy === "number" && typeof stats.wpm === "number";
+
+  const nextRecentAttempts: AttemptRecord[] | undefined = hasStats
+    ? [
+        ...(existing?.recentAttempts ?? []),
+        { accuracy: stats.accuracy as number, wpm: stats.wpm as number, completedAt: now },
+      ].slice(-MAX_RECENT_ATTEMPTS)
+    : existing?.recentAttempts;
+
+  const entry: LessonProgress = {
+    lessonId,
+    status: "completed",
+    attempts: (existing?.attempts ?? 0) + 1,
+    bestAccuracy: hasStats
+      ? Math.max(existing?.bestAccuracy ?? -Infinity, stats.accuracy as number)
+      : (existing?.bestAccuracy ?? null),
+    bestWpm: hasStats ? Math.max(existing?.bestWpm ?? -Infinity, stats.wpm as number) : (existing?.bestWpm ?? null),
+    lastAccuracy: hasStats ? (stats.accuracy as number) : (existing?.lastAccuracy ?? null),
+    lastWpm: hasStats ? (stats.wpm as number) : (existing?.lastWpm ?? null),
+    completedAt: existing?.completedAt ?? now,
+    updatedAt: now,
+    ...(nextRecentAttempts ? { recentAttempts: nextRecentAttempts } : {}),
+  };
+
   const completedLessonIds = progress.completedLessonIds.includes(lessonId)
     ? progress.completedLessonIds
     : [...progress.completedLessonIds, lessonId];
 
-  const updated: ProfileProgress = {
+  const allLessonsInOrder = getAllLessonsInOrder();
+  const nextProgress: ProfileProgress = {
     ...progress,
     completedLessonIds,
-    lessonProgress: { ...progress.lessonProgress, [lessonId]: lessonProgress },
-    lastActivityAt: new Date().toISOString(),
+    lessonProgress: { ...progress.lessonProgress, [lessonId]: entry },
+    lastActivityAt: now,
   };
-  updated.currentLessonId = getNextAvailableLesson(updated)?.id ?? null;
+  nextProgress.currentLessonId = calculateNextAvailableLesson(nextProgress, allLessonsInOrder)?.id ?? null;
 
-  if (persist) saveProfileProgress(updated);
-  return updated;
+  saveProfileProgress(profileId, nextProgress);
+  return nextProgress;
 }
 
-/** Deletes a profile's progress entirely — called when the profile
- *  itself is deleted so no orphaned progress data remains. */
-export function deleteProgressForProfile(profileId: string): void {
-  deleteProfileProgress(profileId);
+/** Completed / total / percent across the whole course, computed from the real catalog (never hard-coded). */
+export function getCourseProgressSummary(profileId: string): { completed: number; total: number; percent: number } {
+  const progress = readProfileProgress(profileId);
+  const total = getAllLessonsInOrder().length;
+  const completed = getCompletedLessonCount(progress);
+  return { completed, total, percent: calculateCourseProgress(completed, total) };
+}
+
+/** Completed / total / percent within one level. */
+export function getLevelProgressSummary(
+  profileId: string,
+  levelLessons: Lesson[],
+): { completed: number; total: number; percent: number } {
+  const progress = readProfileProgress(profileId);
+  const completedLessonIds = new Set(progress.completedLessonIds);
+  const completed = levelLessons.filter((lesson) => completedLessonIds.has(lesson.id)).length;
+  return { completed, total: levelLessons.length, percent: calculateLevelProgress(levelLessons, completedLessonIds) };
+}
+
+/**
+ * The learner's current/next lesson. Resolves the stored pointer
+ * against the live catalog rather than trusting it blindly, so a
+ * lesson that was removed from the catalog after being stored can't
+ * strand the learner — falls back to recalculating from scratch.
+ */
+export function getCurrentLesson(profileId: string): Lesson | null {
+  const progress = readProfileProgress(profileId);
+  const allLessonsInOrder = getAllLessonsInOrder();
+
+  if (progress.currentLessonId) {
+    const stored = getLessonById(progress.currentLessonId);
+    if (stored && getLessonDisplayStatus(stored, progress, allLessonsInOrder) !== "completed") {
+      return stored;
+    }
+  }
+  return calculateNextAvailableLesson(progress, allLessonsInOrder);
+}
+
+/** Best WPM / accuracy this profile has ever recorded, across every lesson. `null` when nothing has been completed with a metric yet. */
+export function getOverallBestPerformance(profileId: string): { bestWpm: number | null; bestAccuracy: number | null } {
+  return calculateOverallBestPerformance(readProfileProgress(profileId));
 }

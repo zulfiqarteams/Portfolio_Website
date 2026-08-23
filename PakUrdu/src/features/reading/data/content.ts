@@ -10,6 +10,14 @@ export interface ReadingSection {
     en: string;
     roman: string;
   };
+  /** A short, W3Schools-"Tip:"-style callout — one extra actionable
+   *  nugget that doesn't fit neatly into `points`. Rendered as its own
+   *  highlighted box on the chapter, separate from the checklist. */
+  tip: Record<ReadingLanguage, string>;
+  /** A short "Did you know?" aside — context or trivia related to the
+   *  topic, purely to add texture and keep a chapter from reading like
+   *  a plain checklist. Not tested on, not required for practice. */
+  didYouKnow: Record<ReadingLanguage, string>;
   practice: Record<ReadingLanguage, string>;
 }
 
@@ -26,6 +34,16 @@ export const readingSections: ReadingSection[] = [
       ur: ["رفتار سے پہلے درستگی کو ترجیح دیں۔", "ہر نئے حرف کو کی بورڈ کی اصل جگہ کے ساتھ یاد کریں۔", "روزانہ مختصر مگر باقاعدہ مشق کریں۔", "غلطی کی وجہ سمجھ کر دوبارہ ٹائپ کریں۔"],
       en: ["Prioritize accuracy before speed.", "Learn every new character together with its physical key.", "Practice briefly but consistently each day.", "Review the cause of mistakes instead of only repeating the word."],
       roman: ["Speed se pehle accuracy ko tarjeeh dein.", "Har naye harf ko us ki physical key ke saath yaad karein.", "Roz thori magar baqaidgi se practice karein.", "Ghalti ki wajah samajh kar dobara type karein."],
+    },
+    tip: {
+      ur: "رفتار کی فکر سے پہلے روزانہ پانچ منٹ کی عادت بنائیں — تسلسل لمبے مگر بے قاعدہ sessions سے بہتر ہے۔",
+      en: "Set a five-minute daily habit before worrying about speed — consistency beats long, irregular sessions.",
+      roman: "Speed ki fikar se pehle roz paanch minute ki aadat banayein — tasalsul lambay magar be-qaida sessions se behtar hai.",
+    },
+    didYouKnow: {
+      ur: "صوتی اردو کی بورڈ آوازوں کو map کرتی ہے، شکلوں کو نہیں — اگر آپ پہلے سے انگریزی touch-typing جانتے ہیں تو آپ کی انگلیاں اس لے آؤٹ کو آدھا پہلے سے جانتی ہیں۔",
+      en: "Phonetic Urdu keyboards map sounds, not shapes — so if you already know English touch-typing, your fingers already half-know this layout.",
+      roman: "Phonetic Urdu keyboard awaazon ko map karti hai, shapes ko nahi — agar aap pehle se English touch-typing jantay hain to aapki ungliyan is layout ko aadha pehle se jaanti hain.",
     },
     practice: {
       ur: "آج صرف 5 منٹ میں کی بورڈ دیکھے بغیر چند بنیادی حروف ٹائپ کریں اور اپنی درستگی نوٹ کریں۔",
@@ -47,6 +65,16 @@ export const readingSections: ReadingSection[] = [
       roman: ["QWERTY ki top, home aur bottom rows pehchanain.", "Words ke darmiyan space ke liye Spacebar use karein.", "Alternate characters ke liye Shift ke saath key dabayen.", "Aakhri character hatane ke liye Backspace use karein."],
     },
     example: { urdu: "ب  س  م  ا", en: "b  s  m  a", roman: "b  s  m  a" },
+    tip: {
+      ur: "ہر keystroke کے درمیان اپنی انگلیاں home row (a s d f / j k l) پر رکھیں — یہ اگلی key تک پہنچنے کا تیز ترین راستہ ہے۔",
+      en: "Rest your fingers on the home row (a s d f / j k l) between every keystroke — it's the fastest way back to the next key.",
+      roman: "Har keystroke ke darmiyan apni ungliyan home row (a s d f / j k l) par rakhein — yeh agli key tak pohanchne ka sab se tez raasta hai.",
+    },
+    didYouKnow: {
+      ur: "QWERTY کبھی رفتار کے لیے ڈیزائن نہیں کی گئی تھی — یہ 1870 کی دہائی میں مکینیکل typewriter کی arms کو الجھنے سے روکنے کے لیے ترتیب دی گئی تھی۔",
+      en: "QWERTY wasn't designed for speed at all — it was laid out in the 1870s to stop mechanical typewriter arms from jamming.",
+      roman: "QWERTY kabhi speed ke liye design nahi hui thi — yeh 1870s mein mechanical typewriter ki arms ko uljhne se rokne ke liye tarteeb di gayi thi.",
+    },
     practice: {
       ur: "اوپر کی تین rows کو دیکھ کر a, s, d, f اور j, k, l کی جگہیں تلاش کریں۔ پھر انہیں آہستہ آہستہ دبائیں۔",
       en: "Locate a, s, d, f and j, k, l on the keyboard without moving your hands around. Press them slowly and deliberately.",
@@ -65,6 +93,16 @@ export const readingSections: ReadingSection[] = [
       ur: ["a → ا", "b → ب", "m → م", "s → س", "k → ک اور Shift+k → خ", "h → ہ اور Shift+h → ھ"],
       en: ["a → ا", "b → ب", "m → م", "s → س", "k → ک and Shift+k → خ", "h → ہ and Shift+h → ھ"],
       roman: ["a → ا", "b → ب", "m → م", "s → س", "k → ک aur Shift+k → خ", "h → ہ aur Shift+h → ھ"],
+    },
+    tip: {
+      ur: "key دباتے وقت آواز بلند کہیں (\"b برائے ب\") — آواز اور حرکت کو جوڑنا خاموش تکرار سے تیز یاد دلاتا ہے۔",
+      en: "Say the sound out loud as you press the key (\"b for ب\") — pairing sound with motion speeds up recall more than silent repetition.",
+      roman: "Key dabate waqt awaaz buland kahein (\"b baraye ب\") — awaaz aur harkat ko jorna khamosh takraar se tez yaad dilata hai.",
+    },
+    didYouKnow: {
+      ur: "یہی b→ب، m→م، s→س والا منطق اس بات کی وجہ ہے کہ صوتی اردو کی بورڈ اکثر ان لوگوں کے لیے تیز ترین لے آؤٹ ہوتی ہے جو پہلے سے رومن اردو پڑھتے ہیں۔",
+      en: "This same b→ب, m→م, s→س logic is why phonetic Urdu keyboards are often the fastest layout for people who already read Roman Urdu.",
+      roman: "Yehi b→ب, m→م, s→س wala mantiq is baat ki wajah hai ke phonetic Urdu keyboard aksar un logon ke liye sab se tez layout hoti hai jo pehle se Roman Urdu parhtay hain.",
     },
     practice: {
       ur: "اپنی اگلی مشق میں ہر حرف کے لیے پہلے اردو حرف دیکھیں، پھر متعلقہ physical key تلاش کریں، پھر انگلی کی جگہ محسوس کریں۔",
@@ -86,6 +124,16 @@ export const readingSections: ReadingSection[] = [
       roman: ["ب = b, پ = p, ت = t", "د = d, ر = r, س = s", "م = m, ن = n, ل = l", "و = o, ی = e, ے = y"],
     },
     example: { urdu: "ب  پ  ت  د  ر  س  م  ن", en: "b  p  t  d  r  s  m  n", roman: "b  p  t  d  r  s  m  n" },
+    tip: {
+      ur: "ایک جیسی key family والے حروف (جیسے ب، پ، ت) کو اکٹھا گروپ کریں اور ساتھ مشق کریں — آپ کی انگلی ایک وقت میں ایک چھوٹا سا علاقہ سیکھتی ہے۔",
+      en: "Group characters that share a key family (like ب, پ, ت) and drill them together — your finger learns one small neighborhood at a time.",
+      roman: "Aik jaisi key family wale huruf (jaise ب, پ, ت) ko ikaththa group karein aur saath practice karein — aapki ungli aik waqt mein aik chhota sa ilaqa seekhti hai.",
+    },
+    didYouKnow: {
+      ur: "اردو میں شمار کے طریقے کے مطابق 39 سے 40 بنیادی حروف ہیں — انگریزی کے 26 حروف سے واضح طور پر زیادہ، یہی وجہ ہے کہ انہیں گروپ کرنا مددگار ہے۔",
+      en: "Urdu has 39 to 40 basic letters depending on how you count — noticeably more than English's 26, which is exactly why grouping them helps.",
+      roman: "Urdu mein shumar ke tareeqay ke mutabiq 39 se 40 bunyadi huruf hain — English ke 26 huruf se wazeh tor par zyada, yehi wajah hai ke unhein group karna madadgar hai.",
+    },
     practice: {
       ur: "ایک وقت میں 4 سے 6 حروف لیں۔ ہر حرف کو تین مرتبہ آہستہ ٹائپ کریں، پھر انہیں ملا کر چھوٹا sequence لکھیں۔",
       en: "Work with four to six characters at a time. Type each three times slowly, then combine them into a short sequence.",
@@ -105,6 +153,16 @@ export const readingSections: ReadingSection[] = [
       en: ["k → ک, Shift+k → خ", "s → س, Shift+s → ش", "t → ت, Shift+t → ط", "a → ا, Shift+a → آ", "z → ز, Shift+z → ص"],
       roman: ["k → ک, Shift+k → خ", "s → س, Shift+s → ش", "t → ت, Shift+t → ط", "a → ا, Shift+a → آ", "z → ز, Shift+z → ص"],
     },
+    tip: {
+      ur: "اگر آپ کسی Shift جوڑی کو بار بار بھول جاتے ہیں تو دونوں حروف ایک ساتھ چند دن کے لیے سکرین کے پاس sticky note پر لکھ لیں۔",
+      en: "If you keep forgetting a Shift pair, write both characters together on a sticky note next to your screen for a day or two.",
+      roman: "Agar aap kisi Shift jori ko bar bar bhool jate hain to dono huruf aik saath chand din ke liye screen ke paas sticky note par likh lein.",
+    },
+    didYouKnow: {
+      ur: "Shift جوڑیاں عام طور پر بے ترتیب نہیں ہوتیں — بہت سی ایک بنیادی آواز کو اس کی بھاری یا مشدد شکل سے جوڑتی ہیں، جیسے s→س اور Shift+s→ش۔",
+      en: "Shift pairs usually aren't random — many map a base sound to its heavier or aspirated version, like s→س and Shift+s→ش.",
+      roman: "Shift joriyan aam tor par be-tarteeb nahi hoteen — bohat si aik bunyadi awaaz ko us ki bhari ya mushaddad shakal se jorti hain, jaise s→س aur Shift+s→ش.",
+    },
     practice: {
       ur: "پہلے بغیر Shift والے حروف کی جوڑی ٹائپ کریں، پھر اسی key کو Shift کے ساتھ آزمائیں۔ ہاتھ کی پوزیشن تبدیل نہ کریں۔",
       en: "Type each base character first, then try its Shift variant on the same key. Keep your hand position stable.",
@@ -120,13 +178,22 @@ export const readingSections: ReadingSection[] = [
       roman: "Urdu ke alfaaz musalsal huruf ke combinations se bante hain. Maqsad yeh hai ke har harf ko alag dekhne ke bajaye dheere dheere poore lafz ka pattern pehchana jaye.",
     },
     points: {
-      ur: ["ہر حرف کے بعد cursor کی اگلی جگہ دیکھیں۔", "مشکل جوڑ کو چھوٹے حصوں میں تقسیم کریں۔", "غلطی ہونے پر رفتار کم کریں، ہاتھ نہ گھمائیں۔", "بار بار آنے والے patterns کو muscle memory میں شامل کریں۔"],
-      en: ["Watch the next cursor position after each character.", "Break difficult combinations into smaller chunks.", "Slow down after an error instead of moving your hands.", "Turn repeated patterns into muscle memory."],
-      roman: ["Har harf ke baad next cursor position dekhein.", "Mushkil combination ko chhote parts mein divide karein.", "Ghalti ke baad speed kam karein, haath na ghumayen.", "Bar bar aane wale patterns ko muscle memory mein laayein."],
+      ur: ["مکمل لفظ کو ایک نظر میں دیکھیں۔", "حروف کے common جوڑوں کو ایک اکائی کی طرح مشق کریں۔", "لمبے لفظ کو دو چھوٹے حصوں میں توڑیں۔", "ٹائپ کرتے وقت اگلے حرف پر نظر رکھیں۔"],
+      en: ["Look at the whole word at a glance.", "Practice common letter pairs as a single unit.", "Split a long word into two shorter chunks.", "Keep your eyes slightly ahead of the character you're typing."],
+      roman: ["Poore lafz ko aik nazar mein dekhein.", "Huruf ke common pairs ko aik unit ki tarah practice karein.", "Lamba lafz do chhote hisson mein torein.", "Type karte waqt agle harf par nazar rakhein."],
     },
-    example: { urdu: "سلام  کتاب  پاکستان", en: "salaam  kitaab  Pakistan", roman: "salaam  kitaab  Pakistan" },
+    tip: {
+      ur: "لفظ ٹائپ کرنے سے پہلے پورا لفظ پڑھ لیں — پہلے سے pattern طے کرنا ایک وقت میں ایک حرف پر ردعمل دینے سے تیز ہے۔",
+      en: "Read the whole word before you start typing it — deciding the pattern up front is faster than reacting one letter at a time.",
+      roman: "Lafz type karne se pehle poora lafz parh lein — pehle se pattern tay karna aik waqt mein aik harf par radd-e-amal dene se tez hai.",
+    },
+    didYouKnow: {
+      ur: "چونکہ اردو نستعلیق/عربی رسم الخط میں لکھی جاتی ہے، حروف بصری طور پر جڑ جاتے ہیں — لیکن صوتی کی بورڈ پر آپ پھر بھی انہیں ترتیب سے، ایک ایک key کر کے ٹائپ کرتے ہیں۔",
+      en: "Because Urdu is written in the Nastaliq/Arabic script, letters visually join together — but on a phonetic keyboard, you still just type them one key at a time, in order.",
+      roman: "Chunke Urdu Nastaliq/Arabic rasm-ul-khat mein likhi jati hai, huruf bisri tor par jur jate hain — lekin phonetic keyboard par aap phir bhi unhein tarteeb se, aik aik key kar ke type karte hain.",
+    },
     practice: {
-      ur: "ایک لفظ کو پہلے حرف بہ حرف ٹائپ کریں، پھر اسی لفظ کو دوبارہ تھوڑا تیز لکھیں۔ دونوں کوششوں میں غلطیاں گنیں۔",
+      ur: "ایک لفظ پہلے حرف بہ حرف ٹائپ کریں، پھر اسی لفظ کو تھوڑا تیز لکھیں۔ دونوں کوششوں کی غلطیاں موازنہ کریں۔",
       en: "Type one word character by character, then repeat it slightly faster. Compare the number of mistakes.",
       roman: "Ek lafz pehle harf ba harf type karein, phir usi lafz ko thora tez likhein. Dono attempts ki ghaltiyan compare karein.",
     },
@@ -145,6 +212,16 @@ export const readingSections: ReadingSection[] = [
       roman: ["Do se chaar harf ke alfaaz se shuru karein.", "Har lafz ke baad Spacebar dabane ki aadat banayein.", "Agla lafz shuru karne se pehle home position par aayein.", "Mushkil lafz ko chhote parts mein tod kar practice karein."],
     },
     example: { urdu: "گھر  پانی  کتاب  دوست", en: "home  water  book  friend", roman: "ghar  pani  kitaab  dost" },
+    tip: {
+      ur: "ایک ہی پانچ الفاظ کو دو مرتبہ چند منٹ کے وقفے سے ٹائم کریں — دونوں scores کا فرق آپ کا اصل warm-up اثر ہے۔",
+      en: "Time yourself on the same five words twice, a few minutes apart — the gap between the two scores is your real warm-up effect.",
+      roman: "Aik hi paanch alfaaz ko do martaba chand minute ke waqfay se time karein — dono scores ka farq aapka asal warm-up asar hai.",
+    },
+    didYouKnow: {
+      ur: "روزمرہ اردو گفتگو زیادہ تر عام الفاظ کے ایک نسبتاً چھوٹے مجموعے کو دہراتی ہے — یہی وجہ ہے کہ مختصر، عام الفاظ کی مشق جلد فائدہ دیتی ہے۔",
+      en: "Most everyday Urdu conversation reuses a fairly small set of common words — which is exactly why drilling short, frequent words pays off fast.",
+      roman: "Rozmarra Urdu guftagu zyada tar aam alfaaz ke aik nisbatan chhotay majmuay ko dohrati hai — yehi wajah hai ke mukhtasar, aam alfaaz ki practice jald faida deti hai.",
+    },
     practice: {
       ur: "پانچ عام الفاظ منتخب کریں اور ہر لفظ کو تین مرتبہ ٹائپ کریں۔ صرف آخری کوشش میں رفتار بڑھائیں۔",
       en: "Choose five common words and type each three times. Increase speed only on the final repetition.",
@@ -165,6 +242,16 @@ export const readingSections: ReadingSection[] = [
       roman: ["Har lafz ke darmiyan aik space rakhein.", "Punctuation ke baad smoothly agay barhein.", "Poore jumlay ko dekh kar rhythm banayein.", "Har ghalti par rukne ke bajaye exercise ke baad review karein."],
     },
     example: { urdu: "میں روز اردو ٹائپ کرنے کی مشق کرتا ہوں۔", en: "I practice typing Urdu every day.", roman: "Main roz Urdu type karne ki mashq karta hoon." },
+    tip: {
+      ur: "اگر آپ کو جملے کے درمیان غلطی نظر آئے تو جاری رکھیں اور اگلی بار درست کریں — flow کے درمیان رکنا ایک غلط حرف سے زیادہ نقصان دہ ہے۔",
+      en: "If you catch a mistake mid-sentence, keep going and fix it on the next pass — stopping mid-flow costs more than one wrong letter does.",
+      roman: "Agar aapko jumlay ke darmiyan ghalti nazar aaye to jaari rakhein aur agli baar durust karein — flow ke darmiyan rukna aik ghalat harf se zyada nuqsaan deh hai.",
+    },
+    didYouKnow: {
+      ur: "اردو رموز اوقاف میں ۔ (اردو فل سٹاپ) شامل ہے، جو انگریزی period سے مختلف نظر آتا ہے لیکن بالکل وہی کردار ادا کرتا ہے۔",
+      en: "Urdu punctuation includes the ۔ (Urdu full stop), which looks different from the English period but plays exactly the same role.",
+      roman: "Urdu rumooz-e-auqaaf mein ۔ (Urdu full stop) shamil hai, jo English period se mukhtalif nazar aata hai lekin bilkul wohi kirdar ada karta hai.",
+    },
     practice: {
       ur: "ایک مختصر جملہ پہلے 100٪ درستگی کے مقصد سے ٹائپ کریں، پھر اسی جملے کو بغیر رکے دوبارہ ٹائپ کریں۔",
       en: "Type one short sentence with an accuracy-first goal, then repeat it without stopping to build flow.",
@@ -183,6 +270,16 @@ export const readingSections: ReadingSection[] = [
       ur: ["روزانہ ایک مختصر accuracy drill کریں۔", "غلطی کے فوراً بعد speed کم کریں۔", "مشکل key کو الگ سے repeat کریں۔", "Accuracy 95٪ سے کم ہو تو speed بڑھانے سے پہلے غلطیاں کم کریں۔"],
       en: ["Do a short accuracy drill each day.", "Slow down immediately after a recurring mistake.", "Repeat difficult keys separately.", "If accuracy is below 95%, reduce errors before chasing higher speed."],
       roman: ["Roz aik chhoti accuracy drill karein.", "Bar bar hone wali ghalti ke baad speed kam karein.", "Mushkil key ko alag repeat karein.", "Agar accuracy 95% se kam ho to speed se pehle errors kam karein."],
+    },
+    tip: {
+      ur: "ایک ہفتے کے لیے اپنی سب سے بڑی تین غلطیوں کا ریکارڈ رکھیں — زیادہ تر سیکھنے والے حیران ہوتے ہیں کہ کتنی کم مختلف غلطیاں زیادہ تر نقصان کا سبب بنتی ہیں۔",
+      en: "Keep a running tally of your top three mistakes for a week — most learners are surprised how few distinct errors cause most of the damage.",
+      roman: "Aik hafte ke liye apni sab se bari teen ghaltiyon ka record rakhein — zyada tar seekhne walay hairan hote hain ke kitni kam mukhtalif ghaltiyan zyada tar nuqsaan ki wajah banti hain.",
+    },
+    didYouKnow: {
+      ur: "یہ ٹیوٹوریل صحیح اور غلط حروف کو غلطیوں سے الگ ٹریک کرتا ہے — تاکہ آپ کسی مشکل لفظ کو دوبارہ کوشش کر سکیں بغیر اس کے کہ یہ دو مرتبہ شمار ہو۔",
+      en: "This tutorial tracks correct and incorrect characters separately from mistakes — so you can retry a hard word without it counting against you twice.",
+      roman: "Yeh tutorial sahi aur ghalat huruf ko ghaltiyon se alag track karta hai — taake aap kisi mushkil lafz ko dobara koshish kar saken baghair is ke ke yeh do martaba shumar ho.",
     },
     practice: {
       ur: "دو منٹ کی مشق میں ہر غلط حرف کو نوٹ کریں۔ آخر میں صرف ان keys کی targeted practice کریں۔",
@@ -203,6 +300,16 @@ export const readingSections: ReadingSection[] = [
       en: ["Stabilize accuracy first.", "Use short timed drills.", "Keep hand movement economical as speed increases.", "Read WPM together with accuracy instead of treating WPM alone as the goal."],
       roman: ["Pehle accuracy stable karein.", "Chhoti timed drills use karein.", "Speed barhate waqt hand movement kam rakhein.", "WPM ko accuracy ke saath dekhein, sirf WPM ko target na banayein."],
     },
+    tip: {
+      ur: "تھوڑا زیادہ WPM اسی وقت کا نشانہ بنائیں جب لگاتار دو accuracy-focused sessions 95٪ یا اس سے بہتر ہوں — غلطیوں کے اوپر حاصل کی گئی رفتار قائم نہیں رہتی۔",
+      en: "Chase a slightly higher WPM only after two accuracy-focused sessions in a row hit 95% or better — speed gained on top of errors doesn't last.",
+      roman: "Thora zyada WPM usi waqt ka nishana banayein jab lagataar do accuracy-focused sessions 95% ya us se behtar hon — ghaltiyon ke oopar hasil ki gayi speed qaim nahi rehti.",
+    },
+    didYouKnow: {
+      ur: "WPM کے پیچھے فی لفظ 5 حروف کا اصول typing صنعت کا عمومی معیار ہے، اردو کے لیے مخصوص قاعدہ نہیں — یہ scores کو مختلف زبانوں میں موازنہ کے قابل بناتا ہے۔",
+      en: "The 5-characters-per-word convention behind WPM is a typing-industry standard, not an Urdu-specific rule — it keeps scores comparable across languages.",
+      roman: "WPM ke peechay fi lafz 5 huruf ka usool typing sanat ka umoomi mayar hai, Urdu ke liye makhsoos qaida nahi — yeh scores ko mukhtalif zabanon mein muwazna ke qabil banata hai.",
+    },
     practice: {
       ur: "ایک منٹ کا test دیں۔ پہلے score لکھیں، پھر 5 منٹ کی accuracy practice کے بعد دوبارہ test دیں اور دونوں scores compare کریں۔",
       en: "Take a one-minute test, record the score, practice accuracy for five minutes, then repeat the test and compare.",
@@ -221,6 +328,16 @@ export const readingSections: ReadingSection[] = [
       ur: ["قریب والی key غلط دبانا۔", "Shift چھوڑ دینا یا غیر ضروری Shift دبانا۔", "Spacebar miss کرنا۔", "جلدی میں اگلے لفظ کی طرف ہاتھ کھینچ لینا۔", "keyboard دیکھنے کی عادت کی وجہ سے home position کھو دینا۔"],
       en: ["Pressing a neighboring key by mistake.", "Missing or unnecessarily holding Shift.", "Skipping a space.", "Moving toward the next word before finishing the current one.", "Losing home position because you keep looking down."],
       roman: ["Qareeb wali key ghalat dabana.", "Shift miss karna ya bila wajah Shift dabana.", "Spacebar miss karna.", "Current lafz mukammal hone se pehle aglay lafz ki taraf haath le jana.", "Keyboard dekhne ki aadat se home position kho dena."],
+    },
+    tip: {
+      ur: "قریبی key کی غلطیاں (جیسے غلطی سے پاس والا حرف ٹائپ ہونا) عام طور پر یہ ظاہر کرتی ہیں کہ آپ اپنی موجودہ accuracy سے تیز حرکت کر رہے ہیں — تھوڑا آہستہ ہو جائیں۔",
+      en: "Neighboring-key slips (like typing a nearby letter by accident) usually mean you're moving faster than your accuracy currently supports — ease off slightly.",
+      roman: "Qareebi key ki ghaltiyan (jaise ghalti se paas wala harf type hona) aam tor par yeh zahir karti hain ke aap apni maujooda accuracy se tez harkat kar rahe hain — thora aahista ho jayein.",
+    },
+    didYouKnow: {
+      ur: "کی بورڈ کی طرف دیکھنے کے بعد home position کھو دینا ان چند عام عادات میں سے ایک ہے جو خاموشی سے beginner کی رفتار کو محدود کر دیتی ہے۔",
+      en: "Losing home position after glancing at the keyboard is one of the single most common habits that quietly caps a beginner's speed.",
+      roman: "Keyboard ki taraf dekhne ke baad home position kho dena un chand aam aadaton mein se aik hai jo khamoshi se beginner ki speed ko mehdood kar deti hai.",
     },
     practice: {
       ur: "اپنی آخری مشق میں تین سب سے زیادہ آنے والی غلطیاں تلاش کریں اور ہر ایک کے لیے ایک چھوٹا drill بنائیں۔",
@@ -242,6 +359,16 @@ export const readingSections: ReadingSection[] = [
       roman: ["Rozmarra ka aik realistic message type karein.", "Chhota note ya to-do likhein.", "Chhota educational paragraph dobara type karein.", "Aik hi passage ko do mukhtalif speeds par type karein."],
     },
     example: { urdu: "آج میں نے اردو ٹائپنگ کی مشق مکمل کی۔", en: "Today I completed my Urdu typing practice.", roman: "Aaj maine Urdu typing ki mashq mukammal ki." },
+    tip: {
+      ur: "کوئی ایسا حقیقی پیغام منتخب کریں جو آپ کو آج واقعی بھیجنا ہے اور اسے مشق کے طور پر ٹائپ کریں — جب متن اہم ہو تو motivation زیادہ ہوتی ہے۔",
+      en: "Pick one real message you actually need to send today and type it as practice — motivation is higher when the text matters.",
+      roman: "Koi aisa haqeeqi paigham muntakhib karein jo aapko aaj waaqai bhejna hai aur usay practice ke taur par type karein — jab matn aham ho to motivation zyada hoti hai.",
+    },
+    didYouKnow: {
+      ur: "ایک ہی متن کو دو مختلف رفتاروں پر پے در پے ٹائپ کرنا ایک عام تکنیک ہے جسے پیشہ ور typists 'آرام دہ' رفتار کو 'زیادہ سے زیادہ' رفتار سے الگ کرنے کے لیے استعمال کرتے ہیں۔",
+      en: "Typing the same passage at two different speeds, back to back, is a common trick professional typists use to separate 'comfortable' speed from 'maximum' speed.",
+      roman: "Aik hi matn ko do mukhtalif raftaron par pay dar pay type karna aik aam technique hai jise professional typists 'aaram deh' raftaar ko 'zyada se zyada' raftaar se alag karne ke liye istemal karte hain.",
+    },
     practice: {
       ur: "اپنے روزمرہ کام سے متعلق دو جملے لکھیں۔ پہلے accuracy، پھر natural rhythm، اور آخر میں speed دیکھیں۔",
       en: "Write two sentences related to your daily work. Check accuracy first, then natural rhythm, and finally speed.",
@@ -261,6 +388,16 @@ export const readingSections: ReadingSection[] = [
       en: ["Memorize patterns in common words.", "Look a few characters ahead.", "Avoid completely breaking flow after one mistake.", "Check posture and hand position during longer passages."],
       roman: ["Aam alfaaz ke patterns yaad karein.", "Nazar chand characters aagay rakhein.", "Aik ghalti ke baad flow ko bilkul na torain.", "Lamay passages mein posture aur hand position check karte rahain."],
     },
+    tip: {
+      ur: "اپنی انگلیوں کے مقابلے میں چند الفاظ آگے پڑھنے کی مشق کریں — یہ چھوٹا سا فاصلہ ہی زیادہ تر وہ چیز ہے جو intermediate کو beginner typing سے الگ کرتی ہے۔",
+      en: "Practice reading a few words ahead of where your fingers are typing — that small lead time is most of what separates intermediate from beginner typing.",
+      roman: "Apni ungliyon ke muqablay mein chand alfaaz aagay parhne ki practice karein — yeh chhota sa faasla hi zyada tar wo cheez hai jo intermediate ko beginner typing se alag karti hai.",
+    },
+    didYouKnow: {
+      ur: "یہ 'آگے پڑھنے' کی عادت وہی مہارت ہے جس پر تجربہ کار touch-typists کسی بھی زبان میں انحصار کرتے ہیں — یہ اردو کے لیے مخصوص نہیں لیکن یہاں بھی اتنی ہی اہم ہے۔",
+      en: "This 'read-ahead' habit is the same skill experienced touch-typists rely on in any language — it isn't Urdu-specific, but it matters just as much here.",
+      roman: "Yeh 'aagay parhne' ki aadat wohi mahaarat hai jis par tajurba kaar touch-typists kisi bhi zaban mein inhisaar karte hain — yeh Urdu ke liye makhsoos nahi lekin yahan bhi utni hi aham hai.",
+    },
     practice: {
       ur: "ایک 3 منٹ کا passage ٹائپ کریں اور صرف ان غلطیوں کو mark کریں جو بار بار دہرائی گئیں۔",
       en: "Type a three-minute passage and mark only errors that repeat. Use those repetitions to choose your next drill.",
@@ -279,6 +416,16 @@ export const readingSections: ReadingSection[] = [
       ur: ["لمبے passages میں energy اور posture manage کریں۔", "اپنے weak key pairs کے لیے targeted drills بنائیں۔", "مختلف موضوعات کے متن پر practice کریں۔", "Test کے بعد WPM کے ساتھ accuracy اور error pattern بھی review کریں۔"],
       en: ["Manage posture and effort across long passages.", "Build targeted drills for weak key pairs.", "Practice across different types of real text.", "After a test, review WPM together with accuracy and error patterns."],
       roman: ["Lambay passages mein posture aur effort manage karein.", "Weak key pairs ke liye targeted drills banayein.", "Mukhtalif qisam ke real text par practice karein.", "Test ke baad WPM ke saath accuracy aur error patterns bhi review karein."],
+    },
+    tip: {
+      ur: "لمبے test کے بعد دوبارہ ٹائپ کرنے سے پہلے دو منٹ اپنی error فہرست کا جائزہ لیں — بغیر دوبارہ ٹائپ کیے جائزہ لینا بھی اگلی کوشش کو بہتر بناتا ہے۔",
+      en: "After a long test, spend two minutes reviewing your error list before you type again — reviewing without retyping still improves the next attempt.",
+      roman: "Lambay test ke baad dobara type karne se pehle do minute apni error list ka jaiza lein — baghair dobara type kiye jaiza lena bhi agli koshish ko behtar banata hai.",
+    },
+    didYouKnow: {
+      ur: "لمبے متن پر مستقل accuracy کو عام طور پر بہت زیادہ عارضی رفتار سے زیادہ حقیقی دنیا کی مضبوط مہارت سمجھا جاتا ہے۔",
+      en: "Sustained accuracy across a long passage is generally considered a stronger real-world skill than a short burst of very high peak speed.",
+      roman: "Lambay matn par mustaqil accuracy ko aam tor par bohat zyada aarzi raftaar se zyada haqeeqi duniya ki mazboot mahaarat samjha jata hai.",
     },
     practice: {
       ur: "5 منٹ کا test دیں۔ نتیجے کے بعد صرف score نہ دیکھیں؛ اپنی سب سے زیادہ غلط ہونے والی keys اور patterns کی فہرست بنائیں۔",
