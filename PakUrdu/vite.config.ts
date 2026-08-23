@@ -7,7 +7,7 @@ export default defineConfig({
   // GitHub Pages serves this app from a sub-path (not the domain root),
   // so every built asset URL needs that prefix. Must match BASE_PATH in
   // src/config/site.ts and the <BrowserRouter basename> in src/main.tsx.
-  base: "/Portfolio_Website/PAKURDU/",
+  base: "/Portfolio_Website/PakUrdu/",
   plugins: [react()],
   resolve: {
     alias: {
