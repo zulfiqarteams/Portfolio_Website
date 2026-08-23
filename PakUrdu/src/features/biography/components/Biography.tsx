@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, BookOpen, Bookmark, CheckCircle2, ChevronDown, Clock, Headphones, History, Keyboard, ListChecks, Search, Star, Users, Volume2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Bookmark, CheckCircle2, Clock, Search, Star, Users, Volume2 } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
 import { PageHeader } from "@/components/PageHeader";
 import { ContentSidebar } from "@/components/ContentSidebar";
@@ -31,7 +31,12 @@ function Dashboard() {
   return <>
     <PageHeader title="Biography & Islamic History" description="مستند سوانح، اسلامی تاریخ اور مسلم علمی روایت کو پڑھیں، سنیں، ٹائپ کریں اور کوئز کے ذریعے دہرائیں۔" />
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {[['کل شخصیات', biographies.length, Users], ['دیکھی گئی', viewed, BookOpen], ['مطالعہ شروع', completed, CheckCircle2], ['XP', p.xp, Star]].map(([label,value,Icon]) => <Card key={String(label)}><div className="flex items-center justify-between"><div><p className="text-sm text-ink-soft">{label}</p><p className="mt-2 text-2xl font-bold">{value}</p></div><Icon size={23} className="text-brand-500" /></div></Card>)}
+      {([
+        ['کل شخصیات', biographies.length, Users],
+        ['دیکھی گئی', viewed, BookOpen],
+        ['مطالعہ شروع', completed, CheckCircle2],
+        ['XP', p.xp, Star],
+      ] as [string, number, typeof Users][]).map(([label, value, Icon]) => <Card key={String(label)}><div className="flex items-center justify-between"><div><p className="text-sm text-ink-soft">{label}</p><p className="mt-2 text-2xl font-bold">{value}</p></div><Icon size={23} className="text-brand-500" /></div></Card>)}
     </div>
     <Card className="mt-6" dir="rtl">
       <div className="rounded-md border border-brand-100 bg-brand-50 p-6 text-center"><Badge>The Greatest Man in History</Badge><h2 className="urdu-text mt-4 text-4xl font-bold text-brand-900">حضرت محمد مصطفیٰ ﷺ</h2><p className="mt-3 leading-8 text-ink">سیرتِ نبوی ﷺ کو مرحلہ وار پڑھیں، سنیں، ٹائپ کریں اور مستند ماخذ کی طرف رجوع کرتے ہوئے سیکھیں۔</p><Button to="/biography/muhammad" className="mt-5" variant="primary">سیرت شروع کریں <ArrowRight size={16}/></Button></div>

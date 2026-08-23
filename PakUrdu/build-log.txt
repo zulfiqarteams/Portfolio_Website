@@ -1,0 +1,21 @@
+
+> urdu-typing-tutorial@0.1.0 build
+> tsc -b && vite build
+
+src/features/biography/components/Biography.tsx(3,67): error TS6133: 'ChevronDown' is declared but its value is never read.
+src/features/biography/components/Biography.tsx(3,87): error TS6133: 'Headphones' is declared but its value is never read.
+src/features/biography/components/Biography.tsx(3,99): error TS6133: 'History' is declared but its value is never read.
+src/features/biography/components/Biography.tsx(3,108): error TS6133: 'Keyboard' is declared but its value is never read.
+src/features/biography/components/Biography.tsx(3,118): error TS6133: 'ListChecks' is declared but its value is never read.
+src/features/biography/components/Biography.tsx(34,293): error TS2322: Type 'string | number | ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>' is not assignable to type 'ReactNode'.
+  Type 'ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>' is not assignable to type 'ReactNode'.
+src/features/biography/components/Biography.tsx(34,343): error TS2322: Type 'string | number | ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>' is not assignable to type 'ReactNode'.
+  Type 'ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>' is not assignable to type 'ReactNode'.
+src/features/biography/components/Biography.tsx(34,361): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/features/biography/components/Biography.tsx(34,361): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'string | number | ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>' is not a valid JSX element type.
+    Type 'number' is not assignable to type 'ElementType'.
+src/features/sahiUrdu/components/SahiUrdu.tsx(98,137): error TS2322: Type 'string | number | ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>' is not assignable to type 'ReactNode'.
+  Type 'ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>' is not assignable to type 'ReactNode'.
+src/features/sahiUrdu/components/SahiUrdu.tsx(98,196): error TS2322: Type 'string | number | ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>' is not assignable to type 'ReactNode'.
+  Type 'ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>' is not assignable to type 'ReactNode'.

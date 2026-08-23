@@ -88,14 +88,13 @@ function Dashboard() {
     <>
       <PageHeader title="صحیح اردو" description="اردو کو صحیح پڑھیں، لکھیں اور بولیں — تحقیق شدہ الفاظ کو مشق، تلفظ، املا اور کوئز کے ذریعے سیکھیں۔" />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[
+        {([
           ["کل الفاظ", sahiUrduWords.length, BookOpen],
           ["سیکھے ہوئے", snapshot.viewed, CheckCircle2],
           ["ماہر الفاظ", snapshot.mastered, Trophy],
           ["کوئز درستگی", `${quizAccuracy}%`, Target],
-        ].map(([label, value, Icon]) => {
-          const I = Icon as typeof BookOpen;
-          return <Card key={String(label)}><div className="flex items-center justify-between"><div><p className="text-sm text-ink-soft">{label}</p><p className="mt-2 text-2xl font-bold text-ink">{value}</p></div><I size={24} className="text-brand-500" /></div></Card>;
+        ] as [string, string | number, typeof BookOpen][]).map(([label, value, Icon]) => {
+          return <Card key={String(label)}><div className="flex items-center justify-between"><div><p className="text-sm text-ink-soft">{label}</p><p className="mt-2 text-2xl font-bold text-ink">{value}</p></div><Icon size={24} className="text-brand-500" /></div></Card>;
         })}
       </div>
 
