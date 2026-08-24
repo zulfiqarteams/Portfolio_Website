@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Bookmark, BookmarkCheck, Save, SaveCheck } from "lucide-react";
+import { Bookmark, BookmarkCheck, Save } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
 import { PageHeader } from "@/components/PageHeader";
 import { ContentSidebar } from "@/components/ContentSidebar";
@@ -82,7 +82,7 @@ export default function LessonDetail() {
                     {bookmarked ? "Bookmarked ✓" : "Bookmark"}
                   </Button>
                   <Button type="button" variant="outline" size="sm" onClick={handleSaveLater} aria-pressed={savedLater}>
-                    {savedLater ? <SaveCheck size={16} /> : <Save size={16} />}
+                    {savedLater ? <BookmarkCheck size={16} /> : <Save size={16} />}
                     {savedLater ? "Saved ✓" : "Save Later"}
                   </Button>
                 </div>

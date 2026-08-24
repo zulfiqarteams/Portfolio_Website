@@ -126,18 +126,19 @@ export function TypingCaptureArea({
     }
   }
 
-  type TypingKeyboardEvent = {
-    key: string;
-    code: string;
-    shiftKey: boolean;
-    ctrlKey: boolean;
-    altKey: boolean;
-    metaKey: boolean;
-    repeat: boolean;
-    isComposing?: boolean;
-    preventDefault: () => void;
-    getModifierState: (keyArg: string) => boolean;
-  };
+  type TypingKeyboardEvent = Pick<
+    globalThis.KeyboardEvent,
+    | "key"
+    | "code"
+    | "shiftKey"
+    | "ctrlKey"
+    | "altKey"
+    | "metaKey"
+    | "repeat"
+    | "isComposing"
+    | "preventDefault"
+    | "getModifierState"
+  >;
 
   function handlePhysicalKeyDown(event: TypingKeyboardEvent) {
     if (event.key === "Enter") {
