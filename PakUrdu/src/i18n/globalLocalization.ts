@@ -121,7 +121,7 @@ function flattenUi(value: unknown, out: Record<string, Record<AppLanguage, strin
     return;
   }
   if (!value || typeof value !== "object") return;
-  for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+  for (const [, val] of Object.entries(value as Record<string, unknown>)) {
     if (typeof val === "string") {
       const entry = out[val] ?? { en: val, ur: val, roman: val };
       entry[lang] = val;
@@ -192,7 +192,7 @@ export function installGlobalLocalization(language: AppLanguage) {
     for (const mutation of mutations) {
       for (const added of Array.from(mutation.addedNodes)) {
         if (added.nodeType === Node.TEXT_NODE) translateTextNode(added as Text, language);
-        else if (added.nodeType === Node.ELEMENT_NODE) applyGlobalLocalization(language, added);
+        else if (added instanceof Element) applyGlobalLocalization(language, added);
       }
     }
   });

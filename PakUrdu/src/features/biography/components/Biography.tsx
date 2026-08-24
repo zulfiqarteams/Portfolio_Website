@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, Bookmark, CheckCircle2, Clock, Search, Star, Users, Volume2, Trash2, TimerReset, Play, Pause } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Bookmark, CheckCircle2, Clock, Search, Users, Volume2, Trash2, TimerReset, Play, Pause } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { PageContainer } from "@/components/PageContainer";
 import { PageHeader } from "@/components/PageHeader";

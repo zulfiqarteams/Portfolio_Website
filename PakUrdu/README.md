@@ -5,7 +5,7 @@ online with phonetic keyboard lessons, guided practice, timed typing tests,
 and progress tracking. Built with React, TypeScript, Vite, Tailwind CSS, and
 React Router — no backend, no signup, no cost.
 
-🔗 **Live app:** https://zulfiqarteams.github.io/Z_Tech/PakUrdu/
+🔗 **Live app:** https://zulfiqarteams.github.io/Portfolio_Website/PakUrdu/
 
 Keywords: Urdu typing tutorial, learn Urdu typing, Urdu keyboard, online Urdu
 typing practice, free Urdu typing test, Urdu phonetic keyboard, type Urdu
