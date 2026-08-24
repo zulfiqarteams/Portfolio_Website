@@ -41,6 +41,7 @@ export interface BiographyEntry {
   era: string;
   region?: string;
   difficulty: "beginner" | "intermediate" | "advanced" | "expert";
+  levelContent?: Partial<Record<"beginner" | "intermediate" | "advanced" | "expert", { summary: string; text: string }>>;
   summary: string;
   biography: string;
   chapters: BiographyChapter[];

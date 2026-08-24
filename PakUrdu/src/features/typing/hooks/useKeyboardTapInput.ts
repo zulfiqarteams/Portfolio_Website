@@ -19,7 +19,7 @@ export function useKeyboardTapInput(typing: UseTypingEngineResult, soundEnabled:
   return useMemo(
     () => ({
       onKeyPress: (char: string) => {
-        const expected = typing.targetText[typing.currentIndex];
+        const expected = segmentText(typing.targetText)[typing.currentIndex];
         if (soundEnabled) {
           if (char === " " || char === expected) playKeyClick();
           else playErrorClick();

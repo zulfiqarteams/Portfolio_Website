@@ -10,6 +10,8 @@
  *   npx tsx src/features/typing/core/__tests__/commonUrduWords.test.ts
  */
 import { commonUrduWords, getWordBatch, buildWordBatchText } from "../../data/commonUrduWords";
+import { getExpectedKey } from "@/features/keyboard/data/phoneticMap";
+import { segmentText } from "../../utils/graphemes";
 
 function assertEqual<T>(actual: T, expected: T, message?: string): void {
   if (actual !== expected) {
@@ -34,17 +36,17 @@ function test(name: string, fn: TestFn): void {
 }
 
 // --- Word list shape -----------------------------------------------------
-test("Test 1 — at least 200 curated words (Requirement 1: 200-300 word list)", () => {
+test("Test 1 — exactly 500 curated practice words", () => {
   assertTrue(
-    commonUrduWords.length >= 200,
-    `Expected >= 200 words, got ${commonUrduWords.length}`,
+    commonUrduWords.length === 500,
+    `Expected exactly 500 words, got ${commonUrduWords.length}`,
   );
 });
 
-test("Test 2 — no more than 300 words (curated, not a dumped corpus)", () => {
+test("Test 2 — no duplicate / malformed practice words", () => {
   assertTrue(
-    commonUrduWords.length <= 300,
-    `Expected <= 300 words, got ${commonUrduWords.length}`,
+    commonUrduWords.every((word) => !word.includes(" ")),
+    `Expected every practice entry to be one atomic word`,
   );
 });
 
@@ -60,6 +62,14 @@ test("Test 4 — every word is unique (no accidental duplicates)", () => {
   for (const word of commonUrduWords) {
     assertTrue(!seen.has(word), `duplicate word: "${word}"`);
     seen.add(word);
+  }
+});
+
+test("Test 5 — every vocabulary grapheme is supported by the verified phonetic keyboard", () => {
+  for (const word of commonUrduWords) {
+    for (const grapheme of segmentText(word)) {
+      assertTrue(Boolean(getExpectedKey(grapheme)), `No phonetic mapping for \"${grapheme}\" in \"${word}\"`);
+    }
   }
 });
 

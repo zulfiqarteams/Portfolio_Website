@@ -104,7 +104,7 @@ export function TypingCaptureArea({
 
   function playTypingSoundForCharacter(char: string) {
     if (!soundEnabled) return;
-    const expected = typing.targetText[typing.currentIndex];
+    const expected = segmentText(typing.targetText)[typing.currentIndex];
     if (char === " ") {
       playKeyClick();
       return;

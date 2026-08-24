@@ -389,6 +389,14 @@
   animation: pakurdu-word-marquee 28s linear infinite;
   will-change: transform;
 }
+.typing-word {
+  letter-spacing: normal;
+  word-spacing: normal;
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  unicode-bidi: isolate;
+}
 .word-marquee__word {
   white-space: nowrap;
   overflow: visible;

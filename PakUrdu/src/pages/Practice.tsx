@@ -11,26 +11,31 @@ import { useTypingEngine, TypingText, TypingStats, TypingCaptureArea, useKeyboar
 import { VirtualKeyboard, HandFingerGuide, usePressedKey, getExpectedKey, fingerForKey } from "@/features/keyboard";
 import { useTypingTimer, calculateWPM } from "@/features/statistics";
 import { buildSessionResult, useSessionResult } from "@/features/results";
+import { buildCategoryPassage, buildPracticePassage } from "@/features/typing/data/urduPracticeWords";
 import { useSettings } from "@/features/settings";
 import { useLanguage } from "@/i18n/useLanguage";
 
 /**
- * A small, local sample set — deliberately NOT wired to the lesson
- * catalog from Part 6. The typing engine (Part 7's objective) must
- * stay independent of lesson data; how a specific lesson's exercise
- * reaches this page is future integration work (see the Part 7
- * report's "Important Future Integration" note).
+ * Word-oriented practice sessions. The same 500-word data source powers every
+ * session; level 1-5 progressively unlock more of the curated corpus, while
+ * the Islamic set gives learners a focused religious-vocabulary option without
+ * changing the underlying typing engine.
  */
-const sampleExercises = [
-  { id: "word", label: "Word", target: "پاکستان" },
-  { id: "sentence", label: "Sentence", target: "پاکستان ایک خوبصورت ملک ہے۔" },
-  { id: "greeting", label: "Punctuation", target: "سلام، آپ کیسے ہیں؟" },
-  { id: "paragraph", label: "Paragraph", target: "اردو ایک خوبصورت زبان ہے۔ روزانہ تھوڑی مشق سے ٹائپنگ کی رفتار اور درستگی بہتر ہوتی ہے۔" },
-  { id: "practice-2", label: "Practice 2", target: "آج ہم اردو کے الفاظ اور جملے ٹائپ کرنے کی مشق کریں گے۔" },
-  { id: "practice-3", label: "Practice 3", target: "اچھی ٹائپنگ کے لیے درستگی، رفتار اور مسلسل مشق ضروری ہے۔" },
-  { id: "practice-4", label: "Practice 4", target: "ہر نیا سبق آپ کو پہلے سے بہتر ٹائپ کرنے میں مدد دیتا ہے۔" },
-  { id: "practice-5", label: "Practice 5", target: "غلطی سے گھبرانے کے بجائے اسے سمجھیں اور دوبارہ درست ٹائپ کریں۔" },
-]
+const practiceExercises = [
+  ...Array.from({ length: 5 }, (_, index) => {
+    const level = index + 1;
+    return {
+      id: `word-level-${level}`,
+      label: `Level ${level}`,
+      target: buildPracticePassage(32, level, level * 19),
+    };
+  }),
+  {
+    id: "islamic-mix",
+    label: "Islamic Words",
+    target: buildCategoryPassage("islamic", 32, 11),
+  },
+];
 
 export default function Practice() {
   const { t } = useLanguage();
@@ -41,7 +46,7 @@ export default function Practice() {
   });
 
   const [exerciseIndex, setExerciseIndex] = useState(0);
-  const exercise = sampleExercises[exerciseIndex];
+  const exercise = practiceExercises[exerciseIndex];
 
   const typing = useTypingEngine({ targetText: exercise.target });
   const [isCaptureActive, setIsCaptureActive] = useState(false);
@@ -115,13 +120,13 @@ export default function Practice() {
   useEffect(() => {
     if (!typing.isComplete) return;
     const timerId = window.setTimeout(() => {
-      setExerciseIndex((current) => (current + 1) % sampleExercises.length);
+      setExerciseIndex((current) => (current + 1) % practiceExercises.length);
     }, 650);
     return () => window.clearTimeout(timerId);
   }, [typing.isComplete]);
 
   function handleNextPractice() {
-    setExerciseIndex((current) => (current + 1) % sampleExercises.length);
+    setExerciseIndex((current) => (current + 1) % practiceExercises.length);
   }
 
   function handleReset() {
@@ -163,13 +168,13 @@ export default function Practice() {
       />
 
       <WordMarquee
-        words={sampleExercises.map((item) => item.target.split(/\\s+/)[0])}
+        words={practiceExercises.map((item) => item.target.split(/\s+/)[0])}
         label={t.practice.marqueeLabel}
         className="mb-6"
       />
 
       <div className="flex flex-wrap gap-2 pb-6" role="group" aria-label={t.practice.exerciseSelector}>
-        {sampleExercises.map((item, index) => (
+        {practiceExercises.map((item, index) => (
           <button
             key={item.id}
             type="button"
@@ -211,7 +216,7 @@ export default function Practice() {
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
                   <div className="flex flex-wrap justify-center gap-2">
-                    <Button size="sm" variant="secondary" onClick={() => setExerciseIndex((current) => (current - 1 + sampleExercises.length) % sampleExercises.length)}>
+                    <Button size="sm" variant="secondary" onClick={() => setExerciseIndex((current) => (current - 1 + practiceExercises.length) % practiceExercises.length)}>
                       {t.practice.previous} <ArrowRight className="rotate-180" size={13} aria-hidden="true" />
                     </Button>
                     <Button size="sm" onClick={handleNextPractice}>
