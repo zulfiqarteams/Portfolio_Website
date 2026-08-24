@@ -135,10 +135,14 @@ export function TypingCaptureArea({
     | "altKey"
     | "metaKey"
     | "repeat"
-    | "isComposing"
     | "preventDefault"
     | "getModifierState"
-  >;
+  > & {
+    // React 18.3's KeyboardEvent type does not expose `isComposing`,
+    // while the native DOM KeyboardEvent does. Keeping this optional makes
+    // the shared contract compatible with both event implementations.
+    isComposing?: boolean;
+  };
 
   function handlePhysicalKeyDown(event: TypingKeyboardEvent) {
     if (event.key === "Enter") {
