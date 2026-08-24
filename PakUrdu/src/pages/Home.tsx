@@ -6,6 +6,7 @@ import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
 import { StatCard } from "@/components/StatCard";
 import { HeroTypingWidget } from "@/components/home/HeroTypingWidget";
+import { WordMarquee } from "@/components/WordMarquee";
 import { useSEO } from "@/hooks/useSEO";
 import { useProfiles } from "@/features/profiles/context/ProfileContext";
 import { useProgress, getContinueLearningCta } from "@/features/progress";
@@ -46,17 +47,13 @@ function MarketingHero() {
       <div className="relative flex min-h-64 items-center justify-center overflow-hidden rounded-2xl border border-border bg-paper px-6 py-12 shadow-card sm:min-h-80">
         <div aria-hidden="true" className="absolute inset-0 opacity-50 [background-image:radial-gradient(circle_at_center,var(--color-brand-100)_1px,transparent_1px)] [background-size:22px_22px]" />
         <div className="relative text-center">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-ink-faint">اردو</p>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-ink-faint">{copy.wordLabel}</p>
           <div className="flex items-center justify-center gap-3">
-            <span className="urdu-text text-7xl font-bold text-ink sm:text-8xl">سیکھیں</span>
+            <span className="urdu-text text-7xl font-bold text-ink sm:text-8xl">{copy.heroWord}</span>
             <span aria-hidden="true" className="h-14 w-[3px] animate-caret rounded-full bg-brand-500 sm:h-16" />
           </div>
           <p className="mx-auto mt-4 max-w-xs text-sm leading-6 text-ink-soft">
-            {isUrdu
-              ? "ہر حرف کو سمجھیں، ہاتھ کو عادت ڈالیں، اور پھر رفتار کو خود آنے دیں۔"
-              : direction === "ltr" && t.home.badge === "Urdu typing, samajh ke saath"
-                ? "Har harf ko samjhein, haath ko aadat dalayein, aur phir speed ko khud aane dein."
-                : "Understand each character, build the habit, and let speed follow."}
+{copy.heroHint}
           </p>
         </div>
       </div>
@@ -170,6 +167,13 @@ export default function Home() {
             ))}
           </div>
         </Section>
+
+        <section className="border-t border-border py-8 sm:py-10">
+          <WordMarquee
+            words={["پاکستان", "کتاب", "قلم", "تعلیم", "خوشی", "مشق", "رفتار", "کامیابی"]}
+            label={copy.marqueeLabel}
+          />
+        </section>
       </PageContainer>
     </>
   );

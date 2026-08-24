@@ -26,7 +26,7 @@ export function Footer() {
               <span className="flex h-7 w-7 items-center justify-center rounded bg-brand-500 text-white">
                 <Keyboard size={15} strokeWidth={2.25} aria-hidden="true" />
               </span>
-              Urdu Typing Tutorial
+              PakUrdu Typing Tutorial
             </div>
             <p className="mt-3 text-sm leading-relaxed text-ink-soft">
               {t.footer.description}
@@ -50,7 +50,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 text-sm text-ink-faint sm:flex-row">
-          <p>© {new Date().getFullYear()} Urdu Typing Tutorial.</p>
+          <p>© {new Date().getFullYear()} PakUrdu Typing Tutorial.</p>
           <p className="urdu-text text-base text-ink-soft">
             {t.footer.slogan}
           </p>

@@ -74,7 +74,7 @@ function KeyCap({
   // no touch equivalent here, so a tap always sends the base/Shift
   // face — never the AltGr one — regardless of which face is shown.
   const keyClassName = cn(
-    "relative flex min-w-0 flex-1 flex-col items-center justify-center rounded-lg border font-medium leading-none transition-all",
+    "relative box-border flex min-w-0 flex-1 flex-col items-center justify-center overflow-hidden rounded-lg border font-medium leading-none transition-all",
     compact ? "h-[clamp(2rem,5.2vh,3.35rem)] px-0.5" : "h-10 px-1 sm:h-12",
     interactive && "touch-manipulation select-none active:scale-95",
     active
@@ -117,7 +117,7 @@ function KeyCap({
       )}
       <span
         className={cn(
-          "urdu-text leading-none",
+          "urdu-text max-w-full leading-none",
           compact ? "text-[clamp(14px,2.55vh,20px)]" : "text-base sm:text-lg",
           active
             ? "text-white"

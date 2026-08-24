@@ -379,3 +379,23 @@
     min-width: 0;
   }
 }
+
+/* Word-level learning marquee: never splits a word or animates individual glyphs. */
+@keyframes pakurdu-word-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.word-marquee__track {
+  animation: pakurdu-word-marquee 28s linear infinite;
+  will-change: transform;
+}
+.word-marquee__word {
+  white-space: nowrap;
+  overflow: visible;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  unicode-bidi: plaintext;
+}
+@media (prefers-reduced-motion: reduce) {
+  .word-marquee__track { animation: none; }
+}

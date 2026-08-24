@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { LessonCard } from "@/components/LessonCard";
 import { ContentSidebar } from "@/components/ContentSidebar";
 import { useSEO } from "@/hooks/useSEO";
+import { useLanguage } from "@/i18n/useLanguage";
 import { getCourse, getLevels, getModulesForLevel, getLessonsForModule, getLessonPosition } from "@/features/lessons";
 import { getTrackById, getTrackForLevel } from "@/features/lessons/data/tracks";
 import { useProfiles } from "@/features/profiles";
@@ -21,6 +22,7 @@ function toCardStatus(status: LessonProgressStatus): LessonStatus {
 }
 
 export default function Learn() {
+  const { t } = useLanguage();
   useSEO({
     title: "Learn Urdu Typing — Phonetic Keyboard Lessons",
     description:
@@ -94,7 +96,7 @@ export default function Learn() {
                         <h2 id={`level-${level.id}`} className="text-lg font-semibold">
                           {level.title}
                         </h2>
-                        {level.locked && <Badge tone="neutral">Locked</Badge>}
+                        {level.locked && <Badge tone="neutral">{t.common.start}</Badge>}
                       </div>
                       <p className="mb-6 max-w-2xl text-sm text-ink-soft">{level.description}</p>
 

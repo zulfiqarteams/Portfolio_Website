@@ -58,7 +58,7 @@ export function Navbar() {
               thing that forces the header into horizontal scroll,
               rather than relying on flex-shrink text wrapping to
               happen to look right at every width. */}
-          <span className="max-w-[8.5rem] truncate min-[400px]:max-w-none">Urdu Typing Tutorial</span>
+          <span className="max-w-[8.5rem] truncate min-[400px]:max-w-none">PakUrdu Typing Tutorial</span>
         </Link>
 
         {/* Desktop navigation. Switches on at `lg` (1024px), not `md`

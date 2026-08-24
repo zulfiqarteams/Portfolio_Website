@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, BarChart3, CheckCircle2, RotateCcw } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
+import { WordMarquee } from "@/components/WordMarquee";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -11,6 +12,7 @@ import { VirtualKeyboard, HandFingerGuide, usePressedKey, getExpectedKey, finger
 import { useTypingTimer, calculateWPM } from "@/features/statistics";
 import { buildSessionResult, useSessionResult } from "@/features/results";
 import { useSettings } from "@/features/settings";
+import { useLanguage } from "@/i18n/useLanguage";
 
 /**
  * A small, local sample set — deliberately NOT wired to the lesson
@@ -31,6 +33,7 @@ const sampleExercises = [
 ]
 
 export default function Practice() {
+  const { t } = useLanguage();
   useSEO({
     title: "Urdu Typing Practice — Free Online Practice Tool",
     description:
@@ -133,11 +136,11 @@ export default function Practice() {
   const expectedKey = getExpectedKey(currentChar);
 
   const statusSummary = useMemo(() => {
-    if (typing.isComplete) return "Exercise complete.";
+    if (typing.isComplete) return t.practice.complete;
     if (typing.currentIndex === 0) {
-      return `Ready. ${typing.totalCharacters} characters to type.`;
+      return `${t.practice.ready} ${typing.totalCharacters}`;
     }
-    return `${typing.correctCharacters} correct, ${typing.incorrectCharacters} incorrect, out of ${typing.currentIndex} typed so far.`;
+    return `${typing.correctCharacters} ${t.practice.correct}, ${typing.incorrectCharacters} ${t.practice.incorrect}, ${typing.currentIndex} ${t.practice.typed}`;
   }, [
     typing.isComplete,
     typing.currentIndex,
@@ -149,17 +152,23 @@ export default function Practice() {
   return (
     <PageContainer>
       <PageHeader
-        title="Practice"
-        description="Type the Urdu text below using your keyboard. Correct characters turn green as you go."
+        title={t.practice.title}
+        description={t.practice.description}
         action={
           <Button variant="secondary" size="sm" onClick={handleReset}>
             <RotateCcw size={14} aria-hidden="true" />
-            Reset
+            {t.practice.reset}
           </Button>
         }
       />
 
-      <div className="flex flex-wrap gap-2 pb-6" role="group" aria-label="Sample exercise">
+      <WordMarquee
+        words={sampleExercises.map((item) => item.target.split(/\\s+/)[0])}
+        label={t.practice.marqueeLabel}
+        className="mb-6"
+      />
+
+      <div className="flex flex-wrap gap-2 pb-6" role="group" aria-label={t.practice.exerciseSelector}>
         {sampleExercises.map((item, index) => (
           <button
             key={item.id}
@@ -198,15 +207,20 @@ export default function Practice() {
               <div className="mt-4 flex flex-col items-center gap-3">
                 <p className="flex items-center gap-1.5 text-sm font-medium text-success-600">
                   <CheckCircle2 size={16} aria-hidden="true" />
-                  Exercise complete
+                  {t.practice.complete}
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
-                  <Button size="sm" onClick={handleNextPractice}>
-                    Next Practice <ArrowRight size={13} aria-hidden="true" />
-                  </Button>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Button size="sm" variant="secondary" onClick={() => setExerciseIndex((current) => (current - 1 + sampleExercises.length) % sampleExercises.length)}>
+                      {t.practice.previous} <ArrowRight className="rotate-180" size={13} aria-hidden="true" />
+                    </Button>
+                    <Button size="sm" onClick={handleNextPractice}>
+                      {t.practice.next} <ArrowRight size={13} aria-hidden="true" />
+                    </Button>
+                  </div>
                   <Button variant="secondary" size="sm" to="/results">
                     <BarChart3 size={13} aria-hidden="true" />
-                    View Results
+                    {t.practice.results}
                   </Button>
                 </div>
               </div>
@@ -216,7 +230,7 @@ export default function Practice() {
           {showKeyboard && (
             <>
               <Card>
-                <p className="mb-4 text-sm font-medium text-ink-soft">On-screen keyboard</p>
+                <p className="mb-4 text-sm font-medium text-ink-soft">{t.practice.keyboard}</p>
                 <VirtualKeyboard
                   pressedKey={pressedKey}
                   expectedKey={expectedKey}

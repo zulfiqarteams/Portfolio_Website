@@ -13,7 +13,7 @@ function applySettingsToDocument(settings: SettingsState) {
   const root = document.documentElement;
   root.classList.toggle("dark", settings.darkTheme);
   root.classList.toggle("settings-large-text", settings.largeInterface);
-  root.lang = settings.language === "ur" ? "ur" : "en";
+  root.lang = settings.language === "ur" ? "ur" : settings.language === "roman" ? "en" : "en";
   root.dir = settings.language === "ur" ? "rtl" : "ltr";
 }
 

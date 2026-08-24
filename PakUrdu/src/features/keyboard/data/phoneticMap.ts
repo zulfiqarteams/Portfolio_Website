@@ -1,25 +1,20 @@
 /**
- * A Latin-key → Urdu-character phonetic mapping matching the real,
- * widely-used Urdu Phonetic keyboard standard — CRULP Urdu Phonetic
- * Keyboard Layout v1.1 (Center for Research in Urdu Language
- * Processing, National University of Computer and Emerging
- * Sciences), the same layout underlying Windows' built-in Urdu
- * Phonetic keyboard, InPage, and open implementations like Navees
- * (https://saadatm.github.io/navees/, itself CRULP v1.1-based).
- * Source consulted: CRULP's own v1.1 spec (cle.org.pk) and Navees'
- * published mapping tables.
+ * Authoritative keyboard data for the PakUrdu typing engine and virtual keyboard.
  *
- * `phoneticMap` is CRULP's Base face; `shiftPhoneticMap` is its Shift
- * face. CRULP also defines a third, AltGr face (diacritics, honorifics,
- * a handful of rare letter variants) — this app only models two
- * levels, so AltGr is out of scope, with one deliberate exception:
- * `ؤ` (wao hamza), which lesson content actually uses, sits at
- * AltGr+W in the real standard. Since this app has no AltGr and
- * Shift+W is otherwise unclaimed here, `ؤ` is placed there instead —
- * the one pragmatic deviation from the standard, chosen because it's
- * the same physical key (`w`) the standard itself uses for it.
- * Every other key below matches the standard exactly; nothing here
- * is an invented or mnemonic-only mapping.
+ * Baseline:
+ * - CRULP Urdu Phonetic Keyboard Layout v1.1 (CLE/CRULP, 2007): Base + AltGr.
+ * - CLE Urdu Phonetic Keyboard Layout v1.2 (2019): updated Shift face.
+ * - Keyman Urdu Phonetic (CRULP) documentation used as a secondary cross-check.
+ *
+ * Sources:
+ * https://cle.org.pk/software/localization/keyboards/CRULPphonetickbv1.1.html
+ * https://cle.org.pk/software/localization/keyboards/CLEphonetickbv1.2.html
+ * https://help.keyman.com/keyboard/urdu_phonetic_crulp/1.2.2/urdu_phonetic_crulp
+ *
+ * The Base face is shared by the CRULP/CLE versions used here. The Shift
+ * face follows CLE v1.2 where it differs, while the extended AltGr face
+ * remains the CRULP v1.1 reference layer. The same data drives physical
+ * input, virtual-key labels and expected-key/finger guidance.
  */
 export const phoneticMap: Record<string, string> = {
   // Number row — CRULP v1.1 Base face
@@ -72,64 +67,39 @@ export const phoneticMap: Record<string, string> = {
  * the on-screen keyboard.
  */
 export const shiftPhoneticMap: Record<string, string> = {
-  // Number row
+  // CRULP Urdu Phonetic v1.2 Shift face (CLE, Oct 2019).
   "1": "1", "2": "2", "3": "3", "4": "4", "5": "5",
   "6": "6", "7": "7", "8": "8", "9": "9", "0": "0",
   "-": "_", "=": "+",
 
-  // QWERTY letter row — CRULP v1.1 Shift face
-  q: "ْ", w: "ّ", e: "ٰ", r: "َ", t: "ٹ", y: "ڑ",
-  u: "ُ", i: "ۃ", o: "ِ", p: "ئ",
+  q: "ْ", w: "ّ", e: "ٰ", r: "ڑ", t: "ٹ",
+  y: "َ", u: "ئ", i: "ِ", o: "ۃ", p: "ُ",
+  "[": "}", "]": "{", "\\": "|",
 
-  // Home row
   a: "آ", s: "ص", d: "ڈ",
-  g: "غ", h: "ھ", j: "ض", k: "خ",
+  g: "غ", h: "ھ", j: "ض", k: "خ", l: "لؕ",
   ";": ":", "'": '"',
 
-  // Bottom row
-  z: "ذ", x: "ژ", c: "ث", v: "ظ",
-  n: "ں", m: "٘", ",": "؟", ".": "٫" ,
-
-  "[": "{", "]": "}", "\\": "|",
+  z: "ذ", x: "ژ", c: "ث", v: "ظ", b: "ݨ",
+  n: "ں", m: "٘", ",": "ٌ", ".": "٫", "/": "؟",
 };
 
 /**
- * Extended AltGr (Right Alt / Ctrl+Alt) layer. CRULP v1.1 defines a
- * third AltGr face for less-common diacritics, honorifics and signs.
- * The web app exposes the useful Urdu/Islamic subset here so learners
- * can practice the same kinds of characters without needing a native
- * OS Urdu keyboard. The diacritic aliases follow the published Navees
- * phonetic mapping where it makes the web keyboard easier to use.
+ * Extended AltGr (Right Alt / Ctrl+Alt), from the CRULP v1.1 AltGr
+ * face. CRULP v1.2 changes the Shift face while retaining the
+ * v1.1 extended layer.
  */
 export const altGrPhoneticMap: Record<string, string> = {
-  // Diacritics
-  e: "ٰ",
-  i: "ِ",
-  p: "ُ",
-  y: "َ",
-  q: "ْ",
-  w: "ّ",
-  u: "ٔ",
-  m: "٘",
-  // Honorifics / Islamic signs
-  j: "ﷻ",
-  d: "ﷺ",
-  r: "ؓ",
-  h: "ؒ",
-  s: "ؐ",
-  l: "ؑ",
-  b: "﷽",
-  // Common Urdu/Islamic phrase shortcuts (multi-grapheme output).
-  // Holding Shift while using AltGr selects the uppercase alias.
-  R: "رضی اللہ عنہ",
-  H: "رحمۃ اللہ علیہ",
-  L: "علیہ السلام",
-  S: "صلی اللہ علیہ وسلم",
-  // Common written variants requested for religious Urdu practice.
-  T: "رضی اللہ تعالیٰ عنہ",
-  A: "رحمۃ اللہ علیہا",
+  // Number/symbol row
+  "1": "!", "2": "@", "3": "#", "5": "٪", "7": "&", "8": "*", "9": ")", "0": "(",
+  // QWERTY row — CRULP v1.1 AltGr
+  q: "ٓ", w: "؂", e: "ٖ", r: "ؓ", t: "ؔ", y: "؁", u: "ٔ", i: "ؑ", o: "ٕ", p: "ٗ",
+  // Home row
+  a: "ﷲ", s: "ؐ", d: "ﷺ", g: "ٛ", h: "ؒ", j: "ﷻ",
+  // Bottom row
+  z: "؏", x: "؎", c: "؃", v: "ؕ", b: "﷽", n: "؀",
+  ",": ">", ".": "<",
 };
-
 /**
  * Returns the Urdu character/phrase produced by an AltGr shortcut.
  * Keys are case-sensitive because uppercase aliases are reserved for
@@ -186,14 +156,16 @@ const physicalCodeToKey: Record<string, string> = {
 export function getUrduForPhysicalKey(code: string, shift = false): string | undefined {
   const key = physicalCodeToKey[code];
   if (!key) return undefined;
-  return shift ? (shiftPhoneticMap[key] ?? phoneticMap[key]) : phoneticMap[key];
+  return shift ? (Object.prototype.hasOwnProperty.call(shiftPhoneticMap, key) ? shiftPhoneticMap[key] : undefined) : phoneticMap[key];
 }
 
 export function getUrduForKey(key: string): string | undefined {
   const lower = key.toLowerCase();
   const isShifted = key !== lower && key.length === 1;
   if (isShifted) {
-    return shiftPhoneticMap[lower] ?? phoneticMap[lower];
+    return Object.prototype.hasOwnProperty.call(shiftPhoneticMap, lower)
+      ? shiftPhoneticMap[lower]
+      : undefined;
   }
   return phoneticMap[lower];
 }

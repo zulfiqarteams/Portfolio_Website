@@ -176,7 +176,7 @@ function SidebarContent({ activeLessonId, activeReadingId, onNavigate }: Content
 
         <div className="mt-1 border-t border-border pt-1">
           <SectionToggle expanded={biographyOpen} onClick={() => setBiographyOpen((open) => !open)}>
-            Biography & Islamic History
+            {language === "ur" ? "سوانح اور اسلامی تاریخ" : language === "roman" ? "Sawanih aur Islami tareekh" : "Biographies & Islamic History"}
           </SectionToggle>
           <div className={cn(
             "grid overflow-hidden transition-[grid-template-rows,opacity] duration-200 ease-out",
