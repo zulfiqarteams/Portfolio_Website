@@ -395,14 +395,18 @@
   white-space: nowrap;
   word-break: keep-all;
   overflow-wrap: normal;
-  unicode-bidi: isolate;
+  direction: rtl;
+  unicode-bidi: plaintext;
 }
 .word-marquee__word {
   white-space: nowrap;
   overflow: visible;
   word-break: keep-all;
   overflow-wrap: normal;
+  direction: rtl;
   unicode-bidi: plaintext;
+  font-family: theme("fontFamily.urdu");
+  line-height: 2;
 }
 @media (prefers-reduced-motion: reduce) {
   .word-marquee__track { animation: none; }

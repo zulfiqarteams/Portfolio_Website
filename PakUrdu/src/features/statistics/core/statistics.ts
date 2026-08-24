@@ -22,6 +22,20 @@ import { calculateAccuracy } from "@/features/typing/core/typingEngine";
  * (see Practice page / `TypingStats`), so intermediate consumers keep
  * full precision.
  */
+/**
+ * CPM = typed characters per minute. It uses the same elapsed time and
+ * character throughput as WPM, so homepage and full-test metrics remain
+ * consistent with the shared statistics engine.
+ */
+export function calculateCPM(typedCharacters: number, elapsedMs: number): number {
+  if (typedCharacters <= 0 || elapsedMs <= 0) return 0;
+
+  const elapsedMinutes = elapsedMs / 60_000;
+  const cpm = typedCharacters / elapsedMinutes;
+
+  return Number.isFinite(cpm) ? cpm : 0;
+}
+
 export function calculateWPM(typedCharacters: number, elapsedMs: number): number {
   if (typedCharacters <= 0 || elapsedMs <= 0) return 0;
 

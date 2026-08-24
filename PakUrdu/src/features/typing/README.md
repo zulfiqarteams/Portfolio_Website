@@ -39,8 +39,9 @@ is compared exactly as authored.
 `TypingCaptureArea` only auto-focuses its hidden input on devices that
 report a fine pointer (i.e. likely have a physical keyboard). On touch
 devices, auto-focusing would pop the software keyboard open on page load
-unprompted — instead a "Click here, then start typing" hint is shown and
-focus happens on explicit tap (`click`/`pointerdown`).
+unprompted; the page-level physical keyboard listener accepts the first
+valid keystroke immediately, while touch devices retain their existing
+on-screen input path.
 
 ## Out of scope for Part 7
 

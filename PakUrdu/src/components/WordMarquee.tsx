@@ -22,7 +22,7 @@ export function WordMarquee({ words, label, className }: WordMarqueeProps) {
           {track.map((word, index) => (
             <span
               key={`${word}-${index}`}
-              className="word-marquee__word inline-flex shrink-0 items-center rounded-full border border-border bg-surface px-5 py-2.5 text-xl font-semibold leading-none sm:text-2xl"
+              className="word-marquee__word inline-flex shrink-0 items-center rounded-full border border-border bg-surface px-5 py-2.5 text-xl font-semibold sm:text-2xl"
               lang="ur"
             >
               {word}

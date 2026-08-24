@@ -43,8 +43,10 @@ function getWordStatus(chars: TargetCharacter[]): WordStatus {
 /**
  * Word-level grouping is deliberate. Characters are compared internally as
  * Unicode graphemes, but the visual DOM never wraps each Urdu grapheme in its
- * own layout box. Every word is one normal text run, allowing the browser's
- * Arabic shaping engine to form contextual joining naturally.
+ * own layout box. Every word is one contiguous Urdu text run. The visual
+ * layer is therefore segmented only at real word boundaries (spaces), never
+ * between letters or grapheme clusters, so the browser can perform normal
+ * Arabic/Urdu contextual shaping inside each word.
  */
 function groupIntoWords(characters: TargetCharacter[]): Word[] {
   const words: Word[] = [];

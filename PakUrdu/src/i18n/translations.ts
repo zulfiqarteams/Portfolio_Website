@@ -9,6 +9,18 @@ export const languageOptions: Array<{ id: AppLanguage; label: string; short: str
 export const ui = {
   ur: {
     home: {
+      instantTypingTest: "فوری اردو ٹائپنگ ٹیسٹ",
+      customTiming: "اپنا وقت",
+      seconds: "سیکنڈ",
+      setTiming: "لگائیں",
+      fullTypingTest: "مکمل ٹیسٹ دیکھیں",
+      learnFromScratch: "شروع سے سیکھیں",
+      learnFromScratchHint: "بالکل نئے ہیں؟ پہلے بنیادی سبق سے سیکھنا شروع کریں۔",
+      wpm: "WPM",
+      cpm: "CPM",
+      accuracy: "درستگی",
+      timeUp: "وقت مکمل ہوگیا",
+      tryAgain: "دوبارہ کوشش کریں",
       badge: "اردو ٹائپنگ، سمجھ کے ساتھ",
       title: "اردو صرف لکھنی نہیں،	اپنانی بھی ہے۔",
       description:
@@ -133,6 +145,18 @@ export const ui = {
   },
   roman: {
     home: {
+      instantTypingTest: "Fauri Urdu Typing Test",
+      customTiming: "Apna waqt",
+      seconds: "sec",
+      setTiming: "Set",
+      fullTypingTest: "Mukammal test dekhein",
+      learnFromScratch: "Scratch se seekhein",
+      learnFromScratchHint: "Bilkul naye hain? Pehle bunyadi lesson se shuru karein.",
+      wpm: "WPM",
+      cpm: "CPM",
+      accuracy: "Durustgi",
+      timeUp: "Waqt mukammal ho gaya",
+      tryAgain: "Dobara koshish karein",
       badge: "Urdu typing, samajh ke saath",
       title: "Urdu sirf likhni nahi, apnani bhi hai.",
       description:
@@ -232,6 +256,18 @@ export const ui = {
   },
   en: {
     home: {
+      instantTypingTest: "Instant Urdu Typing Test",
+      customTiming: "Custom",
+      seconds: "sec",
+      setTiming: "Set",
+      fullTypingTest: "Take the full test",
+      learnFromScratch: "Learn from Scratch",
+      learnFromScratchHint: "New to Urdu typing? Start with the existing beginner lessons.",
+      wpm: "WPM",
+      cpm: "CPM",
+      accuracy: "Accuracy",
+      timeUp: "Time's up",
+      tryAgain: "Try again",
       badge: "Urdu typing, taught with care",
       title: "Don't just type Urdu. Make it feel natural.",
       description:

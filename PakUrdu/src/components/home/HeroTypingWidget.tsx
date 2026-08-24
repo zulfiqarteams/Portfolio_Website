@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Keyboard, RotateCcw, Timer as TimerIcon } from "lucide-react";
+import { ArrowRight, Gauge, Keyboard, RotateCcw, Target, Timer as TimerIcon } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
 import { Badge } from "@/components/Badge";
 import { cn } from "@/lib/cn";
@@ -12,9 +12,9 @@ import {
   getVisibleWordWindow,
   useKeyboardTapInput,
 } from "@/features/typing";
-import { buildWordPassage } from "@/features/typing/data/commonUrduWords";
+import { buildInstantUrduPassage } from "@/features/typing/data/instantUrduPassages";
 import { VirtualKeyboard, usePressedKey, getExpectedKey } from "@/features/keyboard";
-import { useTypingTimer, calculateWPM, formatTime } from "@/features/statistics";
+import { useTypingTimer, calculateCPM, calculateWPM, formatTime } from "@/features/statistics";
 import { useSettings } from "@/features/settings";
 
 /** How many words are ever visible at once — the underlying passage is sized for the whole selected duration, this is just the display window (see `getVisibleWordWindow`). */
@@ -38,9 +38,9 @@ const MAX_CUSTOM_SECONDS = 300;
  * on-screen keyboard, and a native Urdu IME all work here exactly as
  * they do everywhere else in the app) the real Test/Practice pages
  * use, so what's shown here is what using the app actually feels
- * like, not a mockup of it — and it's typing the same common-word
- * list (`buildWordPassage`) the rest of the app's word-list-driven
- * screens use, not separate throwaway demo text.
+ * like, not a mockup of it. The homepage uses a small dedicated set of
+ * natural Urdu sentences while the existing lesson/practice/test datasets
+ * remain unchanged.
  *
  * A duration selector (15s/30s/60s plus a 5–300 second custom option)
  * picks how long the countdown runs; the timer
@@ -49,8 +49,8 @@ const MAX_CUSTOM_SECONDS = 300;
  * freezes the widget with a small inline result once time's up,
  * mirroring — at a glance — what the full Test page does.
  *
- * Only the current 10-word batch is ever rendered (`getVisibleWordWindow`,
- * the same windowing Test.tsx now uses for its own long passages) —
+ * Only the current 8-word display window is ever rendered (`getVisibleWordWindow`,
+ * the same windowing Test.tsx uses for its own long passages) —
  * the underlying passage is generously sized for the whole selected
  * duration, but only a fixed, non-scrolling batch of words is ever on
  * screen, so nothing here grows past one screenful no matter how long
@@ -67,7 +67,7 @@ const MAX_CUSTOM_SECONDS = 300;
  * each clamp's own maximum.
  */
 export function HeroTypingWidget() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [durationSeconds, setDurationSeconds] = useState<number>(30);
   const [customSeconds, setCustomSeconds] = useState("90");
   const [showCustomTiming, setShowCustomTiming] = useState(false);
@@ -76,7 +76,7 @@ export function HeroTypingWidget() {
 
   // Rebuilt only when the duration or an explicit restart changes —
   // never mid-attempt, same reasoning as Test.tsx's own targetText.
-  const targetText = useMemo(() => buildWordPassage(durationSeconds), [durationSeconds, attemptKey]);
+  const targetText = useMemo(() => buildInstantUrduPassage(durationSeconds, attemptKey), [durationSeconds, attemptKey]);
 
   const typing = useTypingEngine({ targetText });
   const [isCaptureActive, setIsCaptureActive] = useState(false);
@@ -97,7 +97,10 @@ export function HeroTypingWidget() {
   }, [hasEnded, timer.elapsedMs, durationMs]);
 
   const remainingMs = Math.max(durationMs - timer.elapsedMs, 0);
-  const wpm = calculateWPM(typing.currentIndex, Math.min(timer.elapsedMs, durationMs));
+  const elapsedMs = Math.min(timer.elapsedMs, durationMs);
+  const wpm = calculateWPM(typing.currentIndex, elapsedMs);
+  const cpm = calculateCPM(typing.currentIndex, elapsedMs);
+  const accuracy = typing.sessionKeystrokes > 0 ? typing.sessionAccuracy : 0;
   const isCustomDuration = !durationOptions.some((option) => option.seconds === durationSeconds);
 
   function restart(nextDurationSeconds?: number) {
@@ -116,14 +119,10 @@ export function HeroTypingWidget() {
     [typing.characters, targetText, typing.currentIndex],
   );
 
-  const labels = language === "ur"
-    ? { test: "ٹائپنگ ٹیسٹ", custom: "اپنا وقت", sec: "سیکنڈ", set: "لگائیں", full: "مکمل ٹیسٹ دیکھیں →", up: "وقت مکمل ہوگیا", again: "دوبارہ کوشش کریں" }
-    : language === "roman"
-      ? { test: "Typing Test", custom: "Apna waqt", sec: "sec", set: "Set", full: "Mukammal test dekhein →", up: "Waqt mukammal ho gaya", again: "Dobara koshish karein" }
-      : { test: "Typing Test", custom: "Custom", sec: "sec", set: "Set", full: "Take the full test →", up: "Time's up", again: "Try again" };
+  const labels = t.home;
 
   const statusSummary = hasEnded
-    ? `${labels.up}. ${Math.round(wpm)} WPM.`
+    ? `${labels.timeUp}. ${Math.round(wpm)} WPM.`
     : `${typing.correctCharacters} correct, ${typing.incorrectCharacters} incorrect, out of ${typing.currentIndex} typed so far.`;
 
   return (
@@ -140,7 +139,7 @@ export function HeroTypingWidget() {
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="brand" className="inline-flex items-center gap-1.5">
               <Keyboard size={12} aria-hidden="true" />
-              {labels.test}
+              {labels.instantTypingTest}
             </Badge>
 
             <div role="radiogroup" aria-label="Test duration" className="flex items-center gap-1">
@@ -175,7 +174,7 @@ export function HeroTypingWidget() {
                     : "border-border text-ink-soft hover:border-border-strong hover:text-ink",
                 )}
               >
-                {isCustomDuration ? `${labels.custom} (${durationSeconds}s)` : labels.custom}
+                {isCustomDuration ? `${labels.customTiming} (${durationSeconds}s)` : labels.customTiming}
               </button>
             </div>
 
@@ -207,7 +206,7 @@ export function HeroTypingWidget() {
                   type="submit"
                   className="rounded-full bg-brand-500 px-2 py-0.5 text-[10px] font-semibold text-white hover:bg-brand-600"
                 >
-                  {labels.set}
+                  {labels.setTiming}
                 </button>
               </form>
             )}
@@ -232,8 +231,29 @@ export function HeroTypingWidget() {
             to="/test"
             className="text-xs font-medium text-brand-600 hover:underline sm:text-sm"
           >
-            {labels.full}
+            {labels.fullTypingTest}
           </Link>
+        </div>
+
+        <div className="grid w-full grid-cols-3 gap-2 pt-2 sm:pt-3">
+          <div className="rounded-lg border border-border bg-paper px-3 py-2 text-center">
+            <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-ink-faint">
+              <Gauge size={12} aria-hidden="true" /> {labels.wpm}
+            </div>
+            <div className="numeric mt-0.5 text-lg font-bold text-ink">{Math.round(wpm)}</div>
+          </div>
+          <div className="rounded-lg border border-border bg-paper px-3 py-2 text-center">
+            <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-ink-faint">
+              <Keyboard size={12} aria-hidden="true" /> {labels.cpm}
+            </div>
+            <div className="numeric mt-0.5 text-lg font-bold text-ink">{Math.round(cpm)}</div>
+          </div>
+          <div className="rounded-lg border border-border bg-paper px-3 py-2 text-center">
+            <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-ink-faint">
+              <Target size={12} aria-hidden="true" /> {labels.accuracy}
+            </div>
+            <div className="numeric mt-0.5 text-lg font-bold text-ink">{accuracy}%</div>
+          </div>
         </div>
 
         <div className="w-full pt-2 sm:pt-3">
@@ -255,7 +275,7 @@ export function HeroTypingWidget() {
               </div>
               {hasEnded && (
                 <div className="mt-3 flex flex-wrap items-center justify-center gap-3 border-t border-border pt-3 text-center">
-                  <p className="text-sm font-medium text-ink-soft">{labels.up}!</p>
+                  <p className="text-sm font-medium text-ink-soft">{labels.timeUp}!</p>
                   <p className="text-xl font-semibold text-ink">
                     {Math.round(wpm)} <span className="text-sm font-normal text-ink-soft">WPM</span>
                   </p>
@@ -265,7 +285,7 @@ export function HeroTypingWidget() {
                     className="inline-flex items-center gap-1.5 rounded-full border border-brand-500 bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-100"
                   >
                     <RotateCcw size={12} aria-hidden="true" />
-                    {labels.again}
+                    {labels.tryAgain}
                   </button>
                 </div>
               )}
@@ -281,6 +301,17 @@ export function HeroTypingWidget() {
             onKeyPress={keyboardTapInput.onKeyPress}
             onBackspace={keyboardTapInput.onBackspace}
           />
+        </div>
+
+        <div className="mt-3 flex shrink-0 flex-col items-center justify-center gap-1.5 border-t border-border pt-3 pb-2 text-center">
+          <Link
+            to="/learn"
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-brand-500 px-7 py-3 text-base font-bold text-white shadow-card transition-colors hover:bg-brand-600 focus-visible:outline-brand-500 sm:px-10 sm:text-lg"
+          >
+            {labels.learnFromScratch}
+            <ArrowRight size={18} aria-hidden="true" className={language === "ur" ? "rotate-180" : ""} />
+          </Link>
+          <p className="text-xs text-ink-faint">{labels.learnFromScratchHint}</p>
         </div>
       </PageContainer>
     </section>

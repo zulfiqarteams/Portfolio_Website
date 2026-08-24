@@ -9,8 +9,7 @@ import { useSettings } from "@/features/settings";
 interface TypingCaptureAreaProps {
   typing: UseTypingEngineResult;
   /** Reported whenever the hidden input gains/loses focus — used to
-   *  drive the virtual keyboard's pressed-key tracking and the
-   *  "click to start typing" hint. */
+   *  drive the virtual keyboard's pressed-key tracking. */
   onActiveChange?: (active: boolean) => void;
   autoFocus?: boolean;
   /**
@@ -87,18 +86,8 @@ export function TypingCaptureArea({
   }, [isActive, onActiveChange]);
 
   useEffect(() => {
-    if (!autoFocus) return;
-
-    // On touch devices, auto-focusing immediately opens the software
-    // keyboard on page load, which is jarring and not something a
-    // learner asked for. Desktop (a real physical keyboard) keeps
-    // auto-focus so typing can start right away; touch devices get
-    // the "Click here, then start typing" hint instead and focus on
-    // an explicit tap — see the click/pointerdown handlers below.
-    if (prefersTouchInput()) return;
-
+    if (!autoFocus || prefersTouchInput()) return;
     inputRef.current?.focus();
-    // Only ever run this for the initial mount's autoFocus intent.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -137,46 +126,90 @@ export function TypingCaptureArea({
     }
   }
 
-  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    // Use keydown as the reliable physical-key path for the phonetic
-    // keyboard. Some browser/platform combinations do not provide a
-    // useful for ordinary hardware key presses.
+  type TypingKeyboardEvent = {
+    key: string;
+    code: string;
+    shiftKey: boolean;
+    ctrlKey: boolean;
+    altKey: boolean;
+    metaKey: boolean;
+    preventDefault: () => void;
+    getModifierState?: (keyArg: string) => boolean;
+    nativeEvent?: { isComposing?: boolean };
+  };
+
+  function handlePhysicalKeyDown(event: TypingKeyboardEvent) {
     if (event.key === "Enter") {
       event.preventDefault();
-      return;
+      return true;
     }
 
-    // Native IME/composition remains untouched. Ctrl+Alt (Windows AltGr)
-    // is reserved for the extended Urdu layer: diacritics, honorifics
-    // and common Islamic phrase shortcuts.
-    if (event.nativeEvent.isComposing || event.metaKey) return;
+    if (event.metaKey || event.nativeEvent?.isComposing) return false;
 
     const isAltGr = event.getModifierState?.("AltGraph") || (event.ctrlKey && event.altKey);
     if (isAltGr) {
       const extended = getUrduForAltGrKey(event.key);
-      if (!extended) return;
+      if (!extended) return false;
       event.preventDefault();
       for (const grapheme of segmentText(extended)) {
         playTypingSoundForCharacter(grapheme);
         typing.typeCharacter(grapheme);
       }
-      return;
+      return true;
     }
 
-    // Do not consume ordinary Ctrl/Alt shortcuts (copy, paste, browser
-    // navigation, etc.).
-    if (event.ctrlKey || event.altKey) return;
+    if (event.ctrlKey || event.altKey) return false;
 
-    // Use the physical key code rather than `event.key` so Shift+punctuation
-    // (for example Shift+1, Shift+[, Shift+;) maps to the correct phonetic
-    // key face instead of the browser's US symbol (`!`, `{`, `:`).
+    if (event.key === "Backspace") {
+      if (!typing.userInput) return false;
+      event.preventDefault();
+      if (soundEnabled) playBackspaceClick();
+      typing.backspace();
+      return true;
+    }
+
+    if (event.code === "Space" || event.key === " ") {
+      event.preventDefault();
+      playTypingSoundForCharacter(" ");
+      typing.typeCharacter(" ");
+      return true;
+    }
+
     const urdu = getUrduForPhysicalKey(event.code, event.shiftKey);
-    if (!urdu) return;
+    if (!urdu) return false;
 
     event.preventDefault();
     playTypingSoundForCharacter(urdu);
     typing.typeCharacter(urdu);
+    return true;
   }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    handlePhysicalKeyDown(event);
+  }
+
+  useEffect(() => {
+    function handleWindowKeyDown(event: globalThis.KeyboardEvent) {
+      const target = event.target;
+      // The hidden capture input already has its own React keydown handler;
+      // do not process the same physical key a second time during bubbling.
+      if (target === inputRef.current) return;
+
+      // Do not hijack unrelated form fields or contenteditable controls.
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+      ) {
+        return;
+      }
+
+      handlePhysicalKeyDown(event);
+    }
+
+    window.addEventListener("keydown", handleWindowKeyDown);
+    return () => window.removeEventListener("keydown", handleWindowKeyDown);
+  }, [typing, soundEnabled]);
 
 
   return (
@@ -186,15 +219,6 @@ export function TypingCaptureArea({
       onPointerDown={() => inputRef.current?.focus()}
     >
       {children}
-
-      {!isActive && (
-        <p
-          aria-hidden="true"
-          className="pointer-events-none mt-3 text-center text-xs text-ink-faint"
-        >
-          {blockNativeKeyboard ? "Tap the keyboard below to start typing" : "Click here, then start typing"}
-        </p>
-      )}
 
       <input
         ref={inputRef}
