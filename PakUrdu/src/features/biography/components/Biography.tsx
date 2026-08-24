@@ -22,6 +22,7 @@ import type { BiographyEntry } from "@/features/biography/types";
 import { loadBiographyProgress, markBiographyViewed, markChapterComplete, markTypingComplete, recordBiographyQuiz, toggleBookmark } from "@/features/biography/services/progress";
 import { isReadLater, loadReadLaterIds, removeReadLater, toggleReadLater } from "@/features/biography/services/readLater";
 import { cn } from "@/lib/cn";
+import { useSEO } from "@/hooks/useSEO";
 
 const LEVELS = ["beginner", "intermediate", "advanced", "expert"] as const;
 const TIMER_OPTIONS = [60, 120, 300, 600, 0] as const;
@@ -208,5 +209,10 @@ export default function Biography() {
   const segments = location.pathname.replace(/^\/biography\/?/, "").split("/").filter(Boolean);
   const id = segments[0];
   const bio = id && id !== "library" && id !== "read-later" ? getBiography(id) : undefined;
+  useSEO({
+    title: bio ? `${bio.name} — Biography` : id === "read-later" ? "Biography Read Later" : id === "library" ? "Biography Library" : "Biography — Islamic History & Learning",
+    description: bio ? `${bio.summary} Read, learn and practise through PAKURDU.` : "Explore biographies, Islamic history and learning resources in PAKURDU.",
+    noIndex: id === "read-later",
+  });
   return <PageContainer><div className="py-8 sm:py-10"><div className="grid gap-8 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start"><ContentSidebar/><main className="min-w-0">{!id ? <Dashboard/> : id === "library" ? <Library/> : id === "read-later" ? <Library readLaterOnly/> : bio ? <BiographyDetail bio={bio}/> : <Library/>}</main></div></div></PageContainer>;
 }

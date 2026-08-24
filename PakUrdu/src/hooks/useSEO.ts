@@ -51,7 +51,11 @@ export function useSEO(options: SEOOptions): void {
 
     upsertMeta("name", "robots", tags.robots);
 
+    upsertMeta("property", "og:type", tags.ogType);
     upsertMeta("property", "og:title", tags.ogTitle);
+    upsertMeta("property", "og:site_name", tags.ogSiteName);
+    upsertMeta("property", "og:locale", tags.ogLocale);
+    upsertMeta("property", "og:locale:alternate", tags.ogLocaleAlternate);
     upsertMeta("property", "og:url", tags.ogUrl);
     if (tags.ogDescription) {
       upsertMeta("property", "og:description", tags.ogDescription);
@@ -62,6 +66,8 @@ export function useSEO(options: SEOOptions): void {
     if (tags.twitterDescription) {
       upsertMeta("name", "twitter:description", tags.twitterDescription);
     }
+    upsertMeta("name", "twitter:card", "summary_large_image");
+    upsertMeta("name", "twitter:image", tags.twitterImage);
 
     return () => {
       document.title = previousTitle;

@@ -26,6 +26,11 @@ export interface SEOTags {
   ogImage: string;
   twitterTitle: string;
   twitterDescription: string | undefined;
+  twitterImage: string;
+  ogType: "website";
+  ogSiteName: string;
+  ogLocale: string;
+  ogLocaleAlternate: string;
 }
 
 /**
@@ -48,5 +53,10 @@ export function buildSEOTags({ title, description, noIndex = false, pathname }: 
     ogImage: DEFAULT_OG_IMAGE,
     twitterTitle: fullTitle,
     twitterDescription: description,
+    twitterImage: DEFAULT_OG_IMAGE,
+    ogType: "website",
+    ogSiteName: SITE_NAME,
+    ogLocale: "en_US",
+    ogLocaleAlternate: "ur_PK",
   };
 }

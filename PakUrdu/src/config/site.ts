@@ -18,7 +18,7 @@ export const SITE_URL = "https://zulfiqarteams.github.io/Portfolio_Website/PakUr
 export const DEFAULT_DESCRIPTION =
   "Free Urdu typing tutorial with phonetic lessons, a virtual keyboard, guided practice, typing tests, and progress tracking. Learn Urdu typing online at your own pace.";
 
-export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-cover.svg`;
+export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-cover.png`;
 
 /** Builds an absolute canonical URL for a given app-relative path like "/learn". */
 export function absoluteUrl(path: string): string {

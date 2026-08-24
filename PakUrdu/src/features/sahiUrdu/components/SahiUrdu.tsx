@@ -14,6 +14,7 @@ import { Input } from "@/components/Input";
 import { ProgressBar } from "@/components/ProgressBar";
 import { Badge } from "@/components/Badge";
 import { cn } from "@/lib/cn";
+import { useSEO } from "@/hooks/useSEO";
 import { useTypingEngine } from "@/features/typing/hooks/useTypingEngine";
 import { TypingCaptureArea } from "@/features/typing/components/TypingCaptureArea";
 import { TypingText } from "@/features/typing/components/TypingText";
@@ -345,6 +346,11 @@ export default function SahiUrdu() {
   const mode = segments[0] ?? "dashboard";
   const wordId = segments[0] === "word" ? segments[1] : id;
   const word = wordId ? sahiUrduWords.find((item) => item.id === wordId) : undefined;
+  const seoTitle = word ? `${word.correctWord} — صحیح اردو` : mode === "dashboard" ? "صحیح اردو — Correct Urdu Words" : `صحیح اردو — ${mode}`;
+  const seoDescription = word
+    ? `Learn the correct Urdu spelling, meaning, common forms and typing practice for ${word.correctWord}.`
+    : "Learn correct Urdu spelling, diacritics, vocabulary and typing through PAKURDU's guided practice.";
+  useSEO({ title: seoTitle, description: seoDescription, noIndex: mode === "progress" || mode === "quiz" });
 
   const content = mode === "word" && word ? <WordDetail word={word}/> : mode === "word" && !word ? (
     <Card><div className="py-12 text-center"><p className="font-semibold">لفظ نہیں ملا</p><Button to="/sahi-urdu/words" className="mt-4">Word Library</Button></div></Card>

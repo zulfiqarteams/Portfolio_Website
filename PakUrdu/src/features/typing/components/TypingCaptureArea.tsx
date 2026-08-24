@@ -133,9 +133,10 @@ export function TypingCaptureArea({
     ctrlKey: boolean;
     altKey: boolean;
     metaKey: boolean;
+    repeat: boolean;
+    isComposing?: boolean;
     preventDefault: () => void;
-    getModifierState?: (keyArg: string) => boolean;
-    nativeEvent?: { isComposing?: boolean };
+    getModifierState: (keyArg: string) => boolean;
   };
 
   function handlePhysicalKeyDown(event: TypingKeyboardEvent) {
@@ -144,7 +145,7 @@ export function TypingCaptureArea({
       return true;
     }
 
-    if (event.metaKey || event.nativeEvent?.isComposing) return false;
+    if (event.metaKey || event.isComposing) return false;
 
     const isAltGr = event.getModifierState?.("AltGraph") || (event.ctrlKey && event.altKey);
     if (isAltGr) {

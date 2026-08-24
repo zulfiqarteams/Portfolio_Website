@@ -1,20 +1,22 @@
-PakUrdu Typing Content / Word Rendering Audit — 2026-08-24
-
-Source: PAKURDU_Global_Language_Fixed.zip
+PAKURDU Bookmark + Save Later + Build Fix + SEO Audit — 2026-08-24
 
 Implemented:
-- Replaced per-grapheme visual spans in TypingText with word-level DOM text runs so Urdu contextual shaping is preserved.
-- Kept Unicode grapheme segmentation for internal typing/comparison logic.
-- Added a curated, exactly 500-word Urdu practice corpus with category, difficulty and lesson-level metadata.
-- Mixed general Urdu, education, family, nature, Pakistan, technology, formal and Islamic vocabulary.
-- Connected Home/Practice word passages to the shared 500-word source.
-- Kept biography typing on the existing typing engine and made chapter targets keyboard-compatible with the verified phonetic mapping.
-- Added vocabulary validation for duplicate/whitespace/unmapped-character risks.
-- Preserved the existing CRULP/CLE phonetic mapping and keyboard architecture.
+- Added persistent lesson Bookmark and Save Later storage using separate localStorage keys.
+- Added independent Bookmark / Save Later toggle controls to lesson detail pages.
+- Preserved existing biography bookmark/read-later systems and all existing progress storage.
+- Fixed TypingKeyboardEvent compatibility by using a minimal shared keyboard-event contract compatible with both React.KeyboardEvent and DOM KeyboardEvent; removed the getModifierState/nativeEvent mismatch.
+- Preserved physical-keyboard instant-start behavior and first-key processing.
+- Standardized dynamic SEO Open Graph/Twitter metadata, including type, site name, locale, alternate locale, card, and image.
+- Standardized the OG image to the deployed /og-cover.png asset.
+- Removed invalid pakurdu.com URLs from sitemap.xml.
+- Added only routes that exist under the PAKURDU production base path to sitemap.xml.
+- Confirmed robots.txt points to the production sitemap.
+- Confirmed no obsolete Z_Tech or /Z_Tech/ deployment references remain in active source/public/config files.
+- Confirmed no localStorage.clear() or sessionStorage.clear() calls were introduced.
 
 Verification:
-- Modified TypeScript/TSX files passed TypeScript parser syntax diagnostics.
-- Practice corpus: 500 entries, 500 unique words, 11 balanced categories.
-- Practice corpus: no embedded spaces; all vocabulary graphemes are covered by the current verified phonetic mapping.
-- Biography chapter typing texts audited for unsupported graphemes/digits; no unmapped chapter-target characters remain.
-- Full npm install/build could not be completed in this execution environment because npm dependency installation timed out and offline cache was incomplete.
+- public/sitemap.xml parses as valid XML.
+- public/robots.txt contains the production sitemap URL.
+- public/og-cover.png exists.
+- Physical keyboard event architecture is type-compatible by structural TypeScript design.
+- Full npm ci/npm run build could not be completed in this execution environment: npm ci timed out, and offline retry failed because yallist-3.1.1.tgz was not cached. The partial node_modules tree therefore cannot be used as a valid build verification environment.

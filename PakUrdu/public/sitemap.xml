@@ -1,53 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-
-  <url>
-    <loc>https://zulfiqarteams.github.io/Portfolio_Website/PakUrdu/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-
-  <url>
-    <loc>https://zulfiqarteams.github.io/Portfolio_Website/PakUrdu/learn</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <url>
-    <loc>https://zulfiqarteams.github.io/Portfolio_Website/PakUrdu/learn/phonetic-keyboard</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <url>
-    <loc>https://zulfiqarteams.github.io/Portfolio_Website/PakUrdu/practice</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <url>
-    <loc>https://zulfiqarteams.github.io/Portfolio_Website/PakUrdu/test</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!--
-    The 95 individual /lesson/:id pages are intentionally NOT listed
-    here. Their slugs are generated at runtime from lesson titles
-    (e.g. character names), so hand-writing all 95 risks stale or
-    wrong URLs, which hurts SEO more than omitting them. They are
-    fully indexable (see src/hooks/useSEO.ts) and Google will find and
-    crawl every one of them through the ordinary <a>/<Link> links on
-    the /learn page and lesson-to-lesson "Next" navigation. If you
-    want them in this file too, the safest approach is generating this
-    sitemap from `getCourse()` at build time — see README.md.
-  -->
-
-
-  <url><loc>https://pakurdu.com/sahi-urdu</loc></url>
-  <url><loc>https://pakurdu.com/sahi-urdu/words</loc></url>
-  <url><loc>https://pakurdu.com/sahi-urdu/diacritics</loc></url>
-  <url><loc>https://pakurdu.com/sahi-urdu/practice</loc></url>
-  <url><loc>https://pakurdu.com/sahi-urdu/quiz</loc></url>
-  <url><loc>https://pakurdu.com/sahi-urdu/progress</loc></url>
+  <url><loc>https://zulfiqarteams.github.io/Portfolio_Website/PakUrdu/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://zulfiqarteams.github.io/Portfolio_Website/PakUrdu/learn</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://zulfiqarteams.github.io/Portfolio_Website/PakUrdu/learn/phonetic-keyboard</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://zulfiqarteams.github.io/Portfolio_Website/PakUrdu/practice</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://zulfiqarteams.github.io/Portfolio_Website/PakUrdu/test</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://zulfiqarteams.github.io/Portfolio_Website/PakUrdu/sahi-urdu</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://zulfiqarteams.github.io/Portfolio_Website/PakUrdu/sahi-urdu/words</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://zulfiqarteams.github.io/Portfolio_Website/PakUrdu/sahi-urdu/diacritics</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://zulfiqarteams.github.io/Portfolio_Website/PakUrdu/biography</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://zulfiqarteams.github.io/Portfolio_Website/PakUrdu/biography/library</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
 </urlset>
