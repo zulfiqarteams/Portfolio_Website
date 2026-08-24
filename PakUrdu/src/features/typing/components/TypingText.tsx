@@ -85,9 +85,9 @@ function findActiveWordIndex(words: Word[]): number {
   return lastCorrect >= 0 ? Math.min(lastCorrect + 1, Math.max(words.length - 1, 0)) : 0;
 }
 
-function wordClasses(status: WordStatus, showFeedback: boolean): string {
+function characterClasses(status: TargetCharacter["status"], showFeedback: boolean): string {
   if (status === "current") {
-    return "text-ink rounded-md bg-brand-50 px-2 py-1 underline decoration-brand-500 decoration-2 underline-offset-8";
+    return "text-ink rounded-md bg-brand-50 px-1.5 py-0.5 underline decoration-brand-500 decoration-2 underline-offset-8";
   }
   if (showFeedback && status === "incorrect") {
     return "text-error-600 underline decoration-wavy decoration-2 decoration-error-500 underline-offset-8";
@@ -96,19 +96,31 @@ function wordClasses(status: WordStatus, showFeedback: boolean): string {
   return "text-ink-faint";
 }
 
+/**
+ * Render one word as a single RTL text run, while applying feedback to each
+ * grapheme individually. The character spans are inline (never inline-block)
+ * and do not create bidi-isolated boxes, so the browser can keep Arabic/Urdu
+ * contextual joining intact across adjacent graphemes.
+ */
 function renderWord(word: Word, showFeedback: boolean, className = "") {
   return (
     <span
       key={word.key}
       className={cn(
         "typing-word inline-block shrink-0 whitespace-nowrap break-keep overflow-visible align-baseline",
-        wordClasses(word.status, showFeedback),
         className,
       )}
       dir="rtl"
       lang="ur"
     >
-      {word.text}
+      {word.chars.map((character) => (
+        <span
+          key={character.index}
+          className={cn("typing-character inline", characterClasses(character.status, showFeedback))}
+        >
+          {character.char}
+        </span>
+      ))}
     </span>
   );
 }

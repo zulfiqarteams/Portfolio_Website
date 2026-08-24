@@ -138,9 +138,7 @@ export function TypingCaptureArea({
     | "preventDefault"
     | "getModifierState"
   > & {
-    // React 18.3's KeyboardEvent type does not expose `isComposing`,
-    // while the native DOM KeyboardEvent does. Keeping this optional makes
-    // the shared contract compatible with both event implementations.
+    /** React 18 keyboard events do not expose this DOM property on the event type. */
     isComposing?: boolean;
   };
 
