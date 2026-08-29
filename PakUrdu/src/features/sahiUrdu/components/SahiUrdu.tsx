@@ -15,6 +15,7 @@ import { ProgressBar } from "@/components/ProgressBar";
 import { Badge } from "@/components/Badge";
 import { cn } from "@/lib/cn";
 import { useSEO } from "@/hooks/useSEO";
+import { useLanguage } from "@/i18n/useLanguage";
 import { useTypingEngine } from "@/features/typing/hooks/useTypingEngine";
 import { TypingCaptureArea } from "@/features/typing/components/TypingCaptureArea";
 import { TypingText } from "@/features/typing/components/TypingText";
@@ -49,7 +50,7 @@ function ProgressSnapshot() {
 
 function WordCard({ word, status, onOpen }: { word: UrduWord; status?: string; onOpen: () => void }) {
   return (
-    <button type="button" onClick={onOpen} className="group text-left">
+    <button type="button" onClick={onOpen} className="group text-start">
       <Card hover className="h-full transition-transform group-hover:-translate-y-0.5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1" dir="rtl">
@@ -122,7 +123,7 @@ function Dashboard() {
       </div>
 
       <section className="mt-8">
-        <div className="mb-4 flex items-end justify-between gap-3"><div><h2 className="text-xl font-bold text-ink">آج کے الفاظ</h2><p className="mt-1 text-sm text-ink-soft">روزانہ کی چھوٹی مگر مستقل مشق۔</p></div><Button to="/sahi-urdu/words" variant="ghost" size="sm">تمام الفاظ <ArrowRight size={15} /></Button></div>
+        <div className="mb-4 flex items-end justify-between gap-3"><div><h2 className="text-xl font-bold text-ink">آج کے الفاظ</h2><p className="mt-1 text-sm text-ink-soft">روزانہ کی چھوٹی مگر مستقل مشق۔</p></div><Button to="/sahi-urdu/words" variant="ghost" size="sm">تمام الفاظ <ArrowRight className="directional-icon" size={15} /></Button></div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{daily.slice(0, 6).map((word) => <WordCard key={word.id} word={word} onOpen={() => navigate(`/sahi-urdu/word/${word.id}`)} />)}</div>
       </section>
     </>
@@ -171,6 +172,7 @@ function Library() {
 }
 
 function WordDetail({ word }: { word: UrduWord }) {
+  const { direction } = useLanguage();
   const navigate = useNavigate();
   const typingText = stripMarks(word.correctWord);
   const typing = useTypingEngine({ targetText: typingText });
@@ -193,11 +195,11 @@ function WordDetail({ word }: { word: UrduWord }) {
 
   return (
     <>
-      <button type="button" onClick={() => navigate(-1)} className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-brand-600 hover:text-brand-700"><ArrowLeft size={16}/> واپس</button>
+      <button type="button" onClick={() => navigate(-1)} className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-brand-600 hover:text-brand-700"><ArrowLeft className="directional-icon" size={16}/> واپس</button>
       <div className="grid gap-6 xl:grid-cols-[1.1fr_.9fr]">
         <div>
           <Card>
-            <div className="flex flex-col items-center text-center" dir="rtl">
+            <div className="flex flex-col items-center text-center" dir={direction}>
               <Badge>{word.formStatus === "wrong" ? "غلط" : word.formStatus === "variant" ? "متبادل صورت" : word.formStatus === "common" ? "عام صورت" : "ترجیحی صورت"}</Badge>
               <h1 className="urdu-text mt-5 text-6xl font-bold text-ink sm:text-7xl">{word.correctWord}</h1>
               <p dir="ltr" className="mt-4 text-lg font-medium text-ink-soft">{word.roman ?? "—"}</p>
@@ -210,7 +212,7 @@ function WordDetail({ word }: { word: UrduWord }) {
             </div>
           </Card>
 
-          <Card className="mt-6" dir="rtl">
+          <Card className="mt-6" dir={direction}>
             <CardHeader><CardTitle>یہ لفظ کیسے سیکھیں؟</CardTitle></CardHeader>
             {word.explanation && <p className="leading-8 text-ink">{word.explanation}</p>}
             {word.commonWrongForms?.length ? <div className="mt-5 rounded-md border border-error-200 bg-error-50 p-4"><p className="text-sm font-semibold text-error-700">عام غلط صورت</p><p className="urdu-text mt-2 text-2xl text-error-700">{word.commonWrongForms.join("، ")}</p></div> : null}
@@ -238,6 +240,7 @@ function WordDetail({ word }: { word: UrduWord }) {
 }
 
 function Practice() {
+  const { direction } = useLanguage();
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
   const words = getDailyWords(sahiUrduWords, 10);
@@ -246,14 +249,15 @@ function Practice() {
     <PageHeader title="الفاظ کی مشق" description="روزانہ کے منتخب الفاظ کو ایک ایک کر کے سیکھیں، سنیں اور ٹائپ کریں۔" />
     <Card>
       <div className="flex items-center justify-between text-sm text-ink-soft"><span>لفظ {index + 1} از {words.length}</span><span>روزانہ مشق</span></div>
-      <div className="mt-6 text-center" dir="rtl"><p className="urdu-text text-6xl font-bold text-ink">{word.correctWord}</p><p dir="ltr" className="mt-3 text-lg text-ink-soft">{word.roman}</p><p className="mt-3 text-sm text-ink-soft">{word.meaningUrdu ?? word.meaning}</p></div>
+      <div className="mt-6 text-center" dir={direction}><p className="urdu-text text-6xl font-bold text-ink">{word.correctWord}</p><p dir="ltr" className="mt-3 text-lg text-ink-soft">{word.roman}</p><p className="mt-3 text-sm text-ink-soft">{word.meaningUrdu ?? word.meaning}</p></div>
       <div className="mt-6 flex flex-wrap justify-center gap-3"><Button variant="outline" onClick={() => speak(word)}><Headphones size={16}/> سنیں</Button><Button onClick={() => navigate(`/sahi-urdu/word/${word.id}`)}><Keyboard size={16}/> ٹائپنگ شروع کریں</Button></div>
-      <div className="mt-6 flex justify-between"><Button variant="ghost" disabled={index === 0} onClick={() => setIndex((value) => value - 1)}><ArrowLeft size={15}/> پچھلا</Button><Button variant="ghost" onClick={() => setIndex((value) => (value + 1) % words.length)}>اگلا <ArrowRight size={15}/></Button></div>
+      <div className="mt-6 flex justify-between"><Button variant="ghost" disabled={index === 0} onClick={() => setIndex((value) => value - 1)}><ArrowLeft className="directional-icon" size={15}/> پچھلا</Button><Button variant="ghost" onClick={() => setIndex((value) => (value + 1) % words.length)}>اگلا <ArrowRight className="directional-icon" size={15}/></Button></div>
     </Card>
   </>;
 }
 
 function Diacritics() {
+  const { direction } = useLanguage();
   const marks = [
     ["زبر", "َ", "a"], ["زیر", "ِ", "i"], ["پیش", "ُ", "u"], ["جزم", "ْ", "ْ"], ["تشدید", "ّ", "ّ"], ["کھڑا زبر", "ٰ", "ٰ"], ["مد", "ٓ", "ٓ"],
   ];
@@ -265,13 +269,14 @@ function Diacritics() {
   return <>
     <PageHeader title="اعراب" description="زبر، زیر، پیش، جزم، تشدید اور دوسرے Unicode اعراب کو الگ مشق کریں۔" />
     <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
-      <Card dir="rtl"><CardHeader><CardTitle>{marks[index][0]}</CardTitle><CardDescription>Unicode character</CardDescription></CardHeader><p className="urdu-text text-center text-8xl font-bold">{target}</p><p dir="ltr" className="mt-4 text-center text-sm text-ink-soft">{marks[index][2]}</p><div className="mt-6 flex justify-between"><Button variant="ghost" disabled={index === 0} onClick={() => setIndex(index - 1)}>پچھلا</Button><Button variant="ghost" disabled={index === marks.length - 1} onClick={() => setIndex(index + 1)}>اگلا</Button></div></Card>
+      <Card dir={direction}><CardHeader><CardTitle>{marks[index][0]}</CardTitle><CardDescription>Unicode character</CardDescription></CardHeader><p className="urdu-text text-center text-8xl font-bold">{target}</p><p dir="ltr" className="mt-4 text-center text-sm text-ink-soft">{marks[index][2]}</p><div className="mt-6 flex justify-between"><Button variant="ghost" disabled={index === 0} onClick={() => setIndex(index - 1)}>پچھلا</Button><Button variant="ghost" disabled={index === marks.length - 1} onClick={() => setIndex(index + 1)}>اگلا</Button></div></Card>
       <Card><CardHeader><CardTitle>صحیح اعراب ٹائپ کریں</CardTitle><CardDescription>یہ exercise اصل combining mark کو target کے طور پر استعمال کرتی ہے۔</CardDescription></CardHeader><TypingCaptureArea typing={typing}><div className="w-full min-w-0 overflow-hidden"><TypingText characters={typing.characters} statusSummary={`${typing.correctCharacters} درست، ${typing.currentIndex} میں سے۔`} /></div></TypingCaptureArea><div className="mt-5"><VirtualKeyboard pressedKey={pressedKey} expectedKey={expectedKey} onKeyPress={typing.typeCharacter} /></div>{typing.isComplete && <div className="mt-4 rounded-md bg-brand-50 p-4 text-sm font-semibold text-brand-800">درست! یہ Unicode اعراب رجسٹر ہو گیا۔</div>}</Card>
     </div>
   </>;
 }
 
 function Quiz() {
+  const { direction } = useLanguage();
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [score, setScore] = useState(0);
@@ -302,10 +307,10 @@ function Quiz() {
     <PageHeader title="کوئز" description="سوالات dataset سے dynamically بنتے ہیں اور آپ کی غلطیوں کو progress میں محفوظ کیا جاتا ہے۔" />
     <Card>
       <div className="flex items-center justify-between text-sm text-ink-soft"><span>سوال {index + 1} / {questions.length}</span><strong>Score {score}</strong></div>
-      <div className="mt-8 text-center" dir="rtl"><Badge>{question.type}</Badge><h2 className="urdu-text mt-5 text-4xl font-bold text-ink">{question.prompt}</h2></div>
-      <div className="mx-auto mt-8 grid max-w-2xl gap-3">{question.options.map((option) => <button key={option} type="button" onClick={() => choose(option)} className={cn("rounded-md border p-4 text-left transition-colors", selected === option && option === question.answer ? "border-success-500 bg-success-50" : selected === option ? "border-error-500 bg-error-50" : "border-border bg-paper hover:bg-surface")}><span className="urdu-text text-2xl">{option}</span></button>)}</div>
+      <div className="mt-8 text-center" dir={direction}><Badge>{question.type}</Badge><h2 className="urdu-text mt-5 text-4xl font-bold text-ink">{question.prompt}</h2></div>
+      <div className="mx-auto mt-8 grid max-w-2xl gap-3">{question.options.map((option) => <button key={option} type="button" onClick={() => choose(option)} className={cn("rounded-md border p-4 text-start transition-colors", selected === option && option === question.answer ? "border-success-500 bg-success-50" : selected === option ? "border-error-500 bg-error-50" : "border-border bg-paper hover:bg-surface")}><span className="urdu-text text-2xl">{option}</span></button>)}</div>
       {answered && <div className={cn("mx-auto mt-6 flex max-w-2xl items-center gap-3 rounded-md p-4", correct ? "bg-success-50 text-success-700" : "bg-error-50 text-error-700")}><span>{correct ? <CheckCircle2/> : <XCircle/>}</span><div><p className="font-semibold">{correct ? "درست جواب" : "دوبارہ مشق کی ضرورت ہے"}</p><p className="text-sm">{question.word.explanation ?? "لفظ کی تفصیل word detail میں دیکھیں۔"}</p></div></div>}
-      {answered && <div className="mt-6 flex justify-end"><Button onClick={next}>{index === questions.length - 1 ? "نیا کوئز" : "اگلا سوال"} <ArrowRight size={15}/></Button></div>}
+      {answered && <div className="mt-6 flex justify-end"><Button onClick={next}>{index === questions.length - 1 ? "نیا کوئز" : "اگلا سوال"} <ArrowRight className="directional-icon" size={15}/></Button></div>}
     </Card>
   </>;
 }

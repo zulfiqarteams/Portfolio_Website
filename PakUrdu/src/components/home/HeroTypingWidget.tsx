@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Gauge, Keyboard, RotateCcw, Target, Timer as TimerIcon } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
@@ -83,23 +83,20 @@ export function HeroTypingWidget() {
   const [timedOut, setTimedOut] = useState(false);
   const hasEnded = typing.isComplete || timedOut;
   const { soundEnabled } = useSettings();
-  const keyboardTapInput = useKeyboardTapInput(typing, soundEnabled);
-
   const timer = useTypingTimer({
     hasStarted: typing.currentIndex > 0,
     isComplete: hasEnded,
     resetKey: `${durationSeconds}-${attemptKey}`,
+    durationMs,
+    onExpire: () => setTimedOut(true),
   });
-
-  useEffect(() => {
-    if (hasEnded) return;
-    if (timer.elapsedMs >= durationMs) setTimedOut(true);
-  }, [hasEnded, timer.elapsedMs, durationMs]);
+  const keyboardTapInput = useKeyboardTapInput(typing, soundEnabled, timer.canAcceptInput);
 
   const remainingMs = Math.max(durationMs - timer.elapsedMs, 0);
   const elapsedMs = Math.min(timer.elapsedMs, durationMs);
-  const wpm = calculateWPM(typing.currentIndex, elapsedMs);
-  const cpm = calculateCPM(typing.currentIndex, elapsedMs);
+  const typedCharacters = typing.sessionKeystrokes;
+  const wpm = calculateWPM(typedCharacters, elapsedMs);
+  const cpm = calculateCPM(typedCharacters, elapsedMs);
   const accuracy = typing.sessionKeystrokes > 0 ? typing.sessionAccuracy : 0;
   const isCustomDuration = !durationOptions.some((option) => option.seconds === durationSeconds);
 
@@ -262,6 +259,8 @@ export function HeroTypingWidget() {
             onActiveChange={setIsCaptureActive}
             autoFocus={false}
             suppressNativeKeyboardOnTouch
+            canType={timer.canAcceptInput}
+            isLocked={hasEnded}
           >
             <div className="w-full rounded-xl border border-border bg-surface px-4 py-4 shadow-card sm:px-6 sm:py-5">
               <div className="min-h-[6.5rem] overflow-hidden sm:min-h-[7rem]">
@@ -309,7 +308,7 @@ export function HeroTypingWidget() {
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-brand-500 px-7 py-3 text-base font-bold text-white shadow-card transition-colors hover:bg-brand-600 focus-visible:outline-brand-500 sm:px-10 sm:text-lg"
           >
             {labels.learnFromScratch}
-            <ArrowRight size={18} aria-hidden="true" className={language === "ur" ? "rotate-180" : ""} />
+            <ArrowRight className={language === "ur" ? "rotate-180" : ""} size={18} aria-hidden="true" />
           </Link>
           <p className="text-xs text-ink-faint">{labels.learnFromScratchHint}</p>
         </div>

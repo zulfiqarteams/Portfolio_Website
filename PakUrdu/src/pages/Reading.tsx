@@ -205,7 +205,7 @@ export default function Reading() {
                   disabled={!hasPrevious}
                   className="min-w-0"
                 >
-                  <ChevronLeft size={16} aria-hidden="true" />
+                  <ChevronLeft className="directional-icon" size={16} aria-hidden="true" />
                   <span className="truncate">
                     {hasPrevious ? readingSections[activeIndex - 1].title[language] : t.reading.previous}
                   </span>
@@ -220,7 +220,7 @@ export default function Reading() {
                   <span className="truncate">
                     {hasNext ? readingSections[activeIndex + 1].title[language] : t.reading.next}
                   </span>
-                  <ChevronRight size={16} aria-hidden="true" />
+                  <ChevronRight className="directional-icon" size={16} aria-hidden="true" />
                 </Button>
               </div>
             </main>

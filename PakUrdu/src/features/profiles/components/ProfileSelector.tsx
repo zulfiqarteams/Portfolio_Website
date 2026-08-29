@@ -34,7 +34,7 @@ export function ProfileSelector({ onSelect, onCreateNew, className }: ProfileSel
               onSelect?.(profile.id);
             }}
             className={cn(
-              "flex w-full items-center gap-3 rounded-sm px-3 py-2 text-left text-sm transition-colors",
+              "flex w-full items-center gap-3 rounded-sm px-3 py-2 text-start text-sm transition-colors",
               isActive ? "bg-brand-50 text-brand-700" : "text-ink hover:bg-paper",
             )}
           >
@@ -49,7 +49,7 @@ export function ProfileSelector({ onSelect, onCreateNew, className }: ProfileSel
         <button
           type="button"
           onClick={onCreateNew}
-          className="flex w-full items-center gap-3 rounded-sm px-3 py-2 text-left text-sm font-medium text-brand-600 hover:bg-brand-50"
+          className="flex w-full items-center gap-3 rounded-sm px-3 py-2 text-start text-sm font-medium text-brand-600 hover:bg-brand-50"
         >
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-dashed border-border-strong">
             <Plus size={15} aria-hidden="true" />

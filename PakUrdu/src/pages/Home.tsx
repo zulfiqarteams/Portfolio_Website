@@ -138,7 +138,7 @@ export default function Home() {
             {copy.features.map(([title, description], index) => {
               const Icon = featureIcons[index];
               return (
-                <Card key={title} hover className={`text-left ${isUrdu ? "urdu-body" : ""}`}>
+                <Card key={title} hover className={`text-start ${isUrdu ? "urdu-body" : ""}`}>
                   <span className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-sm bg-brand-50 text-brand-600">
                     <Icon size={20} aria-hidden="true" />
                   </span>
@@ -159,7 +159,7 @@ export default function Home() {
         >
           <div className="grid gap-5 sm:grid-cols-3">
             {copy.philosophy.map(([label, body], index) => (
-              <div key={label} className={`rounded-lg border border-border bg-surface p-6 text-left ${isUrdu ? "urdu-body" : ""}`}>
+              <div key={label} className={`rounded-lg border border-border bg-surface p-6 text-start ${isUrdu ? "urdu-body" : ""}`}>
                 <span className="numeric text-sm font-semibold text-brand-500">{String(index + 1).padStart(2, "0")}</span>
                 <h3 className="mt-3 text-base font-semibold">{label}</h3>
                 <p className="mt-2 text-sm leading-7 text-ink-soft">{body}</p>

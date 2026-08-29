@@ -1,5 +1,6 @@
 import { Badge } from "@/components/Badge";
 import type { Level, Lesson } from "@/features/lessons/types";
+import { useLanguage } from "@/i18n/useLanguage";
 
 interface LessonPageHeaderProps {
   lesson: Lesson;
@@ -20,21 +21,22 @@ const difficultyTone = {
  * Pure display — all values are supplied by the lesson engine.
  */
 export function LessonPageHeader({ lesson, level, position, total }: LessonPageHeaderProps) {
+  const { text } = useLanguage();
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2 text-sm text-ink-faint">
-        <span>{level.title}</span>
+        <span>{text(level.title)}</span>
         <span aria-hidden="true">·</span>
         <span className="numeric">
-          Lesson {position} of {total}
+          {text(`Lesson ${position} of ${total}`)}
         </span>
       </div>
-      <h1 className="mt-2 text-2xl font-bold sm:text-3xl">{lesson.title}</h1>
+      <h1 className="mt-2 text-2xl font-bold sm:text-3xl">{text(lesson.title)}</h1>
       <p className="mt-2 max-w-2xl text-base leading-relaxed text-ink-soft">
-        {lesson.description}
+        {text(lesson.description)}
       </p>
       <div className="mt-4">
-        <Badge tone={difficultyTone[lesson.difficulty]}>{lesson.difficulty}</Badge>
+        <Badge tone={difficultyTone[lesson.difficulty]}>{text(lesson.difficulty)}</Badge>
       </div>
     </div>
   );

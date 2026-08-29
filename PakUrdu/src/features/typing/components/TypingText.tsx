@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import type { TargetCharacter } from "@/features/typing/types";
 
@@ -12,13 +12,13 @@ interface TypingTextProps {
 }
 
 const sizeVariantClasses: Record<"default" | "compact", string> = {
-  default: "text-4xl leading-[3.5rem] sm:text-5xl sm:leading-[4.5rem]",
-  compact: "text-[clamp(1.25rem,5vh,3rem)] leading-[clamp(2.25rem,7.5vh,4.5rem)]",
+  default: "text-4xl leading-[4.75rem] sm:text-5xl sm:leading-[5.5rem]",
+  compact: "text-[clamp(1.25rem,5vh,3rem)] leading-[clamp(3.5rem,10vh,5rem)]",
 };
 
 const sizeVariantHeightClasses: Record<"default" | "compact", string> = {
-  default: "h-[3.5rem] sm:h-[4.5rem]",
-  compact: "h-[clamp(2.25rem,7.5vh,4.5rem)]",
+  default: "h-[4.75rem] sm:h-[5.5rem]",
+  compact: "h-[clamp(3.5rem,10vh,5rem)]",
 };
 
 const SCROLL_ANCHOR_RATIO = 0.62;
@@ -85,9 +85,14 @@ function findActiveWordIndex(words: Word[]): number {
   return lastCorrect >= 0 ? Math.min(lastCorrect + 1, Math.max(words.length - 1, 0)) : 0;
 }
 
-function characterClasses(status: TargetCharacter["status"], showFeedback: boolean): string {
+function wordClasses(status: WordStatus, showFeedback: boolean): string {
+  // IMPORTANT: Urdu/Nastaliq shaping must happen inside one uninterrupted
+  // text run. Per-grapheme spans (especially when their styles differ) can
+  // split the browser's shaping runs and make long/looped letters appear
+  // broken or overlap. Feedback is therefore applied at WORD level here;
+  // the typing engine still keeps the exact per-grapheme status internally.
   if (status === "current") {
-    return "text-ink rounded-md bg-brand-50 px-1.5 py-0.5 underline decoration-brand-500 decoration-2 underline-offset-8";
+    return "text-ink rounded-md bg-brand-50 px-2 py-1 underline decoration-brand-500 decoration-2 underline-offset-8";
   }
   if (showFeedback && status === "incorrect") {
     return "text-error-600 underline decoration-wavy decoration-2 decoration-error-500 underline-offset-8";
@@ -97,10 +102,10 @@ function characterClasses(status: TargetCharacter["status"], showFeedback: boole
 }
 
 /**
- * Render one word as a single RTL text run, while applying feedback to each
- * grapheme individually. The character spans are inline (never inline-block)
- * and do not create bidi-isolated boxes, so the browser can keep Arabic/Urdu
- * contextual joining intact across adjacent graphemes.
+ * Render the complete word as ONE text node. This is intentional: Arabic /
+ * Urdu contextual joining (especially Nastaliq swashes and long loops) is
+ * much more reliable when the browser receives the complete word as a
+ * continuous shaping run rather than one styled span per grapheme.
  */
 function renderWord(word: Word, showFeedback: boolean, className = "") {
   return (
@@ -108,19 +113,13 @@ function renderWord(word: Word, showFeedback: boolean, className = "") {
       key={word.key}
       className={cn(
         "typing-word inline-block shrink-0 whitespace-nowrap break-keep overflow-visible align-baseline",
+        wordClasses(word.status, showFeedback),
         className,
       )}
       dir="rtl"
       lang="ur"
     >
-      {word.chars.map((character) => (
-        <span
-          key={character.index}
-          className={cn("typing-character inline", characterClasses(character.status, showFeedback))}
-        >
-          {character.char}
-        </span>
-      ))}
+      {word.text}
     </span>
   );
 }
@@ -275,11 +274,13 @@ function ScrollTypingText({
 }) {
   const activeIndex = useMemo(() => findActiveWordIndex(words), [words]);
   const activeWord = words[activeIndex];
+  const activeWordKey = activeWord?.key;
   const containerRef = useRef<HTMLDivElement>(null);
   const wordRefs = useRef<Map<number, HTMLSpanElement>>(new Map());
   const [translateX, setTranslateX] = useState(0);
   const [instant, setInstant] = useState(true);
   const prevResetKeyRef = useRef(resetKey);
+  const prevActiveWordKeyRef = useRef(activeWordKey);
 
   useLayoutEffect(() => {
     if (resetKey !== prevResetKeyRef.current) {
@@ -290,8 +291,16 @@ function ScrollTypingText({
 
   useLayoutEffect(() => {
     const container = containerRef.current;
-    const activeEl = activeWord ? wordRefs.current.get(activeWord.key) : undefined;
+    const activeEl = activeWordKey === undefined ? undefined : wordRefs.current.get(activeWordKey);
     if (!container || !activeEl) return;
+
+    // Only animate when the active WORD changes. Typing another character
+    // inside the same word updates feedback classes but does not need to
+    // restart a 300ms transform transition. Restarting that transition on
+    // every keystroke was especially visible during rapid Urdu typing.
+    const movedToNewWord = prevActiveWordKeyRef.current !== activeWordKey;
+    prevActiveWordKeyRef.current = activeWordKey;
+    setInstant(!movedToNewWord);
 
     const recalc = () => {
       const anchorX = container.clientWidth * SCROLL_ANCHOR_RATIO;
@@ -303,13 +312,7 @@ function ScrollTypingText({
     const observer = new ResizeObserver(recalc);
     observer.observe(container);
     return () => observer.disconnect();
-  }, [activeWord, words]);
-
-  useEffect(() => {
-    if (!instant) return;
-    const frame = requestAnimationFrame(() => setInstant(false));
-    return () => cancelAnimationFrame(frame);
-  }, [instant, translateX]);
+  }, [activeWordKey, words]);
 
   return (
     <div>

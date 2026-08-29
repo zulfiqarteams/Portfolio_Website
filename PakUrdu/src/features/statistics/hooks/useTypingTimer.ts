@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   completeTimer,
   createTimer,
@@ -17,6 +17,10 @@ interface UseTypingTimerOptions {
   isComplete: boolean;
   /** Changing this value starts a brand-new session. */
   resetKey: string | number;
+  /** Optional hard duration. When reached, the timer completes itself and input can no longer be accepted. */
+  durationMs?: number;
+  /** Called exactly once when the hard duration expires. */
+  onExpire?: () => void;
   /** Display refresh cadence. The timer itself remains timestamp based. */
   updateIntervalMs?: number;
 }
@@ -24,6 +28,8 @@ interface UseTypingTimerOptions {
 export interface UseTypingTimerResult {
   status: TimerStatus;
   elapsedMs: number;
+  /** Synchronous guard for physical/on-screen input. It also finalizes an expired timer immediately. */
+  canAcceptInput: () => boolean;
 }
 
 const DEFAULT_UPDATE_INTERVAL_MS = 100;
@@ -40,11 +46,38 @@ export function useTypingTimer({
   hasStarted,
   isComplete,
   resetKey,
+  durationMs,
+  onExpire,
   updateIntervalMs = DEFAULT_UPDATE_INTERVAL_MS,
 }: UseTypingTimerOptions): UseTypingTimerResult {
   const timerRef = useRef<TimerState>(createTimer());
   const [status, setStatus] = useState<TimerStatus>("idle");
   const [, forceRender] = useState(0);
+  const durationRef = useRef<number | undefined>(durationMs);
+  const onExpireRef = useRef(onExpire);
+
+  durationRef.current = durationMs;
+  onExpireRef.current = onExpire;
+
+  const canAcceptInput = useCallback(() => {
+    const timer = timerRef.current;
+    if (timer.status === "completed") return false;
+
+    const limit = durationRef.current;
+    if (timer.status === "running" && Number.isFinite(limit) && limit !== undefined) {
+      const now = performance.now();
+      const elapsed = getElapsedMs(timer, now);
+      if (elapsed >= Math.max(0, limit)) {
+        timerRef.current = completeTimer(timer, now);
+        setStatus("completed");
+        forceRender((value) => value + 1);
+        onExpireRef.current?.();
+        return false;
+      }
+    }
+
+    return true;
+  }, []);
 
   useEffect(() => {
     const timer = resetTimer();
@@ -91,13 +124,24 @@ export function useTypingTimer({
   useEffect(() => {
     if (status !== "running") return;
     const intervalId = window.setInterval(() => {
+      if (!canAcceptInput()) {
+        window.clearInterval(intervalId);
+        return;
+      }
       forceRender((value) => value + 1);
     }, updateIntervalMs);
     return () => window.clearInterval(intervalId);
-  }, [status, updateIntervalMs]);
+  }, [status, updateIntervalMs, canAcceptInput]);
+
+  const now = performance.now();
+  const elapsedMs = getElapsedMs(timerRef.current, now);
+  const boundedElapsedMs = Number.isFinite(durationMs) && durationMs !== undefined
+    ? Math.min(elapsedMs, Math.max(0, durationMs))
+    : elapsedMs;
 
   return {
     status,
-    elapsedMs: getElapsedMs(timerRef.current, performance.now()),
+    elapsedMs: boundedElapsedMs,
+    canAcceptInput,
   };
 }

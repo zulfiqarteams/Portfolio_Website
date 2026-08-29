@@ -15,13 +15,18 @@ import { playBackspaceClick, playErrorClick, playKeyClick } from "@/features/key
  * feed the typing engine directly rather than through the hidden
  * `<input>`.
  */
-export function useKeyboardTapInput(typing: UseTypingEngineResult, soundEnabled: boolean) {
+export function useKeyboardTapInput(
+  typing: UseTypingEngineResult,
+  soundEnabled: boolean,
+  canType?: () => boolean,
+) {
   return useMemo(
     () => ({
       onKeyPress: (char: string) => {
+        if (canType && !canType()) return;
         const expected = segmentText(typing.targetText)[typing.currentIndex];
         if (soundEnabled) {
-          if (char === " " || char === expected) playKeyClick();
+          if (char === expected) playKeyClick();
           else playErrorClick();
         }
         for (const grapheme of segmentText(char)) {
@@ -29,6 +34,7 @@ export function useKeyboardTapInput(typing: UseTypingEngineResult, soundEnabled:
         }
       },
       onBackspace: () => {
+        if (canType && !canType()) return;
         if (soundEnabled) playBackspaceClick();
         typing.backspace();
       },
@@ -37,6 +43,6 @@ export function useKeyboardTapInput(typing: UseTypingEngineResult, soundEnabled:
     // ref), so depending on its stable methods instead avoids recreating
     // these callbacks — and re-subscribing VirtualKeyboard — every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [typing.typeCharacter, typing.backspace, typing.targetText, typing.currentIndex, soundEnabled],
+    [typing.typeCharacter, typing.backspace, typing.targetText, typing.currentIndex, soundEnabled, canType],
   );
 }

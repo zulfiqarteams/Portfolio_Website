@@ -12,8 +12,12 @@ interface TypingStatsProps {
   incorrectCharacters: number;
   /** Unrounded WPM from the statistics engine (`@/features/statistics`) — rounded here at the point of display, nowhere else. */
   wpm: number;
+  /** CPM from the shared statistics engine. */
+  cpm?: number;
   /** Elapsed session time in ms, from the statistics engine's timer. */
   elapsedMs: number;
+  /** Optional count of accepted typing attempts for a live session. */
+  typedCharacters?: number;
 }
 
 /**
@@ -30,11 +34,14 @@ export function TypingStats({
   totalCharacters,
   incorrectCharacters,
   wpm,
+  cpm,
   elapsedMs,
+  typedCharacters,
 }: TypingStatsProps) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:flex lg:h-full lg:flex-col lg:justify-between">
       <StatCard icon={Gauge} label="WPM" value={`${Math.round(wpm)}`} />
+      {cpm !== undefined && <StatCard icon={Gauge} label="CPM" value={`${Math.round(cpm)}`} />}
       <StatCard icon={Target} label="Accuracy" value={`${accuracy}%`} />
       <StatCard icon={Clock} label="Time" value={formatTime(elapsedMs)} />
       <StatCard
@@ -42,6 +49,9 @@ export function TypingStats({
         label="Characters"
         value={`${currentIndex}/${totalCharacters}`}
       />
+      {typedCharacters !== undefined && (
+        <StatCard icon={CheckCircle2} label="Typed" value={`${typedCharacters}`} />
+      )}
       <StatCard icon={XCircle} label="Errors" value={`${incorrectCharacters}`} />
     </div>
   );

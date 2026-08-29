@@ -23,6 +23,10 @@ interface TypingCaptureAreaProps {
    * learner would have no way to type at all.
    */
   suppressNativeKeyboardOnTouch?: boolean;
+  /** Synchronous guard used by timed sessions to reject input at/after the deadline. */
+  canType?: () => boolean;
+  /** Visual/read-only lock state for completed or timed-out sessions. */
+  isLocked?: boolean;
   children: ReactNode;
 }
 
@@ -68,6 +72,8 @@ export function TypingCaptureArea({
   onActiveChange,
   autoFocus = true,
   suppressNativeKeyboardOnTouch = false,
+  canType,
+  isLocked = false,
   children,
 }: TypingCaptureAreaProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -94,15 +100,12 @@ export function TypingCaptureArea({
   function playTypingSoundForCharacter(char: string) {
     if (!soundEnabled) return;
     const expected = segmentText(typing.targetText)[typing.currentIndex];
-    if (char === " ") {
-      playKeyClick();
-      return;
-    }
     if (expected === char) playKeyClick();
     else playErrorClick();
   }
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
+    if (canType && !canType()) return;
     const previous = segmentText(typing.userInput);
     const next = segmentText(event.target.value);
 
@@ -143,6 +146,11 @@ export function TypingCaptureArea({
   };
 
   function handlePhysicalKeyDown(event: TypingKeyboardEvent) {
+    if (canType && !canType()) {
+      event.preventDefault();
+      return true;
+    }
+
     if (event.key === "Enter") {
       event.preventDefault();
       return true;
@@ -213,7 +221,7 @@ export function TypingCaptureArea({
 
     window.addEventListener("keydown", handleWindowKeyDown);
     return () => window.removeEventListener("keydown", handleWindowKeyDown);
-  }, [typing, soundEnabled]);
+  }, [typing, soundEnabled, canType]);
 
 
   return (
@@ -237,6 +245,7 @@ export function TypingCaptureArea({
         autoCapitalize="off"
         spellCheck={false}
         inputMode={blockNativeKeyboard ? "none" : "text"}
+        readOnly={isLocked}
         dir="rtl"
         lang="ur"
         aria-label="Urdu typing practice input. Type using your physical or on-screen keyboard."

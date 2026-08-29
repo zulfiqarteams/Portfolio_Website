@@ -10,6 +10,7 @@ import Results from "@/pages/Results";
 import Progress from "@/pages/Progress";
 import Profile from "@/pages/Profile";
 import Settings from "@/pages/Settings";
+import Saved from "@/pages/Saved";
 import NotFound from "@/pages/NotFound";
 import SahiUrdu from "@/features/sahiUrdu/components/SahiUrdu";
 import Biography from "@/features/biography/components/Biography";
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/test" element={<Test />} />
         <Route path="/results" element={<Results />} />
         <Route path="/progress" element={<Progress />} />
+        <Route path="/saved" element={<Saved />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<NotFound />} />

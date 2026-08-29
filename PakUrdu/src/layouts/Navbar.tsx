@@ -24,6 +24,7 @@ export function Navbar() {
     if (path === "/practice") return t.nav.practice;
     if (path === "/test") return t.nav.tests;
     if (path === "/progress") return t.nav.progress;
+    if (path === "/saved") return t.nav.saved;
     if (path === "/profile") return t.nav.profile;
     return t.nav.settings;
   };

@@ -1,5 +1,6 @@
 import type { AppLanguage } from "@/features/settings/services/settingsStorage";
 import { ui } from "./translations";
+import { localizeText } from "./localizeText";
 
 /**
  * Global DOM localization bridge.
@@ -115,28 +116,35 @@ const manual: Record<string, Record<AppLanguage, string>> = {
   "The page you're looking for doesn't exist. Use the navigation above to get back on track.": { en: "The page you're looking for doesn't exist. Use the navigation above to get back on track.", ur: "آپ جس صفحے کو تلاش کر رہے ہیں وہ موجود نہیں۔ واپس جانے کے لیے اوپر کی نیویگیشن استعمال کریں۔", roman: "Aap jo page dhoond rahe hain woh mojood nahi. Wapas jane ke liye upar navigation istemal karein." },
 };
 
-function flattenUi(value: unknown, out: Record<string, Record<AppLanguage, string>>, lang: AppLanguage) {
+function flattenUiByPath(value: unknown, path: string[] = [], out = new Map<string, string>()): Map<string, string> {
+  if (typeof value === "string") {
+    out.set(path.join("."), value);
+    return out;
+  }
   if (Array.isArray(value)) {
-    for (const item of value) flattenUi(item, out, lang);
-    return;
+    value.forEach((item, index) => flattenUiByPath(item, [...path, String(index)], out));
+    return out;
   }
-  if (!value || typeof value !== "object") return;
-  for (const [, val] of Object.entries(value as Record<string, unknown>)) {
-    if (typeof val === "string") {
-      const entry = out[val] ?? { en: val, ur: val, roman: val };
-      entry[lang] = val;
-      out[val] = entry;
-    } else flattenUi(val, out, lang);
+  if (!value || typeof value !== "object") return out;
+  for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+    flattenUiByPath(child, [...path, key], out);
   }
+  return out;
 }
 
 const dictionary: Record<string, Record<AppLanguage, string>> = { ...manual };
-for (const entry of Object.values(manual)) {
-  for (const value of Object.values(entry)) dictionary[value] = entry;
+
+const localeMaps = [flattenUiByPath(ui.en), flattenUiByPath(ui.ur), flattenUiByPath(ui.roman)];
+for (const [path, en] of localeMaps[0]) {
+  const ur = localeMaps[1].get(path);
+  const roman = localeMaps[2].get(path);
+  if (en && ur && roman) {
+    const entry = { en, ur, roman };
+    dictionary[en] = entry;
+    dictionary[ur] = entry;
+    dictionary[roman] = entry;
+  }
 }
-flattenUi(ui.en, dictionary, "en");
-flattenUi(ui.ur, dictionary, "ur");
-flattenUi(ui.roman, dictionary, "roman");
 
 const ATTRIBUTES = ["aria-label", "aria-description", "title", "placeholder", "alt"] as const;
 const originalText = new WeakMap<Text, string>();
@@ -157,6 +165,11 @@ function translateTextNode(node: Text, language: AppLanguage) {
   const leading = source.match(/^\s*/)?.[0] ?? "";
   const trailing = source.match(/\s*$/)?.[0] ?? "";
   const core = source.trim();
+  const centralized = localizeText(source, language);
+  if (centralized !== source) {
+    if (node.nodeValue !== centralized) node.nodeValue = centralized;
+    return;
+  }
   const mapped = dictionary[core]?.[language];
   const next = mapped ? `${leading}${mapped}${trailing}` : source;
   if (node.nodeValue !== next) node.nodeValue = next;
@@ -171,6 +184,11 @@ function translateElementAttributes(el: Element, language: AppLanguage) {
     const current = el.getAttribute(attr) ?? "";
     if (!originals.has(attr)) originals.set(attr, current);
     const source = originals.get(attr) ?? current;
+    const centralized = localizeText(source, language);
+    if (centralized !== source) {
+      el.setAttribute(attr, centralized);
+      continue;
+    }
     const mapped = dictionary[source]?.[language];
     if (mapped) el.setAttribute(attr, mapped);
   }

@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  Bookmark,
   Home,
   LineChart,
   Settings,
@@ -28,6 +29,7 @@ export const primaryNav: NavItem[] = [
  * list in the mobile menu.
  */
 export const secondaryNav: NavItem[] = [
+  { label: "Saved", path: "/saved", icon: Bookmark },
   { label: "Profile", path: "/profile", icon: UserCircle },
   { label: "Settings", path: "/settings", icon: Settings },
 ];

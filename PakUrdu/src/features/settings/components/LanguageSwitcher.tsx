@@ -3,6 +3,7 @@ import { Check, ChevronDown, Languages } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useLanguage } from "@/i18n/useLanguage";
 import { languageOptions } from "@/i18n/translations";
+import { localizeText } from "@/i18n/localizeText";
 
 export function LanguageSwitcher() {
   const { language, setLanguage, t } = useLanguage();
@@ -36,7 +37,7 @@ export function LanguageSwitcher() {
       </button>
 
       {open && (
-        <div role="menu" aria-label={t.nav.language} className="absolute right-0 top-full z-50 mt-2 w-44 rounded-lg border border-border bg-surface-elevated p-1.5 shadow-raised">
+        <div role="menu" aria-label={t.nav.language} className="absolute end-0 top-full z-50 mt-2 w-44 rounded-lg border border-border bg-surface-elevated p-1.5 shadow-raised">
           {languageOptions.map((option) => (
             <button
               key={option.id}
@@ -52,7 +53,7 @@ export function LanguageSwitcher() {
                 language === option.id ? "bg-brand-50 font-semibold text-brand-700" : "text-ink-soft hover:bg-surface hover:text-ink",
               )}
             >
-              <span>{option.label}</span>
+              <span>{localizeText(option.label, language)}</span>
               {language === option.id && <Check size={15} aria-hidden="true" />}
             </button>
           ))}

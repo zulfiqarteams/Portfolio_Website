@@ -41,7 +41,7 @@ export function PageHeader({
               return (
                 <li key={`${crumb.label}-${index}`} className="flex items-center gap-1.5">
                   {index > 0 && (
-                    <ChevronRight size={14} aria-hidden="true" />
+                    <ChevronRight className="directional-icon" size={14} aria-hidden="true" />
                   )}
                   {crumb.to && !isLast ? (
                     <Link to={crumb.to} className="hover:text-ink hover:underline">

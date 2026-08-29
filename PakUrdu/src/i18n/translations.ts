@@ -125,6 +125,7 @@ export const ui = {
       switchProfile: "پروفائل تبدیل کریں",
       language: "زبان",
       languageAria: "ویب سائٹ کی زبان منتخب کریں",
+      saved: "محفوظ شدہ",
     },
     footer: {
       description: "اردو صوتی کی بورڈ سیکھنے کا ایک سادہ اور باوقار طریقہ — پہلے حرف سے لے کر پیشہ ورانہ رفتار تک۔",
@@ -249,7 +250,7 @@ export const ui = {
       lesson: { notFound: "Yeh lesson nahi mil saka.", learn: "Seekhein", what: "Aap kya seekhein ge", description: "Yeh lesson sirf recognition nahi balkay usable typing habit banane ke liye tayar kiya gaya hai." },
     },
     nav: {
-      home: "Home", learn: "Seekhein", practice: "Practice", tests: "Tests", progress: "Progress", profile: "Profile", settings: "Settings", createProfile: "Profile banayein", createNewProfile: "Naya profile banayein", switchProfile: "Profile badlein", language: "Zaban", languageAria: "Website ki zaban select karein",
+      home: "Home", learn: "Seekhein", practice: "Practice", tests: "Tests", progress: "Progress", profile: "Profile", settings: "Settings", createProfile: "Profile banayein", createNewProfile: "Naya profile banayein", switchProfile: "Profile badlein", language: "Zaban", languageAria: "Website ki zaban select karein", saved: "Saved",
     },
     footer: { description: "Urdu phonetic keyboard seekhne ka aik saada aur ba-waqar tareeqa — pehle harf se le kar professional speed tak.", slogan: "Seekhein, practice karein, behtar banein" },
     reading: { title: "Learn About Phonetic Keyboard", description: "Urdu phonetic typing ko samajhne ke liye aik munazzam guide, jise aap practice ke saath parh sakte hain.", chapter: "Bab {current} / {total}", read: "{percent}% parha gaya", tip: "Ahm baat", didYouKnow: "Kya aap jantay hain?", practice: "Aaj ki practice", previous: "Pichla bab", next: "Agla bab", finish: "Lesson mukammal karein" },
@@ -359,7 +360,7 @@ export const ui = {
       results: { back: "Back to Learning", practice: "Start Practicing", personalBest: "New Personal Best", summary: "Performance Summary", detailed: "Detailed Statistics", lesson: "Lesson", review: "Mistake Review", expected: "Expected", typed: "typed", tryAgain: "Try Again" },
       lesson: { notFound: "We could not find this lesson.", learn: "Learn", what: "What you will learn", description: "This lesson is designed to build a usable typing habit, not just recognition." },
     },
-    nav: { home: "Home", learn: "Learn", practice: "Practice", tests: "Tests", progress: "Progress", profile: "Profile", settings: "Settings", createProfile: "Create Profile", createNewProfile: "Create new profile", switchProfile: "Switch profile", language: "Language", languageAria: "Choose website language" },
+    nav: { home: "Home", learn: "Learn", practice: "Practice", tests: "Tests", progress: "Progress", profile: "Profile", settings: "Settings", createProfile: "Create Profile", createNewProfile: "Create new profile", switchProfile: "Switch profile", language: "Language", languageAria: "Choose website language", saved: "Saved" },
     footer: { description: "A simple, thoughtful way to learn the Urdu phonetic keyboard — from your first letter to professional speed.", slogan: "Learn, practice, improve" },
     reading: { title: "Learn About Phonetic Keyboard", description: "A structured guide to understanding Urdu phonetic typing, designed to sit alongside your practice.", chapter: "Chapter {current} of {total}", read: "{percent}% read", tip: "A useful tip", didYouKnow: "Did you know?", practice: "Try this", previous: "Previous chapter", next: "Next chapter", finish: "Finish reading" },
   },

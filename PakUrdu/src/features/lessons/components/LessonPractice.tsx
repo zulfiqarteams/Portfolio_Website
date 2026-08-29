@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, Circle, Keyboard, RotateCcw, Sparkles } from "lucide-react";
 import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
@@ -6,7 +6,7 @@ import { Card } from "@/components/Card";
 import { cn } from "@/lib/cn";
 import { useTypingEngine, TypingCaptureArea, TypingStats, TypingText, useKeyboardTapInput } from "@/features/typing";
 import { VirtualKeyboard, HandFingerGuide, getExpectedKey, fingerForKey, usePressedKey } from "@/features/keyboard";
-import { useTypingTimer, calculateWPM } from "@/features/statistics";
+import { useTypingTimer, calculateCPM, calculateWPM } from "@/features/statistics";
 import { useProgress } from "@/features/progress";
 import { buildSessionResult, useSessionResult } from "@/features/results";
 import { useSettings } from "@/features/settings";
@@ -14,6 +14,7 @@ import { playResultNeutral, playResultSuccess, playStepComplete, playLessonCompl
 import type { Lesson, LessonStep } from "@/features/lessons/types";
 import type { TypingMistake } from "@/features/typing/types";
 import { segmentText } from "@/features/typing/utils/graphemes";
+import { useLanguage } from "@/i18n/useLanguage";
 
 interface LessonPracticeProps {
   lesson: Lesson;
@@ -43,6 +44,7 @@ function displayStepKind(kind: LessonStep["kind"]): string {
 
 export function LessonPractice({ lesson, nextLessonId }: LessonPracticeProps) {
   const { progress, startLessonAttempt, completeLesson } = useProgress();
+  const { text } = useLanguage();
   const { recordSessionResult } = useSessionResult();
   const { showKeyboard, typingFeedback, saveLearningProgress, soundEnabled } = useSettings();
   const steps = lesson.steps ?? [];
@@ -61,14 +63,19 @@ export function LessonPractice({ lesson, nextLessonId }: LessonPracticeProps) {
     isComplete: Boolean(activeStep?.target) && typing.isComplete,
     resetKey: `${lesson.id}-${stepIndex}-${resetCount}`,
   });
-  const wpm = calculateWPM(typing.currentIndex, timer.elapsedMs);
+  const wpm = calculateWPM(typing.sessionKeystrokes, timer.elapsedMs);
+  const cpm = calculateCPM(typing.sessionKeystrokes, timer.elapsedMs);
   const pressedKey = usePressedKey(isCaptureActive);
   const keyboardTapInput = useKeyboardTapInput(typing, soundEnabled);
   const currentChar = typing.characters.find((character) => character.status === "current")?.char;
   const expectedKey = activeStep?.expectedKey ?? getExpectedKey(currentChar);
   const activeFinger = expectedKey ? fingerForKey(expectedKey.key) : null;
   const minimumAccuracy = activeStep?.minimumAccuracy ?? lesson.requiredAccuracy ?? 80;
-  const stepCanComplete = Boolean(activeStep?.target) && typing.currentIndex === typing.totalCharacters && typing.accuracy >= minimumAccuracy;
+  const stepCanComplete = Boolean(activeStep?.target)
+    && typing.currentIndex === typing.totalCharacters
+    && (activeStep.kind === "learn"
+      ? typing.lastInput === activeStep.target
+      : typing.accuracy >= minimumAccuracy);
   const completedCount = completedSteps.size;
   const progressPercent = steps.length === 0 ? 0 : Math.round((completedCount / steps.length) * 100);
   const existingProgress = progress?.lessonProgress[lesson.id];
@@ -133,7 +140,7 @@ export function LessonPractice({ lesson, nextLessonId }: LessonPracticeProps) {
     const accuracy = totals.total > 0 ? Math.round((totals.correct / totals.total) * 100) : 100;
     const sessionAccuracy = totals.keystrokes > 0 ? Math.round((totals.sessionCorrect / totals.keystrokes) * 100) : accuracy;
     const minutes = Math.max(totals.elapsedMs / 60000, 1 / 60);
-    const wpmOverall = Math.round((totals.correct / 5) / minutes);
+    const wpmOverall = Math.round((totals.keystrokes / 5) / minutes);
     const previous = progress?.lessonProgress[lesson.id];
 
     if (saveLearningProgress) {
@@ -163,33 +170,53 @@ export function LessonPractice({ lesson, nextLessonId }: LessonPracticeProps) {
     }
   }, [lessonComplete, saveLearningProgress, stepStats, progress, lesson.id, lesson.title, fullTarget, completeLesson, recordSessionResult, soundEnabled]);
 
-  function completeReadStep() {
-    if (!activeStep || activeStep.target) return;
-    setCompletedSteps((current) => new Set(current).add(stepIndex));
-    if (soundEnabled) playStepComplete();
-  }
+  const advanceStep = useCallback(() => {
+    if (!activeStep) return;
 
-  function nextStep() {
-    if (!activeStep || !completedSteps.has(stepIndex)) return;
+    // Read/observe steps become complete at the same moment they advance.
+    // Typing steps can advance only after their normal completion rule is met.
+    const canAdvance = activeStep.target
+      ? stepCanComplete || completedSteps.has(stepIndex)
+      : true;
+    if (!canAdvance) return;
+
+    setCompletedSteps((current) => new Set(current).add(stepIndex));
+    if (soundEnabled && !completedSteps.has(stepIndex)) playStepComplete();
+
     if (stepIndex === steps.length - 1) {
       setLessonComplete(true);
       return;
     }
+
     setStepIndex((current) => current + 1);
     setResetCount((current) => current + 1);
-  }
+  }, [activeStep, completedSteps, stepCanComplete, stepIndex, steps.length, soundEnabled]);
 
+  // Enter is an additional shortcut for the same progression function used
+  // by the visible button. It is scoped to this mounted lesson practice
+  // component and never advances an incomplete typing step.
   useEffect(() => {
-    if (!stepCanComplete || completedSteps.has(stepIndex)) return;
-    const timerId = window.setTimeout(() => {
-      if (stepIndex === steps.length - 1) setLessonComplete(true);
-      else {
-        setStepIndex((current) => current + 1);
-        setResetCount((current) => current + 1);
-      }
-    }, 700);
-    return () => window.clearTimeout(timerId);
-  }, [stepCanComplete, completedSteps, stepIndex, steps.length]);
+    function handleLearnEnter(event: KeyboardEvent) {
+      if (event.key !== "Enter" || event.isComposing) return;
+      const target = event.target;
+      // If a real button/link has focus, let the browser perform its native
+      // Enter activation. The same handler is already wired to that control,
+      // so listening here too would cause a double advance.
+      if (target instanceof HTMLButtonElement || target instanceof HTMLAnchorElement) return;
+      if (target instanceof HTMLTextAreaElement || (target instanceof HTMLElement && target.isContentEditable)) return;
+
+      const canAdvance = activeStep
+        ? (activeStep.target ? stepCanComplete || completedSteps.has(stepIndex) : true)
+        : false;
+      if (!canAdvance) return;
+
+      event.preventDefault();
+      advanceStep();
+    }
+
+    window.addEventListener("keydown", handleLearnEnter);
+    return () => window.removeEventListener("keydown", handleLearnEnter);
+  }, [activeStep, advanceStep, completedSteps, stepCanComplete, stepIndex]);
 
   function resetStep() {
     typing.reset();
@@ -262,10 +289,10 @@ export function LessonPractice({ lesson, nextLessonId }: LessonPracticeProps) {
           </Button>
           {nextLessonId ? (
             <Button to={`/lesson/${nextLessonId}`}>
-              Next Lesson <ArrowRight size={15} aria-hidden="true" />
+              Next Lesson <ArrowRight className="directional-icon" size={15} aria-hidden="true" />
             </Button>
           ) : (
-            <Button to="/test">Go to Tests <ArrowRight size={15} aria-hidden="true" /></Button>
+            <Button to="/test">Go to Tests <ArrowRight className="directional-icon" size={15} aria-hidden="true" /></Button>
           )}
         </div>
       </Card>
@@ -282,10 +309,10 @@ export function LessonPractice({ lesson, nextLessonId }: LessonPracticeProps) {
       <Card className="p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-faint">Lesson path</p>
-            <p className="mt-1 text-sm font-semibold text-ink">Step {stepIndex + 1} of {steps.length} · {progressPercent}%</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-faint">{text("Lesson path")}</p>
+            <p className="mt-1 text-sm font-semibold text-ink">{text(`Step ${stepIndex + 1} of ${steps.length} · ${progressPercent}%`)}</p>
           </div>
-          <Badge tone={stepDone ? "success" : "brand"}>{displayStepKind(activeStep.kind)}</Badge>
+          <Badge tone={stepDone ? "success" : "brand"}>{text(displayStepKind(activeStep.kind))}</Badge>
         </div>
         {/*
          * A single progress readout, not two: the segmented bar below
@@ -294,7 +321,7 @@ export function LessonPractice({ lesson, nextLessonId }: LessonPracticeProps) {
          * line above instead of in a second full-width bar underneath
          * saying the same thing — one less thing to scroll past.
          */}
-        <div className="mt-3 flex gap-1.5" aria-label={`Lesson progress: ${completedCount} of ${steps.length} steps complete`}>
+        <div className="mt-3 flex gap-1.5" aria-label={text(`Lesson progress: ${completedCount} of ${steps.length} steps complete`)}>
           {steps.map((step, index) => (
             <div key={step.id} className={cn("h-1.5 flex-1 rounded-full", completedSteps.has(index) ? "bg-success-500" : index === stepIndex ? "bg-brand-500" : "bg-border")} />
           ))}
@@ -303,19 +330,30 @@ export function LessonPractice({ lesson, nextLessonId }: LessonPracticeProps) {
 
       <Card className="overflow-hidden">
         <div className="border-b border-border bg-surface px-5 py-4 sm:px-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-faint">Step {stepIndex + 1}</p>
-              <h2 className="mt-1 text-xl font-bold sm:text-2xl">{activeStep.title}</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">{activeStep.instruction}</p>
-            </div>
-            {lesson.targetCharacter && stepIndex === 0 && (
-              <div className="rounded-xl border border-brand-100 bg-brand-50 px-5 py-3 text-center">
-                <p className="urdu-text text-4xl text-brand-700">{lesson.targetCharacter}</p>
-                <p className="mt-1 text-xs font-semibold text-brand-700">{lesson.phonetic}</p>
+          {lesson.type === "character" && stepIndex === 0 ? (
+            <div className="text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-faint">{text(`Learn ${activeStep.character ? activeStep.title.replace(/^Learn\s+/, "") : lesson.title.split(" — ")[0]}`)}</p>
+              <div className="mt-2 flex min-h-[12rem] items-center justify-center overflow-visible px-2 sm:min-h-[13rem]">
+                <span
+                  className="learn-target-glyph urdu-text text-7xl leading-[1.8] text-brand-700 sm:text-8xl"
+                  dir="rtl"
+                  lang="ur"
+                >
+                  {activeStep.character}
+                </span>
               </div>
-            )}
-          </div>
+              <p className="mt-1 text-sm font-semibold text-ink">{text(`Say: ${activeStep.title.replace(/^Learn\s+/, "")}`)}</p>
+              <p className="mt-1 text-sm text-ink-soft">{text("Press")} <kbd className="rounded border border-border bg-paper px-2 py-0.5 font-semibold text-ink">{activeStep.expectedKey?.shift ? `Shift + ${activeStep.expectedKey.key.toUpperCase()}` : activeStep.expectedKey?.key.toUpperCase() ?? activeStep.phonetic}</kbd></p>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-faint">{text("Step")} {stepIndex + 1}</p>
+                <h2 className="mt-1 text-xl font-bold sm:text-2xl">{activeStep.title}</h2>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">{activeStep.instruction}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {activeStep.examples && activeStep.examples.length > 0 && (
@@ -365,8 +403,8 @@ export function LessonPractice({ lesson, nextLessonId }: LessonPracticeProps) {
                 <div className="min-w-0 space-y-3">
                   <div className="rounded-xl border border-border bg-paper p-3 sm:p-4">
                     <div className="mb-3 flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2 text-sm font-semibold"><Keyboard size={16} aria-hidden="true" /> Keyboard</div>
-                      <span className="text-xs text-ink-faint">{expectedKey?.shift ? "Hold Shift" : expectedKey?.altGr ? "Ctrl + Alt" : "Base key"}</span>
+                      <div className="flex items-center gap-2 text-sm font-semibold"><Keyboard size={16} aria-hidden="true" /> {text("Keyboard")}</div>
+                      <span className="text-xs text-ink-faint">{expectedKey?.shift ? text("Hold Shift") : expectedKey?.altGr ? text("Ctrl + Alt") : text("Base key")}</span>
                     </div>
                     <VirtualKeyboard
                       pressedKey={pressedKey}
@@ -377,7 +415,7 @@ export function LessonPractice({ lesson, nextLessonId }: LessonPracticeProps) {
                   </div>
                   <HandFingerGuide activeGuide={activeFinger} />
                 </div>
-                <TypingStats accuracy={stepAccuracy} currentIndex={typing.currentIndex} totalCharacters={typing.totalCharacters} incorrectCharacters={typing.incorrectCharacters} wpm={wpm} elapsedMs={timer.elapsedMs} />
+                <TypingStats accuracy={stepAccuracy} currentIndex={typing.currentIndex} totalCharacters={typing.totalCharacters} incorrectCharacters={typing.incorrectCharacters} wpm={wpm} cpm={cpm} elapsedMs={timer.elapsedMs} typedCharacters={typing.sessionKeystrokes} />
               </div>
             )}
           </div>
@@ -387,14 +425,14 @@ export function LessonPractice({ lesson, nextLessonId }: LessonPracticeProps) {
               <div className="rounded-xl border border-border bg-paper p-4 sm:p-5">
                 {activeStep.character ? (
                   <div className="text-center">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-faint">Target character</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-faint">{text("Target character")}</p>
                     <p className="urdu-text mt-3 text-6xl text-brand-700 sm:text-7xl">{activeStep.character}</p>
                     <p className="mt-3 text-sm font-semibold text-ink">{activeStep.phonetic}</p>
                   </div>
                 ) : (
                   <div className="text-center">
                     <Circle className="mx-auto text-brand-500" size={44} aria-hidden="true" />
-                    <p className="mt-4 text-base font-semibold">Get ready for the next typing step</p>
+                    <p className="mt-4 text-base font-semibold">{text("Get ready for the next typing step")}</p>
                     <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-ink-soft">{activeStep.instruction}</p>
                   </div>
                 )}
@@ -402,8 +440,8 @@ export function LessonPractice({ lesson, nextLessonId }: LessonPracticeProps) {
               {showKeyboard && (
                 <div className="rounded-xl border border-border bg-paper p-3 sm:p-4">
                   <div className="mb-3 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 text-sm font-semibold"><Keyboard size={16} aria-hidden="true" /> Keyboard position</div>
-                    <span className="text-xs text-ink-faint">{expectedKey?.shift ? "Hold Shift" : expectedKey?.altGr ? "Ctrl + Alt" : "Base key"}</span>
+                    <div className="flex items-center gap-2 text-sm font-semibold"><Keyboard size={16} aria-hidden="true" /> {text("Keyboard position")}</div>
+                    <span className="text-xs text-ink-faint">{expectedKey?.shift ? text("Hold Shift") : expectedKey?.altGr ? text("Ctrl + Alt") : text("Base key")}</span>
                   </div>
                   <VirtualKeyboard pressedKey={null} expectedKey={expectedKey} />
                 </div>
@@ -416,12 +454,15 @@ export function LessonPractice({ lesson, nextLessonId }: LessonPracticeProps) {
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-paper px-5 py-4 sm:px-7">
           <Button variant="ghost" size="sm" onClick={resetStep} disabled={!isCurrentTyping}>
             <RotateCcw size={14} aria-hidden="true" />
-            Reset Step
+            {text("Reset Step")}
           </Button>
-          <div className="flex items-center gap-2">
-            {isCurrentTyping && stepDone && <span className="flex items-center gap-1 text-xs font-medium text-success-600"><CheckCircle2 size={14} /> Step complete</span>}
-            {!isCurrentTyping && !stepDone && <Button size="sm" onClick={completeReadStep}>I understand <CheckCircle2 size={14} aria-hidden="true" /></Button>}
-            {stepDone && <Button size="sm" onClick={nextStep}>{stepIndex === steps.length - 1 ? "Complete Lesson" : "Next Step"} <ArrowRight size={14} aria-hidden="true" /></Button>}
+          <div className="flex items-center gap-3">
+            {((isCurrentTyping && stepDone) || (!isCurrentTyping && !stepDone)) && (
+              <span className="hidden text-xs text-ink-faint sm:inline">{text("Enter → Next")}</span>
+            )}
+            {isCurrentTyping && stepDone && <span className="flex items-center gap-1 text-xs font-medium text-success-600"><CheckCircle2 size={14} />{text("Step complete")}</span>}
+            {!isCurrentTyping && !stepDone && <Button size="sm" onClick={advanceStep}>{text("I understand")} <CheckCircle2 size={14} aria-hidden="true" /></Button>}
+            {stepDone && <Button size="sm" onClick={advanceStep}>{text(stepIndex === steps.length - 1 ? "Complete Lesson" : "Next Step")} <ArrowRight className="directional-icon" size={14} aria-hidden="true" /></Button>}
           </div>
         </div>
       </Card>

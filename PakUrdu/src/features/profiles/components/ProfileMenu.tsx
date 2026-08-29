@@ -120,7 +120,7 @@ export function ProfileMenu({ onCreateNew }: ProfileMenuProps) {
               setOpen(false);
               onCreateNew();
             }}
-            className="flex w-full items-center gap-2.5 rounded-sm px-3 py-2 text-left text-sm font-medium text-brand-600 hover:bg-brand-50"
+            className="flex w-full items-center gap-2.5 rounded-sm px-3 py-2 text-start text-sm font-medium text-brand-600 hover:bg-brand-50"
           >
             <Plus size={15} aria-hidden="true" />
             {t.nav.createNewProfile}

@@ -9,7 +9,7 @@ import { useSEO } from "@/hooks/useSEO";
 import { cn } from "@/lib/cn";
 import { useTypingEngine, TypingText, TypingStats, TypingCaptureArea, useKeyboardTapInput } from "@/features/typing";
 import { VirtualKeyboard, HandFingerGuide, usePressedKey, getExpectedKey, fingerForKey } from "@/features/keyboard";
-import { useTypingTimer, calculateWPM } from "@/features/statistics";
+import { useTypingTimer, calculateCPM, calculateWPM } from "@/features/statistics";
 import { buildSessionResult, useSessionResult } from "@/features/results";
 import { buildCategoryPassage, buildPracticePassage } from "@/features/typing/data/urduPracticeWords";
 import { useSettings } from "@/features/settings";
@@ -70,7 +70,8 @@ export default function Practice() {
     isComplete: typing.isComplete,
     resetKey: `${exercise.id}-${resetCount}`,
   });
-  const wpm = calculateWPM(typing.currentIndex, timer.elapsedMs);
+  const wpm = calculateWPM(typing.sessionKeystrokes, timer.elapsedMs);
+  const cpm = calculateCPM(typing.sessionKeystrokes, timer.elapsedMs);
 
   // A standalone Practice session has no lesson and no Progress
   // Service record to compare against — `lessonId`/`lessonName` and
@@ -220,7 +221,7 @@ export default function Practice() {
                       {t.practice.previous} <ArrowRight className="rotate-180" size={13} aria-hidden="true" />
                     </Button>
                     <Button size="sm" onClick={handleNextPractice}>
-                      {t.practice.next} <ArrowRight size={13} aria-hidden="true" />
+                      {t.practice.next} <ArrowRight className="directional-icon" size={13} aria-hidden="true" />
                     </Button>
                   </div>
                   <Button variant="secondary" size="sm" to="/results">
@@ -250,11 +251,12 @@ export default function Practice() {
         </div>
 
         <TypingStats
-          accuracy={typing.accuracy}
+          accuracy={typing.sessionAccuracy}
           currentIndex={typing.currentIndex}
-          totalCharacters={typing.totalCharacters}
+          totalCharacters={typing.sessionKeystrokes}
           incorrectCharacters={typing.incorrectCharacters}
           wpm={wpm}
+          cpm={cpm}
           elapsedMs={timer.elapsedMs}
         />
       </div>

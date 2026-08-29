@@ -163,14 +163,13 @@
     font-variant-ligatures: common-ligatures contextual;
   }
 
-  /* Character feedback must stay inline so Arabic/Urdu joining is shaped as
-     one continuous text run. Inline-block/isolated character boxes break
-     contextual forms in Nastaliq. */
-  .typing-character {
-    display: inline;
-    unicode-bidi: normal;
+  /* Keep every Urdu word as one uninterrupted text run. Character-level DOM
+     wrappers can create shaping boundaries in Arabic-script fonts and are a
+     common cause of broken joins / overlapping Nastaliq swashes. */
+  .typing-word {
     font-kerning: normal;
     font-variant-ligatures: common-ligatures contextual;
+    text-rendering: optimizeLegibility;
   }
 
   /* Comfortable RTL block for longer runs of Urdu copy (labels, lesson
@@ -375,13 +374,33 @@
      marquee itself as the overflow boundary prevents long Urdu runs or
      transform calculations from ever becoming page-level overlays. */
   .typing-marquee {
-    contain: layout paint;
+    /* Keep layout containment for measurement isolation, but never use paint
+       containment here: Nastaliq glyph ink can extend beyond its line box.
+       Paint containment clips that ink during the scrolling transform. */
+    contain: layout;
     isolation: isolate;
   }
 
   .typing-marquee > .urdu-text {
     unicode-bidi: plaintext;
     max-width: none;
+  }
+
+  /* Large single-glyph lesson targets need a real line box. Nastaliq ink can
+     extend well above/below the nominal font box, so `leading-none` is unsafe
+     here and can make dotted/descending letters look clipped. */
+  .learn-target-glyph {
+    display: inline-block;
+    /* Nastaliq has unusually tall ascenders/descenders and diagonal ink.
+       Give the glyph a generous line box so its swashes never collide with
+       the explanatory text below it. */
+    line-height: 2.35;
+    padding-block: 0.2em 0.45em;
+    white-space: nowrap;
+    overflow: visible;
+    font-kerning: normal;
+    font-variant-ligatures: common-ligatures contextual;
+    text-rendering: optimizeLegibility;
   }
 
   /* Typing screens should never reserve a mysterious right-hand gutter.
@@ -422,4 +441,10 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .word-marquee__track { animation: none; }
+}
+
+/* Directional controls follow the current writing direction; utility/action
+   icons such as refresh, settings and close remain unchanged. */
+html[dir="rtl"] .directional-icon {
+  transform: scaleX(-1);
 }

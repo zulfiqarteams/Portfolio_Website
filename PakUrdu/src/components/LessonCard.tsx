@@ -61,8 +61,8 @@ export function LessonCard({
           <CheckCircle2 size={16} className="text-success-500" aria-hidden="true" />
         ) : (
           <ArrowRight
+            className="directional-icon text-brand-500 opacity-0 transition-opacity group-hover:opacity-100"
             size={16}
-            className="text-brand-500 opacity-0 transition-opacity group-hover:opacity-100"
             aria-hidden="true"
           />
         )}
@@ -71,13 +71,13 @@ export function LessonCard({
       <h3
         dir="ltr"
         className={cn(
-          "mt-3 text-left text-sm font-semibold [unicode-bidi:isolate]",
+          "mt-3 text-start text-sm font-semibold [unicode-bidi:isolate]",
           isLocked ? "text-ink-faint" : "text-ink",
         )}
       >
         {title}
       </h3>
-      <p dir="ltr" className="mt-1.5 text-left text-sm leading-relaxed text-ink-soft [unicode-bidi:isolate]">
+      <p dir="ltr" className="mt-1.5 text-start text-sm leading-relaxed text-ink-soft [unicode-bidi:isolate]">
         {description}
       </p>
 

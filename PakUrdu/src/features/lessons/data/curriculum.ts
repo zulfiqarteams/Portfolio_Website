@@ -153,18 +153,17 @@ function characterLesson(index: number, definition: CharacterDefinition, learned
   const wordTarget = practiceWords.map((word) => word.urdu).join(" ");
 
   const steps: LessonStep[] = [
-    makeStep("learn", "Learn the key", `Meet ${definition.name}. Say the sound aloud, then notice its Urdu shape.`, undefined, {
+    // The first character step is deliberately actionable rather than
+    // explanatory: the learner sees the Urdu character, its short phonetic
+    // cue, the highlighted physical key, and types it once. This keeps the
+    // first screen focused on SEE → UNDERSTAND → TYPE.
+    makeStep("learn", `Learn ${definition.name}`, `Say: ${definition.name} · Press: ${expectedKey?.key ? expectedKey.key.toUpperCase() : definition.phonetic}`, definition.character, {
       character: definition.character,
       phonetic: definition.phonetic,
       expectedKey,
-      note: definition.description,
+      minimumAccuracy: 80,
     }),
-    makeStep("observe", "See the key and finger", `Find the ${expectedKey?.key ?? definition.phonetic} key on the keyboard. ${expectedKey?.shift ? "Hold Shift while pressing it." : "Use the base key."}`, undefined, {
-      character: definition.character,
-      phonetic: definition.phonetic,
-      expectedKey,
-    }),
-    makeStep("practice", "Practice the character", `Type ${definition.name} six times. Accuracy matters more than speed.`, repeated, {
+    makeStep("practice", "Practice the character", `Type ${definition.name} six times.`, repeated, {
       character: definition.character,
       expectedKey,
       minimumAccuracy: 80,
@@ -252,7 +251,7 @@ const combinationLessons: Lesson[] = Array.from({ length: 14 }, (_, index) => {
     introducedCharacters: learned.map((item) => item.character),
     requiredAccuracy: 80,
     steps: [
-      makeStep("learn", "Understand the pattern", "Read the target from right to left and notice which letters are joining.", undefined, { note: "Urdu letters form connected written shapes, but the phonetic keys remain individual physical keys." }),
+      makeStep("learn", "Understand the pattern", "Read the target from right to left, notice which letters are joining, then type the complete pattern.", target, { note: "Urdu letters form connected written shapes, but the phonetic keys remain individual physical keys." }),
       makeStep("observe", "Watch the keyboard", "Follow the highlighted key and finger as you prepare the first combination."),
       makeStep("practice", "Type the combinations", "Type each pattern exactly as shown.", target, { minimumAccuracy: 80 }),
       makeStep("review", "Speed check", "Repeat the same patterns once more with a calm, even rhythm.", `${target} ${target.split(" ").reverse().join(" ")}`, { minimumAccuracy: 85 }),
@@ -297,7 +296,7 @@ const wordLessons: Lesson[] = wordLessonBands.map(([title, maxIndex], index) => 
     introducedCharacters: characterDefinitions.slice(0, maxIndex + 1).map((item) => item.character),
     requiredAccuracy: 85,
     steps: [
-      makeStep("learn", "Preview the words", "Read the Urdu words and their meanings before typing." , undefined, { examples: selected }),
+      makeStep("learn", "Preview the words", "Read the Urdu words and their meanings, then type the complete word set." , target, { examples: selected }),
       makeStep("observe", "Prepare your hands", "Look at the first target word and identify the next physical key."),
       makeStep("practice", "Type the word set", "Type all words in order. Spaces are part of the exercise.", target, { minimumAccuracy: 85, examples: selected }),
       makeStep("review", "Review the set", "Repeat the words once more, aiming for smoother rhythm rather than rushing.", target, { minimumAccuracy: 90 }),
@@ -334,7 +333,7 @@ const sentenceLessons: Lesson[] = sentenceTexts.map((target, index) => ({
   type: "sentence",
   requiredAccuracy: 85,
   steps: [
-    makeStep("learn", "Read the sentence", "Read the whole sentence once before typing." , undefined, { examples: [{ urdu: target }] }),
+    makeStep("learn", "Read the sentence", "Read the whole sentence once, then type it completely." , target, { examples: [{ urdu: target }] }),
     makeStep("observe", "Find the first key", "Notice the highlighted first key and its finger before you begin."),
     makeStep("practice", "Type the sentence", "Type the complete sentence including spaces and the Urdu full stop.", target, { minimumAccuracy: 85 }),
     makeStep("review", "Clean repeat", "Type it again, aiming to reduce hesitation and errors.", target, { minimumAccuracy: 90 }),
@@ -367,7 +366,7 @@ const paragraphLessons: Lesson[] = paragraphTexts.map((target, index) => ({
   type: "paragraph",
   requiredAccuracy: 85,
   steps: [
-    makeStep("learn", "Preview the passage", "Read the passage once and notice its punctuation." , undefined, { examples: [{ urdu: target }] }),
+    makeStep("learn", "Preview the passage", "Read the passage once, notice its punctuation, then type it completely." , target, { examples: [{ urdu: target }] }),
     makeStep("observe", "Set your pace", "Keep your wrists relaxed and use the finger guide only when you need it."),
     makeStep("practice", "Type the passage", "Type the full passage from beginning to end.", target, { minimumAccuracy: 85 }),
     makeStep("review", "Fluency repeat", "Repeat the passage and try to make the movement smoother, not merely faster.", target, { minimumAccuracy: 90 }),
@@ -399,7 +398,7 @@ const professionalLessons: Lesson[] = professionalTexts.map((target, index) => (
   type: "mixed",
   requiredAccuracy: 90,
   steps: [
-    makeStep("learn", "Read for meaning", "Understand the formal tone before you type." , undefined, { examples: [{ urdu: target }] }),
+    makeStep("learn", "Read for meaning", "Understand the formal tone, then type the complete passage." , target, { examples: [{ urdu: target }] }),
     makeStep("observe", "Prepare your hands", "Check the first target key, then settle into a steady rhythm."),
     makeStep("practice", "Type the formal passage", "Type the complete professional text.", target, { minimumAccuracy: 90 }),
     makeStep("review", "Final polish", "Repeat the passage with clean spacing and punctuation.", target, { minimumAccuracy: 92 }),
@@ -445,7 +444,7 @@ const masteryLessons: Lesson[] = masteryTexts.map((target, index) => ({
   type: "test",
   requiredAccuracy: 90,
   steps: [
-    makeStep("learn", "Set your goal", "Choose accuracy first. Speed will follow a reliable finger habit."),
+    makeStep("learn", "Set your goal", "Choose accuracy first, then type the complete mastery passage. Speed will follow a reliable finger habit.", target),
     makeStep("observe", "Review the keyboard", "Notice that the target keys still follow the same phonetic map you learned from Alif onward."),
     makeStep("practice", "Mastery typing", "Type the full mixed passage.", target, { minimumAccuracy: 90 }),
     makeStep("review", "Final repeat", "Type the passage again and aim for a calm, confident finish.", target, { minimumAccuracy: 92 }),

@@ -77,6 +77,8 @@ export interface TypingStatistics {
   incorrectCharacters: number;
   /** 0–100, rounded. Formula unchanged from Part 7 — see `calculateAccuracy`. */
   accuracy: number;
+  /** Unrounded — see `calculateCPM`. */
+  cpm: number;
   /** Unrounded — see `calculateWPM`. */
   wpm: number;
 }
@@ -102,6 +104,7 @@ export function calculateStatistics(params: {
     correctCharacters,
     incorrectCharacters,
     accuracy: calculateAccuracy(correctCharacters, typedCharacters),
+    cpm: calculateCPM(typedCharacters, safeElapsedMs),
     wpm: calculateWPM(typedCharacters, safeElapsedMs),
   };
 }

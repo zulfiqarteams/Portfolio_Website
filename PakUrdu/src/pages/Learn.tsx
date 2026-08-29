@@ -22,7 +22,7 @@ function toCardStatus(status: LessonProgressStatus): LessonStatus {
 }
 
 export default function Learn() {
-  const { t } = useLanguage();
+  const { t, text } = useLanguage();
   useSEO({
     title: "Learn Urdu Typing — Phonetic Keyboard Lessons",
     description:
@@ -47,7 +47,7 @@ export default function Learn() {
   if (!activeProfile) {
     return (
       <PageContainer>
-        <PageHeader title={course.title} description={course.description} />
+        <PageHeader title={text(course.title)} description={text(course.description)} />
         <div className="py-10">
           <EmptyState
             icon={UserCircle}
@@ -68,22 +68,22 @@ export default function Learn() {
 
           <div className="min-w-0">
             <PageHeader
-              title={selectedTrack ? `${course.title} · ${selectedTrack.label}` : course.title}
-              description={course.description}
+              title={selectedTrack ? `${text(course.title)} · ${text(selectedTrack.label)}` : text(course.title)}
+              description={text(course.description)}
             />
 
             <div className="flex justify-end pb-6">
               <Button to="/learn/phonetic-keyboard" variant="outline" size="sm">
                 <BookOpenText size={16} aria-hidden="true" />
-                Learn About Phonetic Keyboard
+                {text("Learn About Phonetic Keyboard")}
               </Button>
             </div>
 
             {levels.length === 0 ? (
               <EmptyState
                 icon={BookOpenText}
-                title="No lessons in this track yet"
-                description="Choose another track from the sidebar."
+                title={text("No lessons in this track yet")}
+                description={text("Choose another track from the sidebar.")}
               />
             ) : (
               <div className="divide-y divide-border">
@@ -94,11 +94,11 @@ export default function Learn() {
                     <section key={level.id} aria-labelledby={`level-${level.id}`} className="py-10">
                       <div className="mb-1 flex flex-wrap items-center gap-3">
                         <h2 id={`level-${level.id}`} className="text-lg font-semibold">
-                          {level.title}
+                          {text(level.title)}
                         </h2>
                         {level.locked && <Badge tone="neutral">{t.common.start}</Badge>}
                       </div>
-                      <p className="mb-6 max-w-2xl text-sm text-ink-soft">{level.description}</p>
+                      <p className="mb-6 max-w-2xl text-sm text-ink-soft">{text(level.description)}</p>
 
                       <div className="space-y-8">
                         {levelModules.map((module) => {
@@ -108,7 +108,7 @@ export default function Learn() {
                           return (
                             <div key={module.id}>
                               <h3 className="mb-3 text-sm font-semibold text-ink-soft">
-                                {module.title}
+                                {text(module.title)}
                               </h3>
                               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                                 {moduleLessons.map((lesson) => {
@@ -119,8 +119,8 @@ export default function Learn() {
                                     <LessonCard
                                       key={lesson.id}
                                       index={getLessonPosition(lesson.id) ?? lesson.order}
-                                      title={lesson.title}
-                                      description={lesson.description}
+                                      title={text(lesson.title)}
+                                      description={text(lesson.description)}
                                       difficulty={lesson.difficulty}
                                       status={status}
                                       to={status === "locked" ? undefined : `/lesson/${lesson.id}`}

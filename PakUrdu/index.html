@@ -1,8 +1,22 @@
 <!doctype html>
-<html lang="en" dir="ltr">
+<html lang="ur" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (function () {
+        try {
+          var raw = window.localStorage.getItem("urduTypingTutorial:settings");
+          var settings = raw ? JSON.parse(raw) : null;
+          var language = settings && (settings.language === "en" || settings.language === "ur" || settings.language === "roman") ? settings.language : "ur";
+          document.documentElement.lang = language === "ur" ? "ur" : "en";
+          document.documentElement.dir = language === "ur" ? "rtl" : "ltr";
+        } catch (_) {
+          document.documentElement.lang = "ur";
+          document.documentElement.dir = "rtl";
+        }
+      })();
+    </script>
 
     <!-- Primary SEO -->
     <title>PAKURDU — Urdu Typing Tutorial | Learn Urdu Typing Online Free</title>
@@ -44,7 +58,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/Portfolio_Website/PakUrdu/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/Portfolio_Website/PakUrdu/favicon-16x16.png" />
     <link rel="apple-touch-icon" href="/Portfolio_Website/PakUrdu/apple-touch-icon.png" />
-    <link rel="manifest" href="/Portfolio_Website/PakUrdu/manifest.json" />
+    <link rel="manifest" href="%BASE_URL%manifest.json" />
 
     <!-- Structured data: helps Google understand this is a free educational web app -->
     <script type="application/ld+json">

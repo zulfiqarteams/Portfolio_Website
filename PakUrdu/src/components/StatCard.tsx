@@ -30,7 +30,7 @@ export function StatCard({ icon: Icon, label, value, hint, trend }: StatCardProp
   const TrendIcon = trend ? trendConfig[trend.direction].icon : null;
 
   return (
-    <Card className="text-left">
+    <Card className="text-start">
       <div className="flex items-center gap-2 text-ink-faint">
         {Icon && <Icon size={15} aria-hidden="true" />}
         <span className="text-xs font-semibold uppercase tracking-widest">{label}</span>

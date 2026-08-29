@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { useLanguage } from "@/i18n/useLanguage";
+import { localizeText } from "@/i18n/localizeText";
 import { buildSEOTags, type SEOInput } from "@/hooks/seoCore";
 
 export type SEOOptions = Omit<SEOInput, "pathname">;
@@ -37,9 +39,12 @@ function upsertLink(rel: string, href: string) {
 export function useSEO(options: SEOOptions): void {
   const location = useLocation();
   const { title, description, noIndex } = options;
+  const { language } = useLanguage();
 
   useEffect(() => {
-    const tags = buildSEOTags({ title, description, noIndex, pathname: location.pathname });
+    const localizedTitle = localizeText(title, language);
+    const localizedDescription = description ? localizeText(description, language) : description;
+    const tags = buildSEOTags({ title: localizedTitle, description: localizedDescription, noIndex, pathname: location.pathname });
     const previousTitle = document.title;
     document.title = tags.fullTitle;
 
@@ -73,7 +78,7 @@ export function useSEO(options: SEOOptions): void {
       document.title = previousTitle;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, description, noIndex, location.pathname]);
+  }, [title, description, noIndex, location.pathname, language]);
 }
 
 /** @deprecated Use `useSEO` instead — kept so any stray import still compiles. */

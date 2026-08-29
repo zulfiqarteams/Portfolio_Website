@@ -7,7 +7,7 @@
  *
  *   npx tsx src/features/statistics/core/__tests__/statistics.test.ts
  */
-import { calculateStatistics, calculateWPM, formatTime } from "../statistics";
+import { calculateCPM, calculateStatistics, calculateWPM, formatTime } from "../statistics";
 
 function assertEqual<T>(actual: T, expected: T, message?: string): void {
   if (actual !== expected) {
@@ -54,6 +54,11 @@ test("calculateWPM — does not round the underlying value", () => {
   assertEqual(calculateWPM(301, 60_000), 60.2);
 });
 
+
+test("calculateCPM — 300 characters in exactly 1 minute is 300 CPM", () => {
+  assertEqual(calculateCPM(300, 60_000), 300);
+});
+
 // --- formatTime ------------------------------------------------------------
 
 test("formatTime — zero elapsed formats as 00:00", () => {
@@ -94,6 +99,7 @@ test("calculateStatistics — combines counts and elapsed time into one snapshot
   assertEqual(stats.correctCharacters, 285);
   assertEqual(stats.incorrectCharacters, 15);
   assertEqual(stats.accuracy, 95);
+  assertEqual(stats.cpm, 300);
   assertEqual(stats.wpm, 60);
 });
 

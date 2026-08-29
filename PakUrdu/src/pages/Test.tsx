@@ -10,7 +10,7 @@ import { useTypingEngine, TypingText, TypingStats, TypingCaptureArea, getVisible
 import { buildWordPassage } from "@/features/typing/data/commonUrduWords";
 import { buildIslamicTypingPassage } from "@/features/typing/data/islamicTypingWords";
 import { VirtualKeyboard, HandFingerGuide, usePressedKey, getExpectedKey, fingerForKey } from "@/features/keyboard";
-import { useTypingTimer, calculateWPM, formatTime } from "@/features/statistics";
+import { useTypingTimer, calculateCPM, calculateWPM, formatTime } from "@/features/statistics";
 import { buildSessionResult, useSessionResult } from "@/features/results";
 import { useSettings } from "@/features/settings";
 import { playResultNeutral, playResultSuccess } from "@/features/keyboard/utils/keyboardSounds";
@@ -64,7 +64,6 @@ export default function Test() {
   const typing = useTypingEngine({ targetText });
   const [isCaptureActive, setIsCaptureActive] = useState(false);
   const hasRecordedCompletionRef = useRef(false);
-  const keyboardTapInput = useKeyboardTapInput(typing, soundEnabled);
 
   const testHasEnded = typing.isComplete || timedOut;
 
@@ -72,18 +71,14 @@ export default function Test() {
     hasStarted: typing.currentIndex > 0,
     isComplete: testHasEnded,
     resetKey: testKey,
+    durationMs,
+    onExpire: () => setTimedOut(true),
   });
+  const keyboardTapInput = useKeyboardTapInput(typing, soundEnabled, timer.canAcceptInput);
 
-  // Detect time-up independently of the timer hook's own completion
-  // state (which we're feeding testHasEnded into) — this just watches
-  // the clock and flips `timedOut` once, the render after elapsed time
-  // reaches the chosen duration.
-  useEffect(() => {
-    if (phase !== "running" || testHasEnded) return;
-    if (timer.elapsedMs >= durationMs) setTimedOut(true);
-  }, [phase, testHasEnded, timer.elapsedMs, durationMs]);
-
-  const wpm = calculateWPM(typing.currentIndex, Math.min(timer.elapsedMs, durationMs));
+  const typedCharacters = typing.sessionKeystrokes;
+  const wpm = calculateWPM(typedCharacters, timer.elapsedMs);
+  const cpm = calculateCPM(typedCharacters, timer.elapsedMs);
   const remainingMs = Math.max(durationMs - timer.elapsedMs, 0);
 
   useEffect(() => {
@@ -102,7 +97,7 @@ export default function Test() {
           lessonId: null,
           lessonName: testCorpus === "islamic" ? "Islamic Names & Honorifics" : "Typing Test",
           targetText,
-          accuracy: typing.accuracy,
+          accuracy: typing.sessionAccuracy,
           sessionAccuracy: typing.sessionAccuracy,
           wpm,
           elapsedMs: Math.min(timer.elapsedMs, durationMs),
@@ -112,7 +107,7 @@ export default function Test() {
           // needed) generated passage — matches correct+incorrect so
           // the Results screen's "Characters" stat reflects what was
           // actually typed during the test, not what was generated.
-          totalCharacters: typing.currentIndex,
+          totalCharacters: typing.sessionKeystrokes,
           mistakes: typing.mistakes,
           previousBestAccuracy: null,
           previousBestWpm: null,
@@ -207,7 +202,7 @@ export default function Test() {
                     aria-checked={isSelected}
                     onClick={() => setTestCorpus(option.id)}
                     className={cn(
-                      "rounded-sm border px-4 py-3 text-left transition-colors",
+                      "rounded-sm border px-4 py-3 text-start transition-colors",
                       isSelected
                         ? "border-brand-500 bg-brand-50"
                         : "border-border hover:border-border-strong",
@@ -333,6 +328,8 @@ export default function Test() {
               typing={typing}
               onActiveChange={setIsCaptureActive}
               suppressNativeKeyboardOnTouch={showKeyboard}
+              canType={timer.canAcceptInput}
+              isLocked={testHasEnded}
             >
               <TypingText
                 characters={visibleCharacters}
@@ -362,11 +359,12 @@ export default function Test() {
         </div>
 
         <TypingStats
-          accuracy={typing.accuracy}
+          accuracy={typing.sessionAccuracy}
           currentIndex={typing.currentIndex}
           totalCharacters={typing.totalCharacters}
           incorrectCharacters={typing.incorrectCharacters}
           wpm={wpm}
+          cpm={cpm}
           elapsedMs={timer.elapsedMs}
         />
       </div>
