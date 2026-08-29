@@ -333,7 +333,7 @@ export function LessonPractice({ lesson, nextLessonId }: LessonPracticeProps) {
           {lesson.type === "character" && stepIndex === 0 ? (
             <div className="text-center">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-faint">{text(`Learn ${activeStep.character ? activeStep.title.replace(/^Learn\s+/, "") : lesson.title.split(" — ")[0]}`)}</p>
-              <div className="mt-2 flex min-h-[12rem] items-center justify-center overflow-visible px-2 sm:min-h-[13rem]">
+              <div className="mt-2 flex min-h-[9rem] items-center justify-center overflow-visible sm:min-h-[10rem]">
                 <span
                   className="learn-target-glyph urdu-text text-7xl leading-[1.8] text-brand-700 sm:text-8xl"
                   dir="rtl"

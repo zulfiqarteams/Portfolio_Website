@@ -163,15 +163,6 @@
     font-variant-ligatures: common-ligatures contextual;
   }
 
-  /* Keep every Urdu word as one uninterrupted text run. Character-level DOM
-     wrappers can create shaping boundaries in Arabic-script fonts and are a
-     common cause of broken joins / overlapping Nastaliq swashes. */
-  .typing-word {
-    font-kerning: normal;
-    font-variant-ligatures: common-ligatures contextual;
-    text-rendering: optimizeLegibility;
-  }
-
   /* Comfortable RTL block for longer runs of Urdu copy (labels, lesson
      body text) — same face, slightly roomier tracking/line-height than
      `.urdu-text` needs for a single large display word. */
@@ -391,16 +382,11 @@
      here and can make dotted/descending letters look clipped. */
   .learn-target-glyph {
     display: inline-block;
-    /* Nastaliq has unusually tall ascenders/descenders and diagonal ink.
-       Give the glyph a generous line box so its swashes never collide with
-       the explanatory text below it. */
-    line-height: 2.35;
-    padding-block: 0.2em 0.45em;
+    line-height: 1.8;
     white-space: nowrap;
     overflow: visible;
     font-kerning: normal;
     font-variant-ligatures: common-ligatures contextual;
-    text-rendering: optimizeLegibility;
   }
 
   /* Typing screens should never reserve a mysterious right-hand gutter.

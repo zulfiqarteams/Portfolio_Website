@@ -86,39 +86,18 @@ function findActiveWordIndex(words: Word[]): number {
 }
 
 function wordClasses(status: WordStatus, showFeedback: boolean): string {
-  // IMPORTANT: Urdu/Nastaliq shaping must happen inside one uninterrupted
-  // text run. Per-grapheme spans (especially when their styles differ) can
-  // split the browser's shaping runs and make long/looped letters appear
-  // broken or overlap. Feedback is therefore applied at WORD level here;
-  // the typing engine still keeps the exact per-grapheme status internally.
-  if (status === "current") {
-    return "text-ink rounded-md bg-brand-50 px-2 py-1 underline decoration-brand-500 decoration-2 underline-offset-8";
-  }
-  if (showFeedback && status === "incorrect") {
-    return "text-error-600 underline decoration-wavy decoration-2 decoration-error-500 underline-offset-8";
-  }
+  // Urdu/Nastaliq must remain one uninterrupted shaping run. Feedback is
+  // intentionally applied at word level; the engine still tracks every
+  // grapheme internally for exact accuracy and backspace behavior.
+  if (status === "current") return "text-ink underline decoration-brand-500 decoration-2 underline-offset-8";
+  if (showFeedback && status === "incorrect") return "text-error-600 underline decoration-wavy decoration-2 decoration-error-500 underline-offset-8";
   if (showFeedback && status === "correct") return "text-success-600";
   return "text-ink-faint";
 }
 
-/**
- * Render the complete word as ONE text node. This is intentional: Arabic /
- * Urdu contextual joining (especially Nastaliq swashes and long loops) is
- * much more reliable when the browser receives the complete word as a
- * continuous shaping run rather than one styled span per grapheme.
- */
 function renderWord(word: Word, showFeedback: boolean, className = "") {
   return (
-    <span
-      key={word.key}
-      className={cn(
-        "typing-word inline-block shrink-0 whitespace-nowrap break-keep overflow-visible align-baseline",
-        wordClasses(word.status, showFeedback),
-        className,
-      )}
-      dir="rtl"
-      lang="ur"
-    >
+    <span key={word.key} className={cn("typing-word inline-block shrink-0 whitespace-nowrap break-keep overflow-visible align-baseline", wordClasses(word.status, showFeedback), className)} dir="rtl" lang="ur">
       {word.text}
     </span>
   );
@@ -304,8 +283,14 @@ function ScrollTypingText({
 
     const recalc = () => {
       const anchorX = container.clientWidth * SCROLL_ANCHOR_RATIO;
-      const wordCenter = activeEl.offsetLeft + activeEl.offsetWidth / 2;
-      setTranslateX(anchorX - wordCenter);
+      const row = activeEl.parentElement;
+      const rowRect = row?.getBoundingClientRect();
+      const activeRect = activeEl.getBoundingClientRect();
+      if (!rowRect) return;
+      const transform = getComputedStyle(row).transform;
+      const currentTranslate = transform === "none" ? 0 : new DOMMatrix(transform).m41;
+      const activeCenter = activeRect.left - rowRect.left + activeRect.width / 2 - currentTranslate;
+      setTranslateX(anchorX - activeCenter);
     };
 
     recalc();
