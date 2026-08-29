@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Bookmark, BookmarkCheck, Save } from "lucide-react";import { PageContainer } from "@/components/PageContainer";
+import { Bookmark, BookmarkCheck, Save } from "lucide-react";
+import { PageContainer } from "@/components/PageContainer";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { getLessonById } from "@/features/lessons";
-import { loadBookmarkIds, loadSavedLaterIds, toggleBookmark, toggleSavedLater } from "@/features/library/services/savedContent";
+import { SAVED_CONTENT_EVENT, loadBookmarkIds, loadSavedLaterIds, toggleBookmark, toggleSavedLater } from "@/features/library/services/savedContent";
 import { useSEO } from "@/hooks/useSEO";
 import { useLanguage } from "@/i18n/useLanguage";
 
@@ -24,8 +25,18 @@ export default function Saved() {
   const [savedLaterIds, setSavedLaterIds] = useState<string[]>([]);
 
   useEffect(() => {
-    setBookmarkIds(loadBookmarkIds());
-    setSavedLaterIds(loadSavedLaterIds());
+    const sync = () => {
+      setBookmarkIds(loadBookmarkIds());
+      setSavedLaterIds(loadSavedLaterIds());
+    };
+
+    sync();
+    window.addEventListener(SAVED_CONTENT_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(SAVED_CONTENT_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
   }, []);
 
   function removeBookmark(id: string) {
@@ -44,9 +55,26 @@ export default function Saved() {
   return (
     <PageContainer>
       <div className="py-8 sm:py-10">
-        <PageHeader title={text("Saved Lessons")} description={text("Lessons you've bookmarked or saved for later, stored only in this browser.")} />
+        <PageHeader title={text("Saved Lessons")} description={text("Your bookmark and Save for Later history. Everything here is stored locally in this browser.")} />
 
-        <section className="mt-8">
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <a href="#bookmarked" className="rounded-lg border border-border bg-surface p-4 transition-colors hover:border-brand-300 hover:bg-brand-50">
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2 font-semibold"><BookmarkCheck size={18} aria-hidden="true" />{text("Bookmarks")}</span>
+              <span className="numeric rounded-full bg-paper px-2.5 py-1 text-xs font-bold">{bookmarkIds.length}</span>
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-ink-soft">{text("Bookmark = keep a lesson in your personal quick-access list so you can find it again easily.")}</p>
+          </a>
+          <a href="#saved-later" className="rounded-lg border border-border bg-surface p-4 transition-colors hover:border-brand-300 hover:bg-brand-50">
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2 font-semibold"><Save size={18} aria-hidden="true" />{text("Saved for Later")}</span>
+              <span className="numeric rounded-full bg-paper px-2.5 py-1 text-xs font-bold">{savedLaterIds.length}</span>
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-ink-soft">{text("Save for Later = put a lesson aside when you want to return to it and continue later.")}</p>
+          </a>
+        </div>
+
+        <section id="bookmarked" className="mt-8 scroll-mt-24">
           <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
             <BookmarkCheck size={18} className="text-brand-600" aria-hidden="true" />
             {text("Bookmarked")}
@@ -77,7 +105,7 @@ export default function Saved() {
           )}
         </section>
 
-        <section className="mt-10">
+        <section id="saved-later" className="mt-10 scroll-mt-24">
           <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
             <Save size={18} className="text-brand-600" aria-hidden="true" />
             {text("Saved for Later")}

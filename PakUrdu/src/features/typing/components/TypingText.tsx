@@ -86,18 +86,33 @@ function findActiveWordIndex(words: Word[]): number {
 }
 
 function wordClasses(status: WordStatus, showFeedback: boolean): string {
-  // Urdu/Nastaliq must remain one uninterrupted shaping run. Feedback is
-  // intentionally applied at word level; the engine still tracks every
-  // grapheme internally for exact accuracy and backspace behavior.
-  if (status === "current") return "text-ink underline decoration-brand-500 decoration-2 underline-offset-8";
-  if (showFeedback && status === "incorrect") return "text-error-600 underline decoration-wavy decoration-2 decoration-error-500 underline-offset-8";
+  if (status === "current") {
+    return "text-ink underline decoration-brand-500 decoration-2 underline-offset-8";
+  }
+  if (showFeedback && status === "incorrect") {
+    return "text-error-600 underline decoration-wavy decoration-2 decoration-error-500 underline-offset-8";
+  }
   if (showFeedback && status === "correct") return "text-success-600";
   return "text-ink-faint";
 }
 
+/**
+ * Urdu/Arabic contextual shaping must remain uninterrupted inside each word.
+ * The typing engine still tracks every Unicode grapheme internally, but the
+ * visual DOM intentionally renders one complete word as one text run.
+ */
 function renderWord(word: Word, showFeedback: boolean, className = "") {
   return (
-    <span key={word.key} className={cn("typing-word inline-block shrink-0 whitespace-nowrap break-keep overflow-visible align-baseline", wordClasses(word.status, showFeedback), className)} dir="rtl" lang="ur">
+    <span
+      key={word.key}
+      className={cn(
+        "typing-word inline-block shrink-0 whitespace-nowrap break-keep overflow-visible align-baseline",
+        wordClasses(word.status, showFeedback),
+        className,
+      )}
+      dir="rtl"
+      lang="ur"
+    >
       {word.text}
     </span>
   );
@@ -203,7 +218,8 @@ function ContinuousWordLine({
 
     recalc();
     const observer = new ResizeObserver(recalc);
-    if (row.parentElement) observer.observe(row.parentElement);
+    const observedParent = row.parentElement;
+    if (observedParent) observer.observe(observedParent);
     return () => observer.disconnect();
   }, [words, anchorIndex]);
 
@@ -283,19 +299,14 @@ function ScrollTypingText({
 
     const recalc = () => {
       const anchorX = container.clientWidth * SCROLL_ANCHOR_RATIO;
-      const row = activeEl.parentElement;
-      const rowRect = row?.getBoundingClientRect();
-      const activeRect = activeEl.getBoundingClientRect();
-      if (!rowRect) return;
-      const transform = getComputedStyle(row).transform;
-      const currentTranslate = transform === "none" ? 0 : new DOMMatrix(transform).m41;
-      const activeCenter = activeRect.left - rowRect.left + activeRect.width / 2 - currentTranslate;
-      setTranslateX(anchorX - activeCenter);
+      const wordCenter = activeEl.offsetLeft + activeEl.offsetWidth / 2;
+      setTranslateX(anchorX - wordCenter);
     };
 
     recalc();
     const observer = new ResizeObserver(recalc);
-    observer.observe(container);
+    const observedContainer: Element = container;
+    observer.observe(observedContainer);
     return () => observer.disconnect();
   }, [activeWordKey, words]);
 

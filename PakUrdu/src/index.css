@@ -163,6 +163,16 @@
     font-variant-ligatures: common-ligatures contextual;
   }
 
+  /* Character feedback must stay inline so Arabic/Urdu joining is shaped as
+     one continuous text run. Inline-block/isolated character boxes break
+     contextual forms in Nastaliq. */
+  .typing-character {
+    display: inline;
+    unicode-bidi: normal;
+    font-kerning: normal;
+    font-variant-ligatures: common-ligatures contextual;
+  }
+
   /* Comfortable RTL block for longer runs of Urdu copy (labels, lesson
      body text) — same face, slightly roomier tracking/line-height than
      `.urdu-text` needs for a single large display word. */

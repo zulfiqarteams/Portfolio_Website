@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { Keyboard, Menu, Plus, X } from "lucide-react";
+import { Bookmark, Keyboard, Menu, Plus, X } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
 import { primaryNav, secondaryNav } from "@/data/navigation";
 import { cn } from "@/lib/cn";
@@ -101,6 +101,21 @@ export function Navbar() {
             "Learn" link, so a second CTA here was a duplicate path
             to the same place. */}
         <div className="hidden items-center gap-2 lg:flex">
+          <NavLink
+            to="/saved"
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-1.5 rounded-sm border-b-2 px-2.5 py-2 text-sm transition-colors",
+                isActive
+                  ? "border-brand-500 bg-brand-50 font-semibold text-brand-700"
+                  : "border-transparent font-medium text-ink-soft hover:bg-surface hover:text-ink",
+              )
+            }
+            aria-label={navLabel("/saved")}
+          >
+            <Bookmark size={15} aria-hidden="true" />
+            {navLabel("/saved")}
+          </NavLink>
           <LanguageSwitcher />
           <ProfileMenu onCreateNew={() => setIsCreateProfileOpen(true)} />
         </div>

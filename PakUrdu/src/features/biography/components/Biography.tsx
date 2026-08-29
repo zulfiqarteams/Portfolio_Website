@@ -113,7 +113,7 @@ function TimedTypingPractice({ bio, chapterIndex, level, onComplete }: { bio: Bi
   const [expired, setExpired] = useState(false);
   const [isCaptureActive, setIsCaptureActive] = useState(false);
   const pressed = usePressedKey(isCaptureActive);
-  const expected = getExpectedKey(typing.characters[typing.currentIndex]?.char ?? "");
+  const expected = getExpectedKey(typing.targetText ? typing.targetText[typing.currentIndex] : "");
   const finger = expected?.key && expected.key !== "space" ? fingerForKey(expected.key) : null;
   const elapsedTimer = useTypingTimer({ hasStarted: started && typing.currentIndex > 0, isComplete: typing.isComplete || expired, resetKey: `${bio.id}-${current.id}-${level}-${started}`, durationMs: selectedTimer > 0 ? selectedTimer * 1000 : undefined, onExpire: () => setExpired(true) });
   const keyboardTapInput = useKeyboardTapInput(typing, soundEnabled, elapsedTimer.canAcceptInput);
